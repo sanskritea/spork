@@ -19,19 +19,22 @@ import matplotlib.pyplot as plt
 def BayesianT1(N, T1):
 
     # decay rates grid
-    gamma_lower = 0.1  # in us^-1
-    gamma_upper = 0.5 # in us^-1
-    n_gamma = 2000
-    gamma_plus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)
-    gamma_minus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)
+    gamma_lower = 0.1   # in ms^-1
+    gamma_upper = 10    # in ms^-1
+    n_gamma = 500
+    gamma_plus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma) / 1000     # for us^-1
+    # print(gamma_plus_arr)
+    gamma_minus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma) / 1000    # for us^-1
     gamma_grid = np.meshgrid(gamma_plus_arr, gamma_minus_arr)
+    # print('gamma_grid', gamma_grid)
+    delta_gamma = gamma_plus_arr[1] - gamma_plus_arr[0]
 
     # decay rates distribution
     gamma_distr = np.ones((n_gamma, n_gamma)) / (n_gamma**2)
 
     # relaxometry delay tau grid
-    tau_lower = 0.1  # in us
-    tau_upper = 55  # in us
+    tau_lower = 3       # in us
+    tau_upper = 5500    # in us
     n_tau = 1000
     tau_plus_arr = np.linspace(tau_lower, tau_upper, n_tau)
     tau_minus_arr = np.linspace(tau_lower, tau_upper, n_tau)
@@ -47,79 +50,60 @@ def BayesianT1(N, T1):
 
         # calculate gamma_plus_mean and gamma_minus_mean from prior_gamma_distr
         gamma_mean, gamma_sigma = calculate_gamma_params(
-            N, rep, prior_gamma, gamma_plus_arr, gamma_minus_arr, n_gamma)
+            N, rep, prior_gamma, gamma_grid, gamma_plus_arr, gamma_minus_arr, n_gamma, delta_gamma
+        )
 
         # use mean gamma values to find optimized taus from cost function
         tau_opt = calculate_tau_opt(tau_grid, gamma_mean, gamma_sigma, repetitions)
-        print("tau_opt ", tau_opt)
 
         # use taus in measurement
         M_measured = np.zeros((2, repetitions))
-
         for t in range(2):
-
             # FAKE COUNTING
             M_measured[t] = fake_counts(tau_opt[t], repetitions, T1[t])
 
         # calculate likelihood from measurement result
         likelihood = calculate_likelihood(M_measured, tau_opt, gamma_grid, n_gamma)
 
+        # print('prior_gamma ', prior_gamma)
+        # print('likelihood ', likelihood)
         # calculate posterior
         posterior_gamma_unnorm = np.multiply(likelihood, prior_gamma)
-        # print('np.sum(prior_gamma) ', np.sum(prior_gamma))
-        # print('np.sum(posterior_gamma_unnorm) ', np.sum(posterior_gamma_unnorm))
 
         # normalize posterior and update prior
         prior_gamma = posterior_gamma_unnorm / np.sum(posterior_gamma_unnorm)
-        # print('new prior: ')
-        # print('np.sum(prior_gamma) ', np.sum(prior_gamma))
+        # print('new prior_gamma ', prior_gamma)
 
 
 def calculate_gamma_params(
-    N, rep, prior_gamma, gamma_plus_arr, gamma_minus_arr, n_gamma):
+    N, rep, prior_gamma, gamma_grid, gamma_plus_arr, gamma_minus_arr, n_gamma, delta_gamma
+):
 
-    gamma_plus_distr = []
-    gamma_minus_distr = []
-    gamma_mean = []
-    gamma_sigma = []
-    sigma_sums = []
+    gamma_plus, gamma_minus = gamma_grid
 
-    for n in range(n_gamma):
-        sum_all_rows = 0
-        sum_all_cols = 0
-        for nn in range(n_gamma):
-            sum_all_rows += prior_gamma[n][nn]
-            sum_all_cols += prior_gamma[nn][n]
-        gamma_plus_distr.append(sum_all_rows)
-        gamma_minus_distr.append(sum_all_cols)
+    gamma_plus_distr = np.sum(prior_gamma, 1) 
+    # print('gamma_plus_distr ', gamma_plus_distr)
+    gamma_minus_distr = np.sum(prior_gamma, 0) 
+    # print('gamma_minus_distr ', gamma_minus_distr)
 
-    print('Gamma_plus estimate: ', gamma_plus_arr[np.argmax(gamma_plus_distr)])
-    print('Gamma_minus estimate: ', gamma_minus_arr[np.argmax(gamma_minus_distr)])
+    print("T1_plus estimate in us: ", 1 / (gamma_plus_arr[np.argmax(gamma_plus_distr)]))
+    print("T1_minus estimate in us: ", 1 / (gamma_minus_arr[np.argmax(gamma_minus_distr)]))
 
     if rep == 0 or rep == (N - 1):
         fig, axs = plt.subplots(2)
-        fig.suptitle("Gamma distributions for " + str(rep) + "th iteration")
-        axs[0].plot(gamma_plus_arr, gamma_plus_distr)
-        axs[1].plot(gamma_minus_arr, gamma_minus_distr)
+        fig.suptitle("Gamma (ms^-1) distributions for " + str(rep) + "th iteration")
+        axs[0].plot(1000 * gamma_plus_arr, gamma_plus_distr)
+        axs[1].plot(1000 * gamma_minus_arr, gamma_minus_distr)
         plt.show()
 
-    gamma_mean_plus = 0
-    gamma_mean_minus = 0
-    for n in range(n_gamma):
-        gamma_mean_plus += gamma_plus_arr[n] * gamma_plus_distr[n]
-        gamma_mean_minus += gamma_minus_arr[n] * gamma_minus_distr[n]
+    gamma_mean_plus = np.sum(gamma_plus * gamma_plus_distr) / n_gamma
+    gamma_mean_minus = np.sum(gamma_minus * gamma_minus_distr) / n_gamma
 
-    sigma_sums_plus = 0
-    sigma_sums_minus = 0
-    for n in range(n_gamma):
-        sigma_sums_plus += (gamma_plus_arr[n] - gamma_mean_plus) ** 2
-        sigma_sums_minus += (gamma_plus_arr[n] - gamma_mean_minus) ** 2
+    gamma_sigma_plus = (np.sum((gamma_plus - gamma_mean_plus) ** 2) / n_gamma) ** 0.5
+    gamma_sigma_minus = (np.sum((gamma_minus - gamma_mean_minus) ** 2) / n_gamma) ** 0.5
 
     gamma_mean = [gamma_mean_plus, gamma_mean_minus]
-    gamma_sigma = [
-        (sigma_sums_plus / n_gamma) ** 0.5,
-        (sigma_sums_minus / n_gamma) ** 0.5,
-    ]
+    gamma_sigma = [gamma_sigma_plus,gamma_sigma_minus]
     # print('gamma_mean ', gamma_mean)
     # print('gamma_sigma ', gamma_sigma)
 
@@ -132,17 +116,13 @@ def calculate_tau_opt(tau_grid, gamma_mean, gamma_sigma, repetitions):
     tp, tm = tau_plus.flatten(), tau_minus.flatten()
 
     cost_function = (
-        (
-            (gamma_sigma[0] / gamma_mean[0]) ** 2
-            + (gamma_sigma[1] / gamma_mean[1] ** 2) ** 0.5
-        )
-        * 2
-        * repetitions
-        * (tau_plus + tau_minus)
-    )
+        (gamma_sigma[0] / gamma_mean[0]) ** 2
+        + (gamma_sigma[1] / gamma_mean[1] ** 2) ** 0.5
+    ) * (2 * repetitions * (tau_plus + tau_minus)) ** 0.5
     # print('cost_function ', cost_function)
 
     tau_optimized = [tp[np.argmin(cost_function)], tm[np.argmin(cost_function)]]
+    # print('tau_optimized ', tau_optimized)
 
     return tau_optimized
 
@@ -184,10 +164,8 @@ def calculate_likelihood(M_measured, tau_opt, gamma_grid, n_gamma):
         (2**0.5) * (sigma_M_minus_measured)
     )
 
-    chi_sq = (chi_plus ** 2) + (chi_minus ** 2)
-    chi_sq_final = chi_sq - np.min(chi_sq) * np.ones((n_gamma, n_gamma))
-
+    chi_sq = (chi_plus**2) + (chi_minus**2)
+    chi_sq_final = chi_sq - np.min(chi_sq) 
     likelihood = np.exp(-(chi_sq_final))
-    # print('likelihood ', likelihood)
 
     return likelihood
