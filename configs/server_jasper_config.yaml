@@ -1,0 +1,75 @@
+# port to run the instrument server on
+port: 5556
+
+# address of the mongodb server in the format 'mongodb://<ip>:<port>/'
+mongodb_addr: 'mongodb://127.0.0.1:27017/'
+
+# the devices entry will be used by the instrument server to automatically load
+# the specified devices on startup - the syntax is:
+devices_doc: # 'devices' for the real one
+  device_name1:
+    # lantz class specified as a path in the style of a python import starting
+    # from the lantz drivers folder,
+    # e.g. 'examples.LantzSignalGenerator' or 'examples.dummydrivers.DummyOsci'
+    lantz_class: 'lantz driver'
+    # instead of 'lantz_class', can also be specified by 'class' / 'class_file'
+    class: 'python class name' # e.g. 'LantzSignalGenerator'
+    # python file containing the class above (can be absolute or relative to
+    # this config file), e.g. class_file: '../path/to/driver/fungen.py'
+    class_file: 'file path'
+    # list of arguments to be passed to the constructor for the driver
+    args: ['arg1', 'arg2', 'arg3']
+    # list of keyword arguments to be passed to the constructor for the driver
+    kwargs:
+      key1: 'value1'
+      key2: 'value2'
+  device_name2:
+    # etc...
+
+# actual devices
+devices:
+  Cobolt532laser:
+    class: Cobolt0401
+    class_file: '..\drivers\cobolt\cobolt0401.py'
+    args: ['COM3']
+    kwargs: {}
+  SwabianPS:
+    class: SwabianPulseStreamer82
+    class_file: '..\drivers\swabian\SwabianPS82.py'
+    args: []
+    kwargs: {}
+  VaunixSigGen:
+    class: SignalGeneratorLSG402
+    class_file: '..\drivers\vaunix\LSG402.py'
+    args: []
+    kwargs: {}
+  StandaFocusMotor:
+    class: StandaZFocusDriver
+    class_file: '..\drivers\standa\8MT173-30DCE2.py'
+    args: []
+    kwargs: {}
+  WhiteLightSource:
+    class: WhiteLightSourceLEDD1B
+    class_file: '..\drivers\thorlabs\LEDD1B.py'
+    args: []
+    kwargs: {}
+  WhiteLightPellicleFlipper:
+    class: MFF102MFlipper
+    class_file: '..\drivers\thorlabs\MFF102M.py'
+    args: []
+    kwargs: {}
+  ThorlabsXYMotors:
+    class: KIM101_XY_Controller
+    class_file: '..\drivers\thorlabs\KIM101_XY.py'
+    args: []
+    kwargs: {}
+  APD:
+    class: MPD_PDMSeries_APD
+    class_file: '..\drivers\mpd\PDM-APD.py'
+    args: []
+    kwargs: {}
+  FSM:
+    class: FSM_2D
+    class_file: '..\drivers\newport\FSM_via_nidaqmx.py'
+    args: []
+    kwargs: {}  

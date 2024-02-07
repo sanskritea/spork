@@ -1,0 +1,25 @@
+instrument_servers:
+  local1:
+    # ip address / domain name of the instrument server
+    ip: 'localhost'
+    # port the instrument server is on
+    port: 5556
+
+# address of the mongodb server
+mongodb_addr: 'mongodb://localhost:27017/'
+
+# experiment (spyrelets) list - the syntax is:
+# name:
+#   file: 'path/to/file.py' (can be absolute or relative to this config)
+#   class: 'SpyreletClass'
+#   device_aliases: {sg1: 'local_inserv1/fake_sg',
+#                   osc1: 'local_inserv1/fake_osc'} }
+#   [optional] spyrelets: {'sub1': 'sub_spyrelet1', ...}
+#   [optional] args: 'Other arguments'
+spyrelets:
+  counts_vs_time:
+    file: '../spyrelet/counts_vs_time.py'
+    class: 'CountsVsTime'
+    device_aliases: {}
+    spyrelets: {}
+    args: {'Dev1'}
