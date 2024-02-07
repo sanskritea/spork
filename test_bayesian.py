@@ -86,16 +86,6 @@ def calculate_gamma_params(
     gamma_minus_distr = np.sum(prior_gamma, 0) 
     # print('gamma_minus_distr ', gamma_minus_distr)
 
-    print("T1_plus estimate in us: ", 1 / (gamma_plus_arr[np.argmax(gamma_plus_distr)]))
-    print("T1_minus estimate in us: ", 1 / (gamma_minus_arr[np.argmax(gamma_minus_distr)]))
-
-    if rep == 0 or rep == (N - 1):
-        fig, axs = plt.subplots(2)
-        fig.suptitle("Gamma (ms^-1) distributions for " + str(rep) + "th iteration")
-        axs[0].plot(1000 * gamma_plus_arr, gamma_plus_distr)
-        axs[1].plot(1000 * gamma_minus_arr, gamma_minus_distr)
-        plt.show()
-
     gamma_mean_plus = np.sum(gamma_plus * gamma_plus_distr) / n_gamma
     gamma_mean_minus = np.sum(gamma_minus * gamma_minus_distr) / n_gamma
 
@@ -104,8 +94,20 @@ def calculate_gamma_params(
 
     gamma_mean = [gamma_mean_plus, gamma_mean_minus]
     gamma_sigma = [gamma_sigma_plus,gamma_sigma_minus]
-    # print('gamma_mean ', gamma_mean)
-    # print('gamma_sigma ', gamma_sigma)
+    print('gamma_mean ', gamma_mean)
+    print('gamma_sigma ', gamma_sigma)
+
+    # PRINT GAMMA_PLUS AND GAMMA_MINUS FROM CURRENT PDF
+    # print("T1_plus estimate in us: ", 1 / (gamma_plus_arr[np.argmax(gamma_plus_distr)]))
+    # print("T1_minus estimate in us: ", 1 / (gamma_minus_arr[np.argmax(gamma_minus_distr)]))
+
+    # PLOT GAMMA_PLU AND GAMMA_MINUS PDFs
+    # if rep == 0 or rep == (N - 1):
+    #     fig, axs = plt.subplots(2)
+    #     fig.suptitle("Gamma (ms^-1) distributions for " + str(rep) + "th iteration")
+    #     axs[0].plot(1000 * gamma_plus_arr, gamma_plus_distr)
+    #     axs[1].plot(1000 * gamma_minus_arr, gamma_minus_distr)
+    #     plt.show()
 
     return gamma_mean, gamma_sigma
 
