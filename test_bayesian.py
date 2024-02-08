@@ -14,7 +14,7 @@ Questions:
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-
+from scipy.misc import derivative
 
 def BayesianT1(N, T1):
 
@@ -81,9 +81,9 @@ def calculate_gamma_params(
 
     gamma_plus, gamma_minus = gamma_grid
 
-    gamma_plus_distr = np.sum(prior_gamma, 1) 
+    gamma_plus_distr = np.sum(prior_gamma, 0) 
     # print('gamma_plus_distr ', gamma_plus_distr)
-    gamma_minus_distr = np.sum(prior_gamma, 0) 
+    gamma_minus_distr = np.sum(prior_gamma, 1) 
     # print('gamma_minus_distr ', gamma_minus_distr)
 
     gamma_mean_plus = np.sum(gamma_plus * gamma_plus_distr) / n_gamma
@@ -95,7 +95,7 @@ def calculate_gamma_params(
     gamma_mean = [gamma_mean_plus, gamma_mean_minus]
     gamma_sigma = [gamma_sigma_plus,gamma_sigma_minus]
     print('gamma_mean ', gamma_mean)
-    print('gamma_sigma ', gamma_sigma)
+    # print('gamma_sigma ', gamma_sigma)
 
     # PRINT GAMMA_PLUS AND GAMMA_MINUS FROM CURRENT PDF
     # print("T1_plus estimate in us: ", 1 / (gamma_plus_arr[np.argmax(gamma_plus_distr)]))
@@ -127,6 +127,45 @@ def calculate_tau_opt(tau_grid, gamma_mean, gamma_sigma, repetitions):
     # print('tau_optimized ', tau_optimized)
 
     return tau_optimized
+
+
+def nob_g(gp, gm):
+    
+    return (gp ** 2 + gm ** 2 - gp * gm) ** 0.5
+
+    
+def nob_bp(gp, gm):
+
+    return (gp + gm + nob_g(gp, gm))
+
+
+def nob_bm(gp, gm):
+
+    return (gp + gm - nob_g(gp, gm))
+
+
+def nob_mtp(gp, gm):
+
+    g = nob_g(gp, gm)
+    bp = nob_bp(gp, gm)
+    bm = nob_bm(gp, gm)
+    
+    return ((g + gp) * np.exp(-1 * bp * tp) + (g - gp) * np.exp(-1 * bm * tp)) / (2 * g)
+
+
+def nob_mtp(gp, gm):
+
+    g = nob_g(gp, gm)
+    bp = nob_bp(gp, gm)
+    bm = nob_bm(gp, gm)
+    
+    return ((g + gp) * np.exp(-1 * bp * tp) + (g - gp) * np.exp(-1 * bm * tp)) / (2 * g)   
+
+
+def nob_cost_function(gp, gm):
+
+
+
 
 
 def fake_counts(tau, num_samples, T1):
