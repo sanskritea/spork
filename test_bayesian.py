@@ -25,7 +25,7 @@ def BayesianT1(N, T1):
     gamma_plus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma) / 1000     # for us^-1
     # print(gamma_plus_arr)
     gamma_minus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma) / 1000    # for us^-1
-    gamma_grid = np.meshgrid(gamma_plus_arr, gamma_minus_arr)
+    gamma_grid = np.meshgrid(gamma_plus_arr, gamma_minus_arr, indexing = 'ij')
     # print('gamma_grid', gamma_grid)
     delta_gamma = gamma_plus_arr[1] - gamma_plus_arr[0]
 
@@ -38,7 +38,7 @@ def BayesianT1(N, T1):
     n_tau = 1000
     tau_plus_arr = np.linspace(tau_lower, tau_upper, n_tau)
     tau_minus_arr = np.linspace(tau_lower, tau_upper, n_tau)
-    tau_grid = np.meshgrid(tau_plus_arr, tau_minus_arr)
+    tau_grid = np.meshgrid(tau_plus_arr, tau_minus_arr, indexing = 'ij')
 
     # begin with a flat prior in gammas
     prior_gamma = gamma_distr
@@ -162,7 +162,7 @@ def nob_mtp(gp, gm):
     return ((g + gp) * np.exp(-1 * bp * tp) + (g - gp) * np.exp(-1 * bm * tp)) / (2 * g)   
 
 
-def nob_cost_function(gp, gm):
+# def nob_cost_function(gp, gm):
 
 
 
