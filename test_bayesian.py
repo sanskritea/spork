@@ -115,11 +115,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        - (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_plus
@@ -129,11 +125,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        + (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_plus
@@ -145,8 +137,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                 (
                     gamma_minus
                     + gamma_plus
-                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 0.5
+                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 0.5
                 )
                 * tau_plus
             )
@@ -165,8 +156,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                 (
                     gamma_minus
                     + gamma_plus
-                    - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 0.5
+                    - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 0.5
                 )
                 * tau_plus
             )
@@ -177,8 +167,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                 * gamma_plus
                 * (
                     (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1
-                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 1.5
+                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
                     * tau_plus
                 )
             )
@@ -195,11 +184,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        - (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_plus
@@ -209,11 +194,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        + (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_plus
@@ -228,11 +209,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        - (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_plus
@@ -242,11 +219,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        + (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_plus
@@ -261,44 +234,32 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        - (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_plus
                 )
                 * (
                     -0.5
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 1
+                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1
                     - 0.5
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 1.5
+                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
                     * tau_plus
                 )
                 + np.exp(
                     (
                         gamma_minus
                         + gamma_plus
-                        + (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_plus
                 )
                 * (
                     0.5
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 1
+                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1
                     - 0.5
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 1.5
+                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
                     * tau_plus
                 )
             )
@@ -315,11 +276,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        - (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_minus
@@ -329,11 +286,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        + (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_minus
@@ -348,11 +301,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        - (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_minus
@@ -362,11 +311,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        + (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_minus
@@ -381,44 +326,32 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        + (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_minus
                 )
                 * (
                     -0.25
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 1
+                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1
                     + 0.25
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 1.5
+                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
                     * tau_minus
                 )
                 + np.exp(
                     (
                         gamma_minus
                         + gamma_plus
-                        - (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_minus
                 )
                 * (
                     0.25
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 1
+                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1
                     + 0.25
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 1.5
+                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
                     * tau_minus
                 )
             )
@@ -435,11 +368,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        - (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_minus
@@ -449,11 +378,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                     (
                         gamma_minus
                         + gamma_plus
-                        + (
-                            gamma_minus**2
-                            - gamma_minus * gamma_plus
-                            + gamma_plus**2
-                        )
+                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
                         ** 0.5
                     )
                     * tau_minus
@@ -465,8 +390,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                 (
                     gamma_minus
                     + gamma_plus
-                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 0.5
+                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 0.5
                 )
                 * tau_minus
             )
@@ -485,8 +409,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                 (
                     gamma_minus
                     + gamma_plus
-                    - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 0.5
+                    - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 0.5
                 )
                 * tau_minus
             )
@@ -497,8 +420,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
                 * (-0.5 * gamma_minus + 0.25 * gamma_plus)
                 * (
                     (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    ** 1.5
+                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
                     * tau_minus
                 )
             )
