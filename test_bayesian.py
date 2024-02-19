@@ -4,82 +4,107 @@ TESTING BAYESIAN OPERATION WITH FAKE MEASUREMENT DATA
 
 """
 Questions:
-1. Should gammas be log spaced? Should taus? 
-2. Figure out the cost function 
+1. Should gammas be log spaced? Should taus?
+2. Figure out the cost function
 3. How to get fake tau-dependent counts data?
 4. Is the covariance/std calculation valid? Paper requires sigma_gamma_plus but how to get that from the joint pdf prior? 
 """
 
 
-import time
 import numpy as np
 import matplotlib.pyplot as plt
-from findiff import FinDiff
+
+GAMMA_SIM = [30, 20]  # [gamma_plus_sim, gamma_minus_sim]
 
 
-def BayesianT1(N, gamma):
+def BayesianT1(
+    N_bayesian,
+    gamma_lower=0.055,  # in ms^-1
+    gamma_upper=100,  # in ms^-1
+    n_gamma=1000,
+    tau_lower=3e-3,  # in ms
+    tau_upper=5.500,  # in ms
+    n_tau=1000,
+    repetitions=1000,
+):
 
-    # decay rates grid
-    gamma_lower = 0.055    # in ms^-1
-    gamma_upper = 100      # in ms^-1
-    n_gamma = 1000
-    gamma_plus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma) 
+    gamma_plus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)
     # print(gamma_plus_arr)
-    gamma_minus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)    
-    gamma_grid = np.meshgrid(gamma_plus_arr, gamma_minus_arr, indexing="ij")
+    gamma_minus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)
+    gamma_grid = np.meshgrid(gamma_plus_arr, gamma_minus_arr)
     # print('gamma_grid', gamma_grid)
     delta_gamma = gamma_plus_arr[1] - gamma_plus_arr[0]
 
     # decay rates distribution
-    gamma_distr = np.ones((n_gamma, n_gamma)) / (n_gamma**2)
+    gamma_distr = np.ones((n_gamma, n_gamma))
+    gamma_distr = normalize_2D_pdf(gamma_distr, delta_gamma, delta_gamma)
 
     # relaxometry delay tau grid
-    tau_lower = 3           # in us
-    tau_upper = 5500        # in us
-    n_tau = 1000
     tau_plus_arr = np.geomspace(tau_lower, tau_upper, n_tau)
     tau_minus_arr = np.geomspace(tau_lower, tau_upper, n_tau)
-    tau_grid = np.meshgrid(tau_plus_arr, tau_minus_arr, indexing="ij")
+    tau_grid = np.meshgrid(tau_plus_arr, tau_minus_arr)
 
     # begin with a flat prior in gammas
-    prior_gamma = gamma_distr
-    repetitions = 1000
-    printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr)
+    prior_gamma = gamma_distr.copy()
+    # printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr)
 
-    for rep in range(N):
+    for num in range(N_bayesian):
 
-        print("Doing measurement number ", (rep + 1))
+        print("Doing adaptive cycle ", num)
 
         # find optimized taus from NOB cost function
-        tau_opt = nob_calculate_tau_opt(tau_grid, repetitions, gamma_grid, delta_gamma)
+        gamma_plus, gamma_minus = calc_mean_gammas(prior_gamma, gamma_grid, delta_gamma)
+        tau_opt = nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus)
 
         # use taus in measurement
-        M_measured = np.zeros((2, repetitions))
+        M_measured = fake_counts(tau_opt, repetitions, GAMMA_SIM)
 
-        for t in range(2):
+        # for t in range(2):
 
-            # FAKE COUNTING
-            M_measured[t] = fake_counts(tau_opt[t], repetitions, gamma[t])
+        #     # FAKE COUNTING, REPLACE WITH REAL DATA
+        #     M_measured[t] = fake_counts(tau_opt[t], repetitions, GAMMA_SIM[t])
 
         # calculate likelihood from measurement result
-        likelihood = calculate_likelihood(M_measured, tau_opt, gamma_grid, n_gamma)
+        M_measured_mean = [np.mean(M_measured[0]), np.mean(M_measured[1])]
+        M_measured_sigma = [np.std(M_measured[0]), np.std(M_measured[1])]
+
+        likelihood = calculate_likelihood(
+            M_measured_mean, M_measured_sigma, tau_opt, gamma_grid
+        )
 
         # print('prior_gamma ', prior_gamma)
         # print('likelihood ', likelihood)
         # calculate posterior
-        posterior_gamma_unnorm = np.multiply(likelihood, prior_gamma)
+        posterior_gamma_unnorm = likelihood * prior_gamma
 
         # normalize posterior and update prior
-        prior_gamma = posterior_gamma_unnorm / np.sum(posterior_gamma_unnorm)
+        prior_gamma = normalize_2D_pdf(posterior_gamma_unnorm, delta_gamma, delta_gamma)
         # print('new prior_gamma ', prior_gamma)
 
     printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr)
 
 
-def nob_calculate_tau_opt(tau_grid, repetitions, gamma_grid, delta_gamma):
+def normalize_2D_pdf(pdf, delta_x, delta_y):
+    return pdf / (np.sum(pdf) * delta_x * delta_y)
+
+
+def normalize_1D_pdf(pdf, delta_x):
+    return pdf / (np.sum(pdf) * delta_x)
+
+
+def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
+    """
+    Cost function is only a function of tau, and we want to optimize it
+    to find the `best' value of tau. This is done by finding the minimum
+    of the cost function evaluated over a grid of tau values.
+
+    On the other hand, the cost function is only a function of one value
+    of gamma_plus and gamma_minus. These values are the average value of
+    gamma under the gamma prior. gamma_plus and gamma_minus are single
+    float values, not arrays.
+    """
 
     tau_plus, tau_minus = tau_grid
-    gamma_plus, gamma_minus = gamma_grid
 
     pp = (
         np.exp(-2 * (gamma_minus + gamma_plus) * tau_plus)
@@ -419,16 +444,16 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_grid, delta_gamma):
     )
 
     tp, tm = tau_plus.flatten(), tau_minus.flatten()
-    tau_optimized = [tp[np.argmin(log_cost_function)], tm[np.argmin(log_cost_function)]]
-    # print("tau_optimized ", tau_optimized)
+    min_cost_idx = np.argmin(log_cost_function.flatten())
+    print("min cost idx", min_cost_idx)
 
-    return tau_optimized
+    return tp[min_cost_idx], tm[min_cost_idx]
 
 
-def calculate_M_tildes(gamma_grid, tau_grid):
+def calculate_M_tildes(gamma_grid, tau_opt):
 
     gamma_plus, gamma_minus = gamma_grid
-    tau_plus, tau_minus = tau_grid
+    tau_plus, tau_minus = tau_opt
 
     g = ((gamma_plus**2) + (gamma_minus**2) - (gamma_plus * gamma_minus)) ** 0.5
     beta_plus = gamma_plus + gamma_minus + g
@@ -443,26 +468,28 @@ def calculate_M_tildes(gamma_grid, tau_grid):
         + ((g - gamma_minus) * np.exp(-beta_minus * tau_minus))
     ) / (2 * g)
 
-    return [M_plus_tilde, M_plus_tilde]
+    return [M_plus_tilde, M_minus_tilde]
 
 
 def fake_counts(tau, num_samples, gamma):
 
-    M = np.random.normal((np.exp(-(tau * gamma * 0.001))), 1e-4, num_samples)
-    # print('M ', M)
-    # print('np.std(M) ', np.std(M))
+    means = calculate_M_tildes(gamma, tau)
+    print(gamma, tau, means)
+    stds = [1e-4, 1e-4]
+
+    M = np.random.normal(means, stds, (num_samples, 2))
+
+    # M = np.random.normal((np.exp(-(tau * gamma * 0.001))), 1e-4, num_samples)
+    # # print('M ', M)
+    # # print('np.std(M) ', np.std(M))
 
     return M
 
 
-def calculate_likelihood(M_measured, tau_opt, gamma_grid, n_gamma):
+def calculate_likelihood(M_measured_mean, M_measured_sigma, tau_opt, gamma_grid):
 
-    M_plus_measured = np.mean(M_measured[0]) * np.ones((n_gamma, n_gamma))
-    sigma_M_plus_measured = np.std(M_measured[0])
-    # print('sigma_M_plus_measured ', sigma_M_plus_measured)
-
-    M_minus_measured = np.mean(M_measured[1]) * np.ones((n_gamma, n_gamma))
-    sigma_M_minus_measured = np.std(M_measured[1])
+    M_plus_measured, M_minus_measured = M_measured_mean
+    sigma_M_plus_measured, sigma_M_minus_measured = M_measured_sigma
 
     tau_plus, tau_minus = tau_opt[0], tau_opt[1]
     M_plus_tilde, M_minus_tilde = calculate_M_tildes(gamma_grid, tau_opt)
@@ -482,11 +509,18 @@ def calculate_likelihood(M_measured, tau_opt, gamma_grid, n_gamma):
     return likelihood
 
 
+def calc_mean_gammas(prior, gamma_grid, delta_gamma):
+    return (
+        np.sum(prior * gamma_grid[0]) * delta_gamma**2,
+        np.sum(prior * gamma_grid[1]) * delta_gamma**2,
+    )
+
+
 def printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr):
 
-    gamma_plus_distr = np.sum(prior_gamma, 0)
+    gamma_plus_distr = np.sum(prior_gamma, 1)
     # print('gamma_plus_distr ', gamma_plus_distr)
-    gamma_minus_distr = np.sum(prior_gamma, 1)
+    gamma_minus_distr = np.sum(prior_gamma, 0)
     # print('gamma_minus_distr ', gamma_minus_distr)
 
     # PRINT GAMMA_PLUS AND GAMMA_MINUS FROM CURRENT PDF
@@ -499,7 +533,12 @@ def printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_a
     fig, axs = plt.subplots(2)
     fig.suptitle("Gamma_plus and Gamma_minus (in ms^-1) distributions")
     axs[0].plot(gamma_plus_arr, gamma_plus_distr)
+    axs[0].axvline(x=GAMMA_SIM[0], color="r", linestyle="--")
+    axs[0].set_xlabel("Gamma plus")
     axs[1].plot(gamma_minus_arr, gamma_minus_distr)
+    axs[1].axvline(x=GAMMA_SIM[1], color="r", linestyle="--")
+    axs[1].set_xlabel("Gamma minus")
+    fig.tight_layout()
     plt.show()
 
 
