@@ -13,17 +13,60 @@ Questions:
 
 import numpy as np
 import matplotlib.pyplot as plt
+from sympy import Symbol
+import sympy
+from sympy import lambdify
 
-GAMMA_SIM = [30, 20]  # [gamma_plus_sim, gamma_minus_sim]
+GAMMA_SIM = [6, 8]  # [gamma_plus_sim, gamma_minus_sim]
+
+
+def give_sympy_functions():
+    tau_plus = Symbol("tau_-")
+    tau_minus = Symbol("tau_+")
+    gamma_plus = Symbol("Gamma_+")
+    gamma_minus = Symbol("Gamma_-")
+    G = sympy.sqrt(gamma_plus**2 + gamma_minus**2 - gamma_plus * gamma_minus)
+    beta_plus = gamma_plus + gamma_minus + G
+    beta_minus = gamma_plus + gamma_minus - G
+    M_tilde_plus = (G + gamma_plus) * sympy.exp(-tau_plus * beta_plus) + (
+        G - gamma_plus
+    ) * sympy.exp(-tau_plus * beta_minus)
+    M_tilde_minus = (G + gamma_minus) * sympy.exp(-tau_minus * beta_plus) + (
+        G - gamma_minus
+    ) * sympy.exp(-tau_minus * beta_minus)
+    M_tilde_plus = M_tilde_plus / (2 * G)
+    M_tilde_minus = M_tilde_minus / (2 * G)
+
+    pp = lambdify(
+        [gamma_plus, gamma_minus, tau_plus],
+        sympy.diff(M_tilde_plus, gamma_plus).simplify(),
+    )
+    pm = lambdify(
+        [gamma_plus, gamma_minus, tau_plus],
+        sympy.diff(M_tilde_plus, gamma_minus).simplify(),
+    )
+    mm = lambdify(
+        [gamma_plus, gamma_minus, tau_minus],
+        sympy.diff(M_tilde_minus, gamma_minus).simplify(),
+    )
+    mp = lambdify(
+        [gamma_plus, gamma_minus, tau_minus],
+        sympy.diff(M_tilde_minus, gamma_plus).simplify(),
+    )
+
+    return pp, pm, mm, mp
+
+
+pp, pm, mm, mp = give_sympy_functions()
 
 
 def BayesianT1(
     N_bayesian,
-    gamma_lower=0.055,  # in ms^-1
-    gamma_upper=100,  # in ms^-1
+    gamma_lower=1,  # in ms^-1
+    gamma_upper=10,  # in ms^-1
     n_gamma=1000,
-    tau_lower=3e-3,  # in ms
-    tau_upper=5.500,  # in ms
+    tau_lower=0.001,  # in ms
+    tau_upper=0.7,  # in ms
     n_tau=1000,
     repetitions=1000,
 ):
@@ -106,334 +149,17 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
 
     tau_plus, tau_minus = tau_grid
 
-    pp = (
-        np.exp(-2 * (gamma_minus + gamma_plus) * tau_plus)
-        * (
-            (
-                -1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_plus
-                )
-                - 1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_plus
-                )
-            )
-            * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2.5
-            * tau_plus
-            + np.exp(
-                (
-                    gamma_minus
-                    + gamma_plus
-                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 0.5
-                )
-                * tau_plus
-            )
-            * (
-                (-0.25 * gamma_minus + 0.5 * gamma_plus)
-                * gamma_plus
-                * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1
-                + (0.25 * gamma_minus - 0.5 * gamma_plus)
-                * gamma_plus
-                * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
-                * tau_plus
-                + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2
-                * (-0.5 - 0.5 * gamma_minus * tau_plus + 1.5 * gamma_plus * tau_plus)
-            )
-            + np.exp(
-                (
-                    gamma_minus
-                    + gamma_plus
-                    - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 0.5
-                )
-                * tau_plus
-            )
-            * (
-                (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2
-                * (0.5 + 0.5 * gamma_minus * tau_plus - 1.5 * gamma_plus * tau_plus)
-                + (0.25 * gamma_minus - 0.5 * gamma_plus)
-                * gamma_plus
-                * (
-                    (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1
-                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
-                    * tau_plus
-                )
-            )
-        )
-    ) / (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2.5
+    num = (gamma_minus * mm(gamma_plus, gamma_minus, tau_minus)) ** 2
+    num += (gamma_minus * pm(gamma_plus, gamma_minus, tau_plus)) ** 2
+    num += (gamma_plus * mp(gamma_plus, gamma_minus, tau_minus)) ** 2
+    num += (gamma_plus * pp(gamma_plus, gamma_minus, tau_plus)) ** 2
 
-    pm = (
-        (1 / ((gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2.5))
-        * np.exp(-2 * (gamma_minus + gamma_plus) * tau_plus)
-        * (
-            (
-                -1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_plus
-                )
-                + 1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_plus
-                )
-            )
-            * gamma_minus
-            * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2
-            * tau_plus
-            + (
-                -1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_plus
-                )
-                - 1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_plus
-                )
-            )
-            * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2.5
-            * tau_plus
-            + (1 * gamma_minus - 0.5 * gamma_plus)
-            * gamma_plus
-            * (
-                np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_plus
-                )
-                * (
-                    -0.5
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1
-                    - 0.5
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
-                    * tau_plus
-                )
-                + np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_plus
-                )
-                * (
-                    0.5
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1
-                    - 0.5
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
-                    * tau_plus
-                )
-            )
-        )
+    den = pm(gamma_plus, gamma_minus, tau_plus) * mp(gamma_plus, gamma_minus, tau_minus)
+    den -= pp(gamma_plus, gamma_minus, tau_plus) * mm(
+        gamma_plus, gamma_minus, tau_minus
     )
+    den = den**2
 
-    mp = (
-        (1 / ((gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2.5))
-        * np.exp(-2 * (gamma_minus + gamma_plus) * tau_minus)
-        * (
-            (
-                -1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_minus
-                )
-                + 1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_minus
-                )
-            )
-            * gamma_plus
-            * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2
-            * tau_minus
-            + (
-                -1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_minus
-                )
-                - 1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_minus
-                )
-            )
-            * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2.5
-            * tau_minus
-            + gamma_minus
-            * (1 * gamma_minus - 2 * gamma_plus)
-            * (
-                np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_minus
-                )
-                * (
-                    -0.25
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1
-                    + 0.25
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
-                    * tau_minus
-                )
-                + np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_minus
-                )
-                * (
-                    0.25
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1
-                    + 0.25
-                    * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
-                    * tau_minus
-                )
-            )
-        )
-    )
-
-    mm = (
-        (1 / (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2.5)
-        * np.exp(-2 * (gamma_minus + gamma_plus) * tau_minus)
-        * (
-            (
-                -1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_minus
-                )
-                - 1
-                * np.exp(
-                    (
-                        gamma_minus
-                        + gamma_plus
-                        + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                        ** 0.5
-                    )
-                    * tau_minus
-                )
-            )
-            * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2.5
-            * tau_minus
-            + np.exp(
-                (
-                    gamma_minus
-                    + gamma_plus
-                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 0.5
-                )
-                * tau_minus
-            )
-            * (
-                gamma_minus
-                * (0.5 * gamma_minus - 0.25 * gamma_plus)
-                * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                + gamma_minus
-                * (-0.5 * gamma_minus + 0.25 * gamma_plus)
-                * (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
-                * tau_minus
-                + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2
-                * (-0.5 + 1.5 * gamma_minus * tau_minus - 0.5 * gamma_plus * tau_minus)
-            )
-            + np.exp(
-                (
-                    gamma_minus
-                    + gamma_plus
-                    - (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 0.5
-                )
-                * tau_minus
-            )
-            * (
-                (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 2
-                * (0.5 - 1.5 * gamma_minus * tau_minus + 0.5 * gamma_plus * tau_minus)
-                + gamma_minus
-                * (-0.5 * gamma_minus + 0.25 * gamma_plus)
-                * (
-                    (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2)
-                    + (gamma_minus**2 - gamma_minus * gamma_plus + gamma_plus**2) ** 1.5
-                    * tau_minus
-                )
-            )
-        )
-    )
-
-    num = (
-        (gamma_minus * mm) ** 2
-        + (gamma_minus * pm) ** 2
-        + (gamma_plus * mp) ** 2
-        + (gamma_plus * pp) ** 2
-    )
-    den = (pm * mp - pp * mm) ** 2
     T = 2 * repetitions * (tau_plus + tau_minus)
 
     # take log of cost function to maintain computational sanity
@@ -442,6 +168,12 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
         - np.log(gamma_minus)
         - np.log(gamma_plus)
     )
+
+    # plt.pcolor(tau_plus, tau_minus, log_cost_function)
+    # plt.colorbar()
+    # plt.show()
+
+    print(len(log_cost_function[np.isnan(num)]))
 
     tp, tm = tau_plus.flatten(), tau_minus.flatten()
     min_cost_idx = np.argmin(log_cost_function.flatten())
@@ -475,7 +207,7 @@ def fake_counts(tau, num_samples, gamma):
 
     means = calculate_M_tildes(gamma, tau)
     print(gamma, tau, means)
-    stds = [1e-4, 1e-4]
+    stds = [1e-1, 1e-1]
 
     M = np.random.normal(means, stds, (num_samples, 2))
 
@@ -491,7 +223,6 @@ def calculate_likelihood(M_measured_mean, M_measured_sigma, tau_opt, gamma_grid)
     M_plus_measured, M_minus_measured = M_measured_mean
     sigma_M_plus_measured, sigma_M_minus_measured = M_measured_sigma
 
-    tau_plus, tau_minus = tau_opt[0], tau_opt[1]
     M_plus_tilde, M_minus_tilde = calculate_M_tildes(gamma_grid, tau_opt)
     # print('M_plus_measured ', M_plus_measured)
     # print('M_plus_tilde ', M_plus_tilde)
@@ -518,9 +249,9 @@ def calc_mean_gammas(prior, gamma_grid, delta_gamma):
 
 def printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr):
 
-    gamma_plus_distr = np.sum(prior_gamma, 1)
+    gamma_plus_distr = np.sum(prior_gamma, 0)
     # print('gamma_plus_distr ', gamma_plus_distr)
-    gamma_minus_distr = np.sum(prior_gamma, 0)
+    gamma_minus_distr = np.sum(prior_gamma, 1)
     # print('gamma_minus_distr ', gamma_minus_distr)
 
     # PRINT GAMMA_PLUS AND GAMMA_MINUS FROM CURRENT PDF
