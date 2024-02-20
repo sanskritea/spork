@@ -17,13 +17,13 @@ import matplotlib.pyplot as plt
 from findiff import FinDiff
 
 
-def BayesianT1(N, T1):
+def BayesianT1(N, gamma):
 
     # decay rates grid
-    gamma_lower = 0.0002    # in us^-1
-    gamma_upper = 0.5       # in us^-1
-    n_gamma = 500
-    gamma_plus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma) * 1000
+    gamma_lower = 0.055    # in ms^-1
+    gamma_upper = 100      # in ms^-1
+    n_gamma = 1000
+    gamma_plus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma) 
     # print(gamma_plus_arr)
     gamma_minus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)    
     gamma_grid = np.meshgrid(gamma_plus_arr, gamma_minus_arr, indexing="ij")
@@ -34,19 +34,19 @@ def BayesianT1(N, T1):
     gamma_distr = np.ones((n_gamma, n_gamma)) / (n_gamma**2)
 
     # relaxometry delay tau grid
-    tau_lower = 2           # in us
-    tau_upper = 5000        # in us
-    n_tau = 500
-    tau_plus_arr = np.linspace(tau_lower, tau_upper, n_tau)
-    tau_minus_arr = np.linspace(tau_lower, tau_upper, n_tau)
+    tau_lower = 3           # in us
+    tau_upper = 5500        # in us
+    n_tau = 1000
+    tau_plus_arr = np.geomspace(tau_lower, tau_upper, n_tau)
+    tau_minus_arr = np.geomspace(tau_lower, tau_upper, n_tau)
     tau_grid = np.meshgrid(tau_plus_arr, tau_minus_arr, indexing="ij")
 
     # begin with a flat prior in gammas
     prior_gamma = gamma_distr
-    repetitions = N
+    repetitions = 1000
     printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr)
 
-    for rep in range(repetitions):
+    for rep in range(N):
 
         print("Doing measurement number ", (rep + 1))
 
@@ -59,7 +59,7 @@ def BayesianT1(N, T1):
         for t in range(2):
 
             # FAKE COUNTING
-            M_measured[t] = fake_counts(tau_opt[t], repetitions, T1[t])
+            M_measured[t] = fake_counts(tau_opt[t], repetitions, gamma[t])
 
         # calculate likelihood from measurement result
         likelihood = calculate_likelihood(M_measured, tau_opt, gamma_grid, n_gamma)
@@ -79,9 +79,7 @@ def BayesianT1(N, T1):
 def nob_calculate_tau_opt(tau_grid, repetitions, gamma_grid, delta_gamma):
 
     tau_plus, tau_minus = tau_grid
-    tp, tm = tau_plus.flatten(), tau_minus.flatten()
     gamma_plus, gamma_minus = gamma_grid
-    M_tilde_plus, M_tilde_minus = calculate_M_tildes(gamma_grid, tau_grid)
 
     pp = (
         np.exp(-2 * (gamma_minus + gamma_plus) * tau_plus)
@@ -420,8 +418,9 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_grid, delta_gamma):
         - np.log(gamma_plus)
     )
 
+    tp, tm = tau_plus.flatten(), tau_minus.flatten()
     tau_optimized = [tp[np.argmin(log_cost_function)], tm[np.argmin(log_cost_function)]]
-    print("tau_optimized ", tau_optimized)
+    # print("tau_optimized ", tau_optimized)
 
     return tau_optimized
 
@@ -447,9 +446,11 @@ def calculate_M_tildes(gamma_grid, tau_grid):
     return [M_plus_tilde, M_plus_tilde]
 
 
-def fake_counts(tau, num_samples, T1):
+def fake_counts(tau, num_samples, gamma):
 
-    M = np.random.normal((np.exp(-(tau / T1))), 1e-4, num_samples)
+    M = np.random.normal((np.exp(-(tau * gamma * 0.001))), 1e-4, num_samples)
+    # print('M ', M)
+    # print('np.std(M) ', np.std(M))
 
     return M
 
@@ -489,14 +490,14 @@ def printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_a
     # print('gamma_minus_distr ', gamma_minus_distr)
 
     # PRINT GAMMA_PLUS AND GAMMA_MINUS FROM CURRENT PDF
-    print("T1_plus estimate in us: ", 1000 / (gamma_plus_arr[np.argmax(gamma_plus_distr)]))
-    print(
-        "T1_minus estimate in us: ", 1000 / (gamma_minus_arr[np.argmax(gamma_minus_distr)])
-    )
+    # print("T1_plus estimate in us: ", 1 / (gamma_plus_arr[np.argmax(gamma_plus_distr)]))
+    # print(
+    #     "T1_minus estimate in us: ", 1 / (gamma_minus_arr[np.argmax(gamma_minus_distr)])
+    # )
 
     # PLOT GAMMA_PLUS AND GAMMA_MINUS PDFs
     fig, axs = plt.subplots(2)
-    fig.suptitle("Gamma_plus and Gamma_minus (in us^-1) distributions")
+    fig.suptitle("Gamma_plus and Gamma_minus (in ms^-1) distributions")
     axs[0].plot(gamma_plus_arr, gamma_plus_distr)
     axs[1].plot(gamma_minus_arr, gamma_minus_distr)
     plt.show()
