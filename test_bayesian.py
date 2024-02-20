@@ -53,17 +53,19 @@ def give_sympy_functions():
         [gamma_plus, gamma_minus, tau_minus],
         sympy.diff(M_tilde_minus, gamma_plus).simplify(),
     )
+    Mtplus = lambdify([gamma_plus, gamma_minus, tau_plus], M_tilde_plus.simplify())
+    Mtminus = lambdify([gamma_plus, gamma_minus, tau_minus], M_tilde_minus.simplify())
 
-    return pp, pm, mm, mp
+    return pp, pm, mm, mp, Mtplus, Mtminus
 
 
-pp, pm, mm, mp = give_sympy_functions()
+pp, pm, mm, mp, Mtplus, Mtminus = give_sympy_functions()
 
 
 def BayesianT1(
     N_bayesian,
     gamma_lower=1,  # in ms^-1
-    gamma_upper=10,  # in ms^-1
+    gamma_upper=20,  # in ms^-1
     n_gamma=1000,
     tau_lower=0.001,  # in ms
     tau_upper=0.7,  # in ms
@@ -187,18 +189,8 @@ def calculate_M_tildes(gamma_grid, tau_opt):
     gamma_plus, gamma_minus = gamma_grid
     tau_plus, tau_minus = tau_opt
 
-    g = ((gamma_plus**2) + (gamma_minus**2) - (gamma_plus * gamma_minus)) ** 0.5
-    beta_plus = gamma_plus + gamma_minus + g
-    beta_minus = gamma_plus + gamma_minus - g
-
-    M_plus_tilde = (
-        ((g + gamma_plus) * np.exp(-beta_plus * tau_plus))
-        + ((g - gamma_plus) * np.exp(-beta_minus * tau_plus))
-    ) / (2 * g)
-    M_minus_tilde = (
-        ((g + gamma_minus) * np.exp(-beta_plus * tau_minus))
-        + ((g - gamma_minus) * np.exp(-beta_minus * tau_minus))
-    ) / (2 * g)
+    M_plus_tilde = Mtplus(gamma_plus, gamma_minus, tau_plus)
+    M_minus_tilde = Mtminus(gamma_plus, gamma_minus, tau_minus)
 
     return [M_plus_tilde, M_minus_tilde]
 
