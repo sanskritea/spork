@@ -249,7 +249,7 @@ def calculate_gamma_opt():
     # actual cost function to compare to paper
     cost_function = ((T * num / den) ** 0.5) / (gamma_minus * gamma_plus)
 
-    print('let us turn all nans to 1s')
+    print('let us turn all nans to 1e-7')
     flag = 0
     for nni in range(n_gamma):
         for nnj in range(n_gamma):       
