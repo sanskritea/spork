@@ -2,18 +2,23 @@
 
 Use this code with a two-measurement pulse sequence to perform bayesian adaptive relaxometry
 
-Reference: Caouette, Childress et al 10.1103/PhysRevApplied.17.064031
+Reference: Caouette, Childress et al, DOI: 10.1103/PhysRevApplied.17.064031
 
 Sanskriti Chitransh, Aditya Vijaykumar (CITA)
 
 """
 
+import time
+
 import numpy as np
+
 import matplotlib.pyplot as plt
-from sympy import Symbol
-import sympy
-from sympy import lambdify
 from matplotlib.colors import LogNorm
+
+import sympy
+from sympy import Symbol
+from sympy import lambdify
+
 
 
 GAMMA_SIM = [4, 11]  # [gamma_plus_sim, gamma_minus_sim]
@@ -27,14 +32,17 @@ def find_bias(max_cycle, num_cycle):
     gamma_minus_est = np.zeros(cycles)
     gamma_plus_delta = np.zeros(cycles)
     gamma_minus_delta = np.zeros(cycles)
+    time_taken = np.zeros(cycles)
 
     #  find gamma_plus and gamma_minus for different cycle numbers
     for n in range(cycles):
 
         bayesian_cycle_num = cycles_range[n]
         print('Running ', bayesian_cycle_num, 'bayesian cycles')
+        start_time = time.time()
 
         gamma_arr, gamma_pdf = BayesianT1(bayesian_cycle_num)
+        time_taken[n]   = time.time() - start_time
 
         gamma_plus = gamma_arr[np.argmax(np.sum(gamma_pdf, 0))]
         gamma_plus_est[n] = gamma_plus
@@ -45,19 +53,24 @@ def find_bias(max_cycle, num_cycle):
         gamma_minus_delta[n] = np.abs(GAMMA_SIM[1] - gamma_minus)
 
     # plot gamma trends
-    fig, axes = plt.subplots(2)
+    fig, axes = plt.subplots(3)
     fig.suptitle("Gamma Trends with Adaptive Cycles")
 
     axes[0].plot(cycles_range, gamma_plus_est, label = 'estimated gamma_plus')
     axes[0].plot(cycles_range, gamma_minus_est, label = 'estimated gamma_minus')
     axes[0].axhline(x=GAMMA_SIM[0], color="r", linestyle="--", label = 'real gamma_plus')
     axes[0].axhline(x=GAMMA_SIM[1], color="b", linestyle="--", label = 'real gamma_minus')
+    axes[0].set_title('Gamma VS Bayesian Cycles')
     axes[0].legend()
 
     axes[1].plot(cycles_range, gamma_plus_delta, label = 'gamma_plus deviation')
     axes[1].plot(cycles_range, gamma_minus_delta, label = 'gamma_minus deviation')
     axes[1].axhline(x=0, color="r", linestyle="--", label = 'zero')
+    axes[1].set_title('Deviation from Real Gamma VS Bayesian Cycles')
     axes[1].legend()
+
+    axes[2].plot(cycles_range, time_taken)
+    axes[2].set_title('Time taken for Bayesian Cycles')
 
     plt.show()
 
