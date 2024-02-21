@@ -19,6 +19,49 @@ from matplotlib.colors import LogNorm
 GAMMA_SIM = [4, 11]  # [gamma_plus_sim, gamma_minus_sim]
 
 
+def find_bias(max_cycle, num_cycle):
+
+    cycles_range = np.unique(np.geomspace(1, max_cycle, num_cycle).astype(int))
+    cycles = len(cycles_range)
+    gamma_plus_est = np.zeros(cycles)
+    gamma_minus_est = np.zeros(cycles)
+    gamma_plus_delta = np.zeros(cycles)
+    gamma_minus_delta = np.zeros(cycles)
+
+    #  find gamma_plus and gamma_minus for different cycle numbers
+    for n in range(cycles):
+
+        bayesian_cycle_num = cycles_range[n]
+        print('Running ', bayesian_cycle_num, 'bayesian cycles')
+
+        gamma_arr, gamma_pdf = BayesianT1(bayesian_cycle_num)
+
+        gamma_plus = gamma_arr[np.argmax(np.sum(gamma_pdf, 0))]
+        gamma_plus_est[n] = gamma_plus
+        gamma_plus_delta[n] = np.abs(GAMMA_SIM[0] - gamma_plus)
+
+        gamma_minus = gamma_arr[np.argmax(np.sum(gamma_pdf, 1))]
+        gamma_minus_est[n] = gamma_minus
+        gamma_minus_delta[n] = np.abs(GAMMA_SIM[1] - gamma_minus)
+
+    # plot gamma trends
+    fig, axes = plt.subplots(2)
+    fig.suptitle("Gamma Trends with Adaptive Cycles")
+
+    axes[0].plot(cycles_range, gamma_plus_est, label = 'estimated gamma_plus')
+    axes[0].plot(cycles_range, gamma_minus_est, label = 'estimated gamma_minus')
+    axes[0].axhline(x=GAMMA_SIM[0], color="r", linestyle="--", label = 'real gamma_plus')
+    axes[0].axhline(x=GAMMA_SIM[1], color="b", linestyle="--", label = 'real gamma_minus')
+    axes[0].legend()
+
+    axes[1].plot(cycles_range, gamma_plus_delta, label = 'gamma_plus deviation')
+    axes[1].plot(cycles_range, gamma_minus_delta, label = 'gamma_minus deviation')
+    axes[1].axhline(x=0, color="r", linestyle="--", label = 'zero')
+    axes[1].legend()
+
+    plt.show()
+
+
 def give_sympy_functions():
 
     tau_plus = Symbol("tau_-")
@@ -97,15 +140,12 @@ def BayesianT1(
 
     for num in range(N_bayesian):
 
-        print("Doing adaptive cycle", num)
+        # print("Doing adaptive cycle", num)
 
         # find optimized taus from NOB cost function
         gamma_plus, gamma_minus = calc_mean_gammas(prior_gamma, gamma_grid, delta_gamma)
-        # print("mean_gammas ", [gamma_plus, gamma_minus])
-
 
         tau_opt = nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus)
-        # print("tau_opt ", tau_opt)
 
         # use taus in measurement
         M_measured = fake_counts(tau_opt, repetitions, GAMMA_SIM)
@@ -121,17 +161,15 @@ def BayesianT1(
         # calculate posterior
         posterior_gamma_unnorm = likelihood * prior_gamma
         posterior = normalize_2D_pdf(posterior_gamma_unnorm, delta_gamma, delta_gamma)
-        # print('prior_gamma ', prior_gamma)
-        # print('likelihood ', likelihood)
 
         # PLOT PRIOR, LIKELIHOOD, POSTERIOR
         # plot_pdfs(prior_gamma, likelihood, posterior)
 
         # normalize posterior and update prior
         prior_gamma = posterior
-        # print('new prior_gamma ', prior_gamma)
 
-    printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr)
+    # printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr)
+    return (gamma_plus_arr, prior_gamma)
 
 
 def normalize_2D_pdf(pdf, delta_x, delta_y):
@@ -194,7 +232,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
     tp, tm = tau_plus.flatten(), tau_minus.flatten()
     min_cost_idx = np.argmin(cost_function.flatten())
 
-    # plot cost function here
+    # plot cost function
     # plot_cost_function(cost_function, tau_minus, tau_plus)
 
     return tp[min_cost_idx], tm[min_cost_idx]
@@ -202,9 +240,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
 
 def fake_counts(tau, num_samples, gamma):
 
-    # print('Fake counts gamma ', gamma)
     means = calculate_M_tildes(gamma, tau)
-    # print(gamma, tau, means)
     stds = [1e-3, 1e-3]
 
     M = np.random.normal(means, stds, (num_samples, 2))
@@ -227,14 +263,12 @@ def calculate_likelihood(M_measured_mean, M_measured_sigma, tau_opt, gamma_grid)
     chi_sq = (chi_plus**2) + (chi_minus**2)
     chi_sq_final = chi_sq - np.min(chi_sq)
     likelihood = np.exp(-(chi_sq_final))
-    # print('likelihood ', likelihood)
 
     return likelihood
 
 
 def calculate_M_tildes(gamma_grid, tau_opt):
 
-    # print("tau_opt ", tau_opt)
     gamma_plus, gamma_minus = gamma_grid
     tau_plus, tau_minus = tau_opt
 
@@ -247,9 +281,7 @@ def calculate_M_tildes(gamma_grid, tau_opt):
 def printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr):
 
     gamma_plus_distr = np.sum(prior_gamma, 0)
-    # print('gamma_plus_distr ', gamma_plus_distr)
     gamma_minus_distr = np.sum(prior_gamma, 1)
-    # print('gamma_minus_distr ', gamma_minus_distr)
 
     # PRINT GAMMA_PLUS AND GAMMA_MINUS FROM CURRENT PDF
     # print("T1_plus estimate in us: ", 1 / (gamma_plus_arr[np.argmax(gamma_plus_distr)]))
@@ -272,9 +304,7 @@ def printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_a
     plt.show()
 
 
-
 ##############################################################################################
-
 
 
 """
