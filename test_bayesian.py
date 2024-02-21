@@ -224,7 +224,7 @@ def calculate_gamma_opt():
     tau_minus = 5.5         # in ms
     gamma_lower = 1/5.5     # in ms^-1
     gamma_upper = 1/0.003     # in ms^-1
-    n_gamma = 10000
+    n_gamma = 5000
     gamma_plus_arr = np.geomspace(gamma_lower, gamma_upper, n_gamma)
     gamma_minus_arr = np.geomspace(gamma_lower, gamma_upper, n_gamma)
     gamma_plus, gamma_minus = np.meshgrid(gamma_plus_arr, gamma_minus_arr)
