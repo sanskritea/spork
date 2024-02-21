@@ -220,13 +220,13 @@ def calculate_gamma_opt():
     """
     Finding decent range of gammas to prevent overflow errors
     """
-    tau_plus = 5.5         # in ms
-    tau_minus = 5.5        # in ms
-    gamma_lower = 0.055     # in ms^-1
-    gamma_upper = 100       # in ms^-1
-    n_gamma = 1000
-    gamma_plus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)
-    gamma_minus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)
+    tau_plus = 5.5          # in ms, lower limit is 0.003 ms
+    tau_minus = 5.5         # in ms
+    gamma_lower = 1/5.5     # in ms^-1
+    gamma_upper = 1/0.003     # in ms^-1
+    n_gamma = 10000
+    gamma_plus_arr = np.geomspace(gamma_lower, gamma_upper, n_gamma)
+    gamma_minus_arr = np.geomspace(gamma_lower, gamma_upper, n_gamma)
     gamma_plus, gamma_minus = np.meshgrid(gamma_plus_arr, gamma_minus_arr)
 
     num = (
@@ -273,6 +273,8 @@ def calculate_gamma_opt():
     # ,
     #     cmap="viridis_r",
     # )
+    plt.xscale("log")
+    plt.yscale("log")
     plt.colorbar()
     plt.show()
 
