@@ -1,5 +1,11 @@
 """
-TESTING BAYESIAN OPERATION WITH FAKE MEASUREMENT DATA
+
+Use this code with a two-measurement pulse sequence to perform bayesian adaptive relaxometry
+
+Reference: Caouette, Childress et al 10.1103/PhysRevApplied.17.064031
+
+Sanskriti Chitransh, Aditya Vijaykumar (CITA)
+
 """
 
 import numpy as np
@@ -9,7 +15,8 @@ import sympy
 from sympy import lambdify
 from matplotlib.colors import LogNorm
 
-GAMMA_SIM = [3, 1]  # [gamma_plus_sim, gamma_minus_sim]
+
+GAMMA_SIM = [4, 11]  # [gamma_plus_sim, gamma_minus_sim]
 
 
 def give_sympy_functions():
@@ -60,7 +67,7 @@ pp, pm, mm, mp, Mtplus, Mtminus = give_sympy_functions()
 def BayesianT1(
     N_bayesian,
     gamma_lower=0.055,  # in ms^-1
-    gamma_upper=50,  # in ms^-1
+    gamma_upper=32,  # in ms^-1, decided after calculating const function many times
     n_gamma=1000,
     tau_lower=0.003,  # in ms
     tau_upper=5.5,  # in ms
@@ -69,15 +76,9 @@ def BayesianT1(
 ):
 
     # decay rates grid
-    gamma_lower = 0.055  # in ms^-1
-    gamma_upper = 100  # in ms^-1
-    n_gamma = 1000
-    gamma_plus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma, dtype=np.longdouble)
-    gamma_minus_arr = np.linspace(
-        gamma_lower, gamma_upper, n_gamma, dtype=np.longdouble
-    )
+    gamma_plus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)
+    gamma_minus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)
     gamma_grid = np.meshgrid(gamma_plus_arr, gamma_minus_arr)
-    # print('gamma_grid', gamma_grid)
     delta_gamma = gamma_plus_arr[1] - gamma_plus_arr[0]
 
     # decay rates distribution
@@ -85,23 +86,26 @@ def BayesianT1(
     gamma_distr = normalize_2D_pdf(gamma_distr, delta_gamma, delta_gamma)
 
     # relaxometry delay tau grid
-    tau_plus_arr = np.geomspace(tau_lower, tau_upper, n_tau, dtype=np.longdouble)
-    tau_minus_arr = np.geomspace(tau_lower, tau_upper, n_tau, dtype=np.longdouble)
+    tau_plus_arr = np.geomspace(tau_lower, tau_upper, n_tau)
+    tau_minus_arr = np.geomspace(tau_lower, tau_upper, n_tau)
     tau_grid = np.meshgrid(tau_plus_arr, tau_minus_arr)
 
     # begin with a flat prior in gammas
     prior_gamma = gamma_distr.copy()
+
     # printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr)
 
     for num in range(N_bayesian):
 
-        print("Doing adaptive cycle ", num)
+        print("Doing adaptive cycle", num)
 
         # find optimized taus from NOB cost function
         gamma_plus, gamma_minus = calc_mean_gammas(prior_gamma, gamma_grid, delta_gamma)
-        print('mean_gamma_plus ', gamma_plus)
-        print('mean_gamma_minus ', gamma_minus)
+        # print("mean_gammas ", [gamma_plus, gamma_minus])
+
+
         tau_opt = nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus)
+        # print("tau_opt ", tau_opt)
 
         # use taus in measurement
         M_measured = fake_counts(tau_opt, repetitions, GAMMA_SIM)
@@ -114,13 +118,17 @@ def BayesianT1(
             M_measured_mean, M_measured_sigma, tau_opt, gamma_grid
         )
 
-        # print('prior_gamma ', prior_gamma)
-        # print('likelihood ', likelihood)
         # calculate posterior
         posterior_gamma_unnorm = likelihood * prior_gamma
+        posterior = normalize_2D_pdf(posterior_gamma_unnorm, delta_gamma, delta_gamma)
+        # print('prior_gamma ', prior_gamma)
+        # print('likelihood ', likelihood)
+
+        # PLOT PRIOR, LIKELIHOOD, POSTERIOR
+        # plot_pdfs(prior_gamma, likelihood, posterior)
 
         # normalize posterior and update prior
-        prior_gamma = normalize_2D_pdf(posterior_gamma_unnorm, delta_gamma, delta_gamma)
+        prior_gamma = posterior
         # print('new prior_gamma ', prior_gamma)
 
     printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr)
@@ -145,7 +153,6 @@ def calc_mean_gammas(prior, gamma_grid, delta_gamma):
 
 
 def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
-
     """
     Cost function is only a function of tau, and we want to optimize it
     to find the `best' value of tau. This is done by finding the minimum
@@ -157,10 +164,6 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
     float values, not arrays.
     """
     tau_plus, tau_minus = tau_grid
-    gamma_plus = 10
-    gamma_minus = 10
-    print('gamma_plus ', gamma_plus)
-    print('gamma_minus ', gamma_minus)
 
     num = (
         (gamma_minus * mm(gamma_plus, gamma_minus, tau_minus)) ** 2
@@ -170,126 +173,41 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
     )
 
     den = (
-        pm(gamma_plus, gamma_minus, tau_plus)
-        * mp(gamma_plus, gamma_minus, tau_minus)
-    ) - pp(gamma_plus, gamma_minus, tau_plus) * mm(
-        gamma_plus, gamma_minus, tau_minus
-    )
+        pm(gamma_plus, gamma_minus, tau_plus) * mp(gamma_plus, gamma_minus, tau_minus)
+    ) - pp(gamma_plus, gamma_minus, tau_plus) * mm(gamma_plus, gamma_minus, tau_minus)
     den = den**2
 
     T = 2 * repetitions * (tau_plus + tau_minus)
 
     # actual cost function to compare to paper
     cost_function = ((T * num / den) ** 0.5) / (gamma_minus * gamma_plus)
-    # print(cost_function)
 
-    # take log of cost function to maintain computational sanity
-    # log_cost_function = (
-    #     0.5 * (np.log(T) + np.log(num) - np.log(den))
-    #     - np.log(gamma_minus)
-    #     - np.log(gamma_plus)
-    # )
+    # clean up cost function by changing all nans to an arbitrarily large value
+    flag = 0
+    for nni in range(len(tau_plus)):
+        for nnj in range(len(tau_plus)):
+            if np.isnan(cost_function[nni][nnj]) or np.isinf(cost_function[nni][nnj]):
+                # print('AHA!')
+                cost_function[nni][nnj] = 1e100
+                flag += 1
 
     tp, tm = tau_plus.flatten(), tau_minus.flatten()
     min_cost_idx = np.argmin(cost_function.flatten())
-    print("tp[min_cost_idx] ", tp[min_cost_idx])
-    print("tm[min_cost_idx] ", tm[min_cost_idx])
 
-    # return tp[min_cost_idx], tm[min_cost_idx]
+    # plot cost function here
+    # plot_cost_function(cost_function, tau_minus, tau_plus)
 
-    print('np.max(cost_function) ', np.max(cost_function))
-    print('np.min(cost_function) ', np.min(cost_function))
-    plt.title("Evaluated Cost Function")
-    plt.pcolor(
-        tau_minus,
-        tau_plus,
-        cost_function,
-        norm=LogNorm(
-            vmin=np.min(cost_function), vmax=np.max(cost_function)
-        ))
-    # ,
-    #     cmap="viridis_r",
-    # )
-    plt.xscale("log")
-    plt.yscale("log")
-    plt.colorbar()
-    plt.show()
-
-
-def calculate_gamma_opt():
-    """
-    Finding decent range of gammas to prevent overflow errors
-    """
-    tau_plus = 5.5          # in ms, lower limit is 0.003 ms
-    tau_minus = 5.5         # in ms
-    gamma_lower = 1/5.5     # in ms^-1
-    gamma_upper = 1/0.003     # in ms^-1
-    n_gamma = 5000
-    gamma_plus_arr = np.geomspace(gamma_lower, gamma_upper, n_gamma)
-    gamma_minus_arr = np.geomspace(gamma_lower, gamma_upper, n_gamma)
-    gamma_plus, gamma_minus = np.meshgrid(gamma_plus_arr, gamma_minus_arr)
-
-    num = (
-        (gamma_minus * mm(gamma_plus, gamma_minus, tau_minus)) ** 2
-        + (gamma_minus * pm(gamma_plus, gamma_minus, tau_plus)) ** 2
-        + (gamma_plus * mp(gamma_plus, gamma_minus, tau_minus)) ** 2
-        + (gamma_plus * pp(gamma_plus, gamma_minus, tau_plus)) ** 2
-    )
-
-    den = (
-        pm(gamma_plus, gamma_minus, tau_plus)
-        * mp(gamma_plus, gamma_minus, tau_minus)
-    ) - pp(gamma_plus, gamma_minus, tau_plus) * mm(
-        gamma_plus, gamma_minus, tau_minus
-    )
-    den = den**2
-
-    T = 2 * 1000 * (tau_plus + tau_minus)
-
-    # actual cost function to compare to paper
-    cost_function = ((T * num / den) ** 0.5) / (gamma_minus * gamma_plus)
-
-    print('let us turn all nans to 1e-7')
-    flag = 0
-    for nni in range(n_gamma):
-        for nnj in range(n_gamma):       
-            if np.isnan(cost_function[nni][nnj]) or np.isinf(cost_function[nni][nnj]):
-                # print('AHA!')
-                cost_function[nni][nnj] = 0.0000001
-                flag += 1
-
-    print('number of changes made ', flag)
-
-    print('np.max(cost_function) ', np.max(cost_function))
-    print('np.min(cost_function) ', np.min(cost_function))
-    plt.title("Evaluated Cost Function")
-    plt.pcolor(
-        gamma_minus,
-        gamma_plus,
-        cost_function,
-        norm=LogNorm(
-            vmin=np.min(cost_function), vmax=np.max(cost_function)
-        ))
-    # ,
-    #     cmap="viridis_r",
-    # )
-    plt.xscale("log")
-    plt.yscale("log")
-    plt.colorbar()
-    plt.show()
+    return tp[min_cost_idx], tm[min_cost_idx]
 
 
 def fake_counts(tau, num_samples, gamma):
 
+    # print('Fake counts gamma ', gamma)
     means = calculate_M_tildes(gamma, tau)
-    print(gamma, tau, means)
-    stds = [1e-1, 1e-1]
+    # print(gamma, tau, means)
+    stds = [1e-3, 1e-3]
 
     M = np.random.normal(means, stds, (num_samples, 2))
-
-    # M = np.random.normal((np.exp(-(tau * gamma * 0.001))), 1e-4, num_samples)
-    # # print('M ', M)
-    # # print('np.std(M) ', np.std(M))
 
     return M
 
@@ -316,7 +234,7 @@ def calculate_likelihood(M_measured_mean, M_measured_sigma, tau_opt, gamma_grid)
 
 def calculate_M_tildes(gamma_grid, tau_opt):
 
-    print('tau_opt ', tau_opt)
+    # print("tau_opt ", tau_opt)
     gamma_plus, gamma_minus = gamma_grid
     tau_plus, tau_minus = tau_opt
 
@@ -344,16 +262,113 @@ def printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_a
     fig.suptitle("Gamma_plus and Gamma_minus (in ms^-1) distributions")
     axs[0].plot(gamma_plus_arr, gamma_plus_distr)
     axs[0].axvline(x=GAMMA_SIM[0], color="r", linestyle="--")
+    axs[0].axvline(x=GAMMA_SIM[1], color="b", linestyle="--")
     axs[0].set_xlabel("Gamma plus")
     axs[1].plot(gamma_minus_arr, gamma_minus_distr)
-    axs[1].axvline(x=GAMMA_SIM[1], color="r", linestyle="--")
+    axs[1].axvline(x=GAMMA_SIM[0], color="r", linestyle="--")
+    axs[1].axvline(x=GAMMA_SIM[1], color="b", linestyle="--")
     axs[1].set_xlabel("Gamma minus")
     fig.tight_layout()
     plt.show()
 
 
 
-def plotting_M_tildes_from_meshgrid():
+##############################################################################################
+
+
+
+"""
+TEST FUNCTIONS
+
+
+def plot_pdfs(prior, likelihood, posterior):
+
+    # fig , axes = plt.subplots(4)
+    # fig.suptitle("PDFs")
+
+    # prior_plot = axes[0].pcolor(prior)
+    # plt.colorbar(prior_plot, ax = axes[0])
+    # axes[0].set_title("Prior")
+
+    # likelihood_plot = axes[1].pcolor(likelihood)
+    # plt.colorbar(likelihood_plot, ax = axes[1])
+    # axes[1].set_title("Likelihood")
+
+    # posterior_plot = axes[2].pcolor(posterior)
+    # plt.colorbar(posterior_plot, ax = axes[2])
+    # axes[2].set_title("Posterior")
+
+    # gamma_plus_prior = axes[3].plot(gamma_plus_arr, np.sum(prior, 0))
+    # gamma_minus_prior = axes[3].plot(gamma_plus_arr, np.sum(prior, 1))
+    # axes[3].set_title("Gamma priors")
+
+    # gamma_plus_posterior = axes[4].plot(gamma_plus_arr, np.sum(posterior, 0))
+    # gamma_minus_posterior = axes[4].plot(gamma_plus_arr, np.sum(posterior, 1))
+    # axes[4].set_title("Gamma posteriors")
+
+    # plt.show()
+
+
+def calculate_gamma_opt():
+
+    # Finding decent range of gammas to prevent overflow errors
+
+    tau_plus = 5.5  # in ms, lower limit is 0.003 ms
+    tau_minus = 5.5  # in ms
+    gamma_lower = 1 / 5.5  # in ms^-1
+    gamma_upper = 32  # in ms^-1
+    n_gamma = 1000
+    gamma_plus_arr = np.geomspace(gamma_lower, gamma_upper, n_gamma)
+    gamma_minus_arr = np.geomspace(gamma_lower, gamma_upper, n_gamma)
+    gamma_plus, gamma_minus = np.meshgrid(gamma_plus_arr, gamma_minus_arr)
+
+    num = (
+        (gamma_minus * mm(gamma_plus, gamma_minus, tau_minus)) ** 2
+        + (gamma_minus * pm(gamma_plus, gamma_minus, tau_plus)) ** 2
+        + (gamma_plus * mp(gamma_plus, gamma_minus, tau_minus)) ** 2
+        + (gamma_plus * pp(gamma_plus, gamma_minus, tau_plus)) ** 2
+    )
+
+    den = (
+        pm(gamma_plus, gamma_minus, tau_plus) * mp(gamma_plus, gamma_minus, tau_minus)
+    ) - pp(gamma_plus, gamma_minus, tau_plus) * mm(gamma_plus, gamma_minus, tau_minus)
+    den = den**2
+
+    T = 2 * 1000 * (tau_plus + tau_minus)
+
+    # actual cost function to compare to paper
+    cost_function = ((T * num / den) ** 0.5) / (gamma_minus * gamma_plus)
+
+    print("let us turn all nans to 1e-7")
+    flag = 0
+    for nni in range(n_gamma):
+        for nnj in range(n_gamma):
+            if np.isnan(cost_function[nni][nnj]) or np.isinf(cost_function[nni][nnj]):
+                # print('AHA!')
+                cost_function[nni][nnj] = 0.0000001
+                flag += 1
+
+    print("number of changes made ", flag)
+
+    print("np.max(cost_function) ", np.max(cost_function))
+    print("np.min(cost_function) ", np.min(cost_function))
+    plt.title("Evaluated Cost Function")
+    plt.pcolor(
+        gamma_minus,
+        gamma_plus,
+        cost_function,
+        norm=LogNorm(vmin=np.min(cost_function), vmax=np.max(cost_function)),
+    )
+    # ,
+    #     cmap="viridis_r",
+    # )
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.colorbar()
+    plt.show()
+
+
+def plot_M_tildes():
 
     tau_plus_arr = np.geomspace(0.001, 10, 1000)
     tau_minus_arr = np.geomspace(0.001, 10, 1000)
@@ -378,8 +393,23 @@ def plotting_M_tildes_from_meshgrid():
     plt.show()
 
 
-"""
-OBE type estimation functions
+def plot_cost_function(cost_function, tau_minus, tua_plus):
+   
+    print("np.max(cost_function) ", np.max(cost_function))
+    print("np.min(cost_function) ", np.min(cost_function))
+    plt.title("Evaluated Cost Function")
+    plt.pcolor(
+        tau_minus,
+        tau_plus,
+        cost_function,
+        norm=LogNorm(vmin=np.min(cost_function), vmax=np.max(cost_function)),
+        cmap="viridis_r",
+    )
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.colorbar()
+    plt.show()
+
 
 def calculate_gamma_params(
     prior_gamma,
