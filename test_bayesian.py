@@ -53,24 +53,34 @@ def find_bias(max_cycle, num_cycle):
         gamma_minus_delta[n] = np.abs(GAMMA_SIM[1] - gamma_minus)
 
     # plot gamma trends
-    fig, axes = plt.subplots(3)
+    fig = plt.figure()
     fig.suptitle("Gamma Trends with Adaptive Cycles")
 
-    axes[0].plot(cycles_range, gamma_plus_est, label = 'estimated gamma_plus')
-    axes[0].plot(cycles_range, gamma_minus_est, label = 'estimated gamma_minus')
-    axes[0].axhline(x=GAMMA_SIM[0], color="r", linestyle="--", label = 'real gamma_plus')
-    axes[0].axhline(x=GAMMA_SIM[1], color="b", linestyle="--", label = 'real gamma_minus')
-    axes[0].set_title('Gamma VS Bayesian Cycles')
-    axes[0].legend()
+    axes = fig.add_subplot(111)
+    axes0 = fig.add_subplot(311)
+    axes1 = fig.add_subplot(312)
+    axes2 = fig.add_subplot(313)
 
-    axes[1].plot(cycles_range, gamma_plus_delta, label = 'gamma_plus deviation')
-    axes[1].plot(cycles_range, gamma_minus_delta, label = 'gamma_minus deviation')
-    axes[1].axhline(x=0, color="r", linestyle="--", label = 'zero')
-    axes[1].set_title('Deviation from Real Gamma VS Bayesian Cycles')
-    axes[1].legend()
+    axes0.plot(cycles_range, gamma_plus_est, label = 'estimated gamma_plus')
+    axes0.plot(cycles_range, gamma_minus_est, label = 'estimated gamma_minus')
+    axes0.axhline(y=GAMMA_SIM[0], color="r", linestyle="--", label = 'real gamma_plus')
+    axes0.axhline(y=GAMMA_SIM[1], color="b", linestyle="--", label = 'real gamma_minus')
+    axes0.set_title('Estimated Gamma')
+    axes0.set_ylabel('ms^-1')
+    axes0.legend()
 
-    axes[2].plot(cycles_range, time_taken)
-    axes[2].set_title('Time taken for Bayesian Cycles')
+    axes1.plot(cycles_range, gamma_plus_delta, label = 'gamma_plus deviation')
+    axes1.plot(cycles_range, gamma_minus_delta, label = 'gamma_minus deviation')
+    axes1.axhline(y=0, color="g", linestyle="--", label = 'zero')
+    axes1.set_title('Deviation in Estimated Gamma')
+    axes1.set_ylabel('ms^-1')
+    axes1.legend()
+
+    axes2.plot(cycles_range, time_taken)
+    axes2.set_title('Time taken')
+    axes2.set_ylabel('s')
+
+    axes.set_xlabel("Number of Bayesian Cycles")
 
     plt.show()
 
