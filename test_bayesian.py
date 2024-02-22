@@ -20,11 +20,41 @@ from sympy import Symbol
 from sympy import lambdify
 
 
-
 GAMMA_SIM = [4, 11]  # [gamma_plus_sim, gamma_minus_sim]
 
 
-def find_bias(max_cycle, num_cycle):
+def gamma_spreads(cycle_num, rep_number):
+
+    gamma_plus_means = np.zeros(rep_number)
+    gamma_plus_stds = np.zeros(rep_number)
+    gamma_minus_means = np.zeros(rep_number)
+    gamma_minus_stds = np.zeros(rep_number)
+
+    # find mean and std of gammas after 100 bayesian cycles
+    for r in range(rep_number):
+
+        gamma_pdf, gamma_grid, delta_gamma = BayesianT1(cycle_num)
+        (
+            gamma_plus_means[r],
+            gamma_minus_means[r],
+            gamma_plus_stds[r],
+            gamma_minus_stds[r],
+        ) = calc_std_gammas(gamma_pdf, gamma_grid, delta_gamma)
+
+    # plot gamma distributions
+    fig, axes = plt.subplots(2)
+    fig.suptitle("Gamma distributions after "+ str(rep_number) + " bayesian cycles")
+
+    axes[0].hist(gamma_plus_means - GAMMA_SIM[0] / gamma_plus_stds)
+    axes[0].set_title("Gamma_plus")
+
+    axes[1].hist(gamma_minus_means - GAMMA_SIM[1] / gamma_minus_stds)
+    axes[1].set_title("Gamma_minus")
+
+    plt.show()
+
+
+def gamma_trends(max_cycle, num_cycle):
 
     cycles_range = np.unique(np.geomspace(1, max_cycle, num_cycle).astype(int))
     cycles = len(cycles_range)
@@ -38,19 +68,19 @@ def find_bias(max_cycle, num_cycle):
     for n in range(cycles):
 
         bayesian_cycle_num = cycles_range[n]
-        print('Running ', bayesian_cycle_num, 'bayesian cycles')
+        print("Running ", bayesian_cycle_num, "bayesian cycles")
         start_time = time.time()
 
         gamma_arr, gamma_pdf = BayesianT1(bayesian_cycle_num)
-        time_taken[n]   = time.time() - start_time
+        time_taken[n] = time.time() - start_time
 
         gamma_plus = gamma_arr[np.argmax(np.sum(gamma_pdf, 0))]
         gamma_plus_est[n] = gamma_plus
-        gamma_plus_delta[n] = np.abs(GAMMA_SIM[0] - gamma_plus)
+        gamma_plus_delta[n] = GAMMA_SIM[0] - gamma_plus
 
         gamma_minus = gamma_arr[np.argmax(np.sum(gamma_pdf, 1))]
         gamma_minus_est[n] = gamma_minus
-        gamma_minus_delta[n] = np.abs(GAMMA_SIM[1] - gamma_minus)
+        gamma_minus_delta[n] = GAMMA_SIM[1] - gamma_minus
 
     # plot gamma trends
     fig = plt.figure()
@@ -61,24 +91,24 @@ def find_bias(max_cycle, num_cycle):
     axes1 = fig.add_subplot(312)
     axes2 = fig.add_subplot(313)
 
-    axes0.plot(cycles_range, gamma_plus_est, label = 'estimated gamma_plus')
-    axes0.plot(cycles_range, gamma_minus_est, label = 'estimated gamma_minus')
-    axes0.axhline(y=GAMMA_SIM[0], color="r", linestyle="--", label = 'real gamma_plus')
-    axes0.axhline(y=GAMMA_SIM[1], color="b", linestyle="--", label = 'real gamma_minus')
-    axes0.set_title('Estimated Gamma')
-    axes0.set_ylabel('ms^-1')
+    axes0.plot(cycles_range, gamma_plus_est, label="estimated gamma_plus")
+    axes0.plot(cycles_range, gamma_minus_est, label="estimated gamma_minus")
+    axes0.axhline(y=GAMMA_SIM[0], color="r", linestyle="--", label="real gamma_plus")
+    axes0.axhline(y=GAMMA_SIM[1], color="b", linestyle="--", label="real gamma_minus")
+    axes0.set_title("Estimated Gamma")
+    axes0.set_ylabel("ms^-1")
     axes0.legend()
 
-    axes1.plot(cycles_range, gamma_plus_delta, label = 'gamma_plus deviation')
-    axes1.plot(cycles_range, gamma_minus_delta, label = 'gamma_minus deviation')
-    axes1.axhline(y=0, color="g", linestyle="--", label = 'zero')
-    axes1.set_title('Deviation in Estimated Gamma')
-    axes1.set_ylabel('ms^-1')
+    axes1.plot(cycles_range, gamma_plus_delta, label="gamma_plus deviation")
+    axes1.plot(cycles_range, gamma_minus_delta, label="gamma_minus deviation")
+    axes1.axhline(y=0, color="g", linestyle="--", label="zero")
+    axes1.set_title("Deviation in Estimated Gamma")
+    axes1.set_ylabel("ms^-1")
     axes1.legend()
 
     axes2.plot(cycles_range, time_taken)
-    axes2.set_title('Time taken')
-    axes2.set_ylabel('s')
+    axes2.set_title("Time taken")
+    axes2.set_ylabel("s")
 
     axes.set_xlabel("Number of Bayesian Cycles")
 
@@ -192,7 +222,8 @@ def BayesianT1(
         prior_gamma = posterior
 
     # printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr)
-    return (gamma_plus_arr, prior_gamma)
+    # return (gamma_plus_arr, prior_gamma)
+    return (prior_gamma, gamma_grid, delta_gamma)
 
 
 def normalize_2D_pdf(pdf, delta_x, delta_y):
@@ -211,6 +242,19 @@ def calc_mean_gammas(prior, gamma_grid, delta_gamma):
         np.sum(prior * gamma_grid[0]) * delta_gamma**2,
         np.sum(prior * gamma_grid[1]) * delta_gamma**2,
     )
+
+
+def calc_std_gammas(prior, gamma_grid, delta_gamma):
+
+    gamma_plus_mean, gamma_minus_mean = calc_mean_gammas(prior, gamma_grid, delta_gamma)
+
+    val_plus_grid = np.square(gamma_grid[0][0] - gamma_plus_mean)
+    val_minus_grid = np.square(np.transpose(gamma_grid[1])[0] - gamma_minus_mean)
+    val_grid = np.meshgrid(val_plus_grid, val_minus_grid)
+
+    gamma_plus_std, gamma_minus_std = calc_mean_gammas(prior, val_grid, delta_gamma)
+
+    return (gamma_plus_mean, gamma_minus_mean, gamma_plus_std, gamma_minus_std)
 
 
 def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
