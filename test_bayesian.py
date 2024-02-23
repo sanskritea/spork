@@ -213,7 +213,7 @@ def BayesianT1(
     N_bayesian,
     gamma_lower=0.055,  # in ms^-1
     gamma_upper=32,  # in ms^-1, decided after calculating const function many times
-    n_gamma=3000,
+    n_gamma=10000,
     tau_lower=0.003,  # in ms
     tau_upper=5.5,  # in ms
     n_tau=1000,
@@ -228,7 +228,8 @@ def BayesianT1(
 
     # decay rates distribution
     gamma_distr = np.ones((n_gamma, n_gamma))
-    gamma_distr = normalize_2D_pdf(gamma_distr, delta_gamma, delta_gamma)
+    # gamma_distr = normalize_2D_pdf(gamma_distr, delta_gamma, delta_gamma)
+    gamma_distr = trap_normalize_2D_pdf(gamma_distr, gamma_grid)
 
     # relaxometry delay tau grid
     tau_plus_arr = np.geomspace(tau_lower, tau_upper, n_tau)
@@ -265,7 +266,8 @@ def BayesianT1(
 
         # calculate posterior
         posterior_gamma_unnorm = likelihood * prior_gamma
-        posterior = normalize_2D_pdf(posterior_gamma_unnorm, delta_gamma, delta_gamma)
+        # posterior = normalize_2D_pdf(posterior_gamma_unnorm, delta_gamma, delta_gamma)
+        posterior = trap_normalize_2D_pdf(posterior_gamma_unnorm, gamma_grid)
 
         # PLOT PRIOR, LIKELIHOOD, POSTERIOR
         # plot_pdfs(prior_gamma, likelihood, posterior)
@@ -284,9 +286,12 @@ def normalize_2D_pdf(pdf, delta_x, delta_y):
     return pdf / (np.sum(pdf) * delta_x * delta_y)
 
 
-def normalize_1D_pdf(pdf, delta_x):
+def trap_normalize_2D_pdf(pdf, gamma_grid):
 
-    return pdf / (np.sum(pdf) * delta_x)
+    gamma_plus, gamma_minus = gamma_grid[0][0], np.transpose(gamma_grid[1])[0]
+    norm = np.trapz(np.trapz(pdf, gamma_minus), gamma_plus)
+    # print('norm ', norm)
+    return pdf / norm
 
 
 def calc_mean_gammas(prior, gamma_grid, delta_gamma):
@@ -404,6 +409,7 @@ def calculate_M_tildes(gamma_grid, tau_opt):
 def printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr):
 
     gamma_plus_distr = np.sum(prior_gamma, 0)
+    # print('final gamma_plus distr ', gamma_plus_distr)
     gamma_minus_distr = np.sum(prior_gamma, 1)
 
     # PRINT GAMMA_PLUS AND GAMMA_MINUS FROM CURRENT PDF
