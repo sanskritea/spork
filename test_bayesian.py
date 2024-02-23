@@ -20,7 +20,7 @@ from sympy import Symbol
 from sympy import lambdify
 
 
-GAMMA_SIM = [4, 11]  # [gamma_plus_sim, gamma_minus_sim]
+GAMMA_SIM = [3, 1]  # [gamma_plus_sim, gamma_minus_sim]
 
 
 def gamma_spreads(cycle_num, rep_number):
@@ -41,27 +41,59 @@ def gamma_spreads(cycle_num, rep_number):
             gamma_minus_stds[r],
         ) = calc_std_gammas(gamma_pdf, gamma_grid, delta_gamma)
 
+    # print('gamma_plus_means ', gamma_plus_means)
+    # print('gamma_minus_means ', gamma_minus_means)
+    # print('gamma_plus_stds ', gamma_plus_stds)
+    # print('gamma_minus_stds ', gamma_minus_stds)
+
+    gamma_plus_function = (gamma_plus_means - GAMMA_SIM[0]) / gamma_plus_stds
+    gamma_minus_function = (gamma_minus_means - GAMMA_SIM[1]) / gamma_minus_stds
+    # print('gamma_plus_function ', gamma_plus_function)
+    # print('gamma_minus_function ', gamma_minus_function)
+    
     # plot gamma distributions
     fig, axes = plt.subplots(2)
     fig.suptitle("Gamma distributions after "+ str(rep_number) + " bayesian cycles")
 
-    axes[0].hist(gamma_plus_means - GAMMA_SIM[0] / gamma_plus_stds)
+    axes[0].hist(gamma_plus_function)
     axes[0].set_title("Gamma_plus")
 
-    axes[1].hist(gamma_minus_means - GAMMA_SIM[1] / gamma_minus_stds)
+    axes[1].hist(gamma_minus_function)
     axes[1].set_title("Gamma_minus")
 
     plt.show()
 
 
-def gamma_trends(max_cycle, num_cycle):
+def tau_trends(max_cycle):
 
-    cycles_range = np.unique(np.geomspace(1, max_cycle, num_cycle).astype(int))
+    cycles = len(cycles_range)
+    tau_plus_final = np.zeros(cycles)
+    tau_minus_final = np.zeros(cycles)
+
+    #  find gamma_plus and gamma_minus for different cycle numbers
+    for n in range(cycles):
+
+        tau_plus_final[n], tau_minus_final[n] = BayesianT1(cycles_range[n])
+        
+    # plot tau trends
+    plt.plot(cycles_range, tau_plus_final, label = "tau_plus")
+    plt.plot(cycles_range, tau_minus_final, label = "tau_minus")
+    plt.xlabel("Number of Bayesian cycles")
+    plt.ylabel("tau in ms")
+    plt.legend()
+    plt.show()
+
+
+def trends(max_cycle):
+
+    cycles_range = np.linspace(1, max_cycle, max_cycle).astype(int)
     cycles = len(cycles_range)
     gamma_plus_est = np.zeros(cycles)
     gamma_minus_est = np.zeros(cycles)
     gamma_plus_delta = np.zeros(cycles)
     gamma_minus_delta = np.zeros(cycles)
+    tau_plus_final = np.zeros(cycles)
+    tau_minus_final = np.zeros(cycles)
     time_taken = np.zeros(cycles)
 
     #  find gamma_plus and gamma_minus for different cycle numbers
@@ -69,49 +101,66 @@ def gamma_trends(max_cycle, num_cycle):
 
         bayesian_cycle_num = cycles_range[n]
         print("Running ", bayesian_cycle_num, "bayesian cycles")
-        start_time = time.time()
 
-        gamma_arr, gamma_pdf = BayesianT1(bayesian_cycle_num)
+        start_time = time.time()
+        gamma_pdf, gamma_grid, delta_gamma, tau_plus_final[n], tau_minus_final[n] = BayesianT1(bayesian_cycle_num)
         time_taken[n] = time.time() - start_time
 
-        gamma_plus = gamma_arr[np.argmax(np.sum(gamma_pdf, 0))]
-        gamma_plus_est[n] = gamma_plus
-        gamma_plus_delta[n] = GAMMA_SIM[0] - gamma_plus
+        gamma_plus_est[n] = gamma_grid[0][0][np.argmax(np.sum(gamma_pdf, 0))]
+        gamma_minus_est[n] = np.transpose(gamma_grid[1])[0][np.argmax(np.sum(gamma_pdf, 1))]
+        gamma_plus_delta[n], gamma_minus_delta[n] = calc_std_gammas(gamma_pdf, gamma_grid, delta_gamma)
 
-        gamma_minus = gamma_arr[np.argmax(np.sum(gamma_pdf, 1))]
-        gamma_minus_est[n] = gamma_minus
-        gamma_minus_delta[n] = GAMMA_SIM[1] - gamma_minus
+
+    # store results in txt file
+    fname = str(np.datetime64('today')) + "BayesianTrends"
+    np.savetxt(fname + "GammaPlus.txt", gamma_plus_est, delimiter=' ', newline='\n', header='', footer='')
+    np.savetxt(fname + "GammaMinus.txt", gamma_minus_est, delimiter=' ', newline='\n', header='', footer='')
+    np.savetxt(fname + "GammaPlusDelta.txt", gamma_plus_delta, delimiter=' ', newline='\n', header='', footer='')
+    np.savetxt(fname + "GammaMinusDelta.txt", gamma_minus_delta, delimiter=' ', newline='\n', header='', footer='')
+    np.savetxt(fname + "TauPlus.txt", tau_plus_final, delimiter=' ', newline='\n', header='', footer='')
+    np.savetxt(fname + "TauMinus.txt", tau_minus_final, delimiter=' ', newline='\n', header='', footer='')
+    np.savetxt(fname + "TimeTaken.txt", time_taken, delimiter=' ', newline='\n', header='', footer='')
+
 
     # plot gamma trends
-    fig = plt.figure()
-    fig.suptitle("Gamma Trends with Adaptive Cycles")
+    fig, axes = plt.subplots(1, 5, figsize = (10, 2.5))
+    fig.suptitle("Trends with Adaptive Cycles")
 
-    axes = fig.add_subplot(111)
-    axes0 = fig.add_subplot(311)
-    axes1 = fig.add_subplot(312)
-    axes2 = fig.add_subplot(313)
+    axes[0].plot(cycles_range, gamma_plus_est)
+    axes[0].fill_between(cycles_range, gamma_plus_est - gamma_plus_delta, gamma_plus_est + gamma_plus_delta, alpha = 0.2)
+    axes[0].axhline(y=GAMMA_SIM[0], color="black", linestyle="--")
+    axes[0].set_title("gamma_plus", fontsize = 10)
+    axes[0].set_xlabel("cycles", fontsize = 9)
+    axes[0].set_ylabel("ms^-1", fontsize = 9)
+    # axes[0].axis('square')
 
-    axes0.plot(cycles_range, gamma_plus_est, label="estimated gamma_plus")
-    axes0.plot(cycles_range, gamma_minus_est, label="estimated gamma_minus")
-    axes0.axhline(y=GAMMA_SIM[0], color="r", linestyle="--", label="real gamma_plus")
-    axes0.axhline(y=GAMMA_SIM[1], color="b", linestyle="--", label="real gamma_minus")
-    axes0.set_title("Estimated Gamma")
-    axes0.set_ylabel("ms^-1")
-    axes0.legend()
+    axes[1].plot(cycles_range, gamma_minus_est)
+    axes[1].fill_between(cycles_range, gamma_minus_est - gamma_minus_delta, gamma_minus_est + gamma_minus_delta, alpha = 0.2)
+    axes[1].axhline(y=GAMMA_SIM[1], color="black", linestyle="--")
+    axes[1].set_title("gamma_minus", fontsize = 10)
+    axes[1].set_xlabel("cycles", fontsize = 9)
+    axes[1].set_ylabel("ms^-1", fontsize = 9)
+    # axes[1].axis('square')
+    
+    axes[2].plot(cycles_range, tau_plus_final * 1000)
+    axes[2].set_title("tau_plus", fontsize = 10)
+    axes[2].set_xlabel("cycles", fontsize = 9)
+    axes[2].set_ylabel("us", fontsize = 9)
+    # axes[2].axis('square')
 
-    axes1.plot(cycles_range, gamma_plus_delta, label="gamma_plus deviation")
-    axes1.plot(cycles_range, gamma_minus_delta, label="gamma_minus deviation")
-    axes1.axhline(y=0, color="g", linestyle="--", label="zero")
-    axes1.set_title("Deviation in Estimated Gamma")
-    axes1.set_ylabel("ms^-1")
-    axes1.legend()
+    axes[3].plot(cycles_range, tau_minus_final * 1000)
+    axes[3].set_title("tau_minus", fontsize = 10)
+    axes[3].set_xlabel("cycles", fontsize = 9)
+    axes[3].set_ylabel("us", fontsize = 9)
+    # axes[3].axis('square')
 
-    axes2.plot(cycles_range, time_taken)
-    axes2.set_title("Time taken")
-    axes2.set_ylabel("s")
+    axes[4].plot(cycles_range, time_taken)
+    axes[4].set_title("Time taken", fontsize = 10)
+    axes[4].set_xlabel("cycles", fontsize = 9)
+    axes[4].set_ylabel("s", fontsize = 9)
+    # axes[4].axis('square')
 
-    axes.set_xlabel("Number of Bayesian Cycles")
-
+    plt.tight_layout()
     plt.show()
 
 
@@ -164,7 +213,7 @@ def BayesianT1(
     N_bayesian,
     gamma_lower=0.055,  # in ms^-1
     gamma_upper=32,  # in ms^-1, decided after calculating const function many times
-    n_gamma=1000,
+    n_gamma=3000,
     tau_lower=0.003,  # in ms
     tau_upper=5.5,  # in ms
     n_tau=1000,
@@ -188,9 +237,11 @@ def BayesianT1(
 
     # begin with a flat prior in gammas
     prior_gamma = gamma_distr.copy()
+    tau_plus, tau_minus = 0, 0
 
     # printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr)
 
+    start_time = time.time()
     for num in range(N_bayesian):
 
         # print("Doing adaptive cycle", num)
@@ -199,6 +250,7 @@ def BayesianT1(
         gamma_plus, gamma_minus = calc_mean_gammas(prior_gamma, gamma_grid, delta_gamma)
 
         tau_opt = nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus)
+        tau_plus, tau_minus = tau_opt
 
         # use taus in measurement
         M_measured = fake_counts(tau_opt, repetitions, GAMMA_SIM)
@@ -221,9 +273,10 @@ def BayesianT1(
         # normalize posterior and update prior
         prior_gamma = posterior
 
+    # print('time taken ', time.time() - start_time)
     # printing_and_plotting(gamma_grid, prior_gamma, gamma_plus_arr, gamma_minus_arr)
     # return (gamma_plus_arr, prior_gamma)
-    return (prior_gamma, gamma_grid, delta_gamma)
+    return (prior_gamma, gamma_grid, delta_gamma, tau_plus, tau_minus)
 
 
 def normalize_2D_pdf(pdf, delta_x, delta_y):
@@ -248,13 +301,16 @@ def calc_std_gammas(prior, gamma_grid, delta_gamma):
 
     gamma_plus_mean, gamma_minus_mean = calc_mean_gammas(prior, gamma_grid, delta_gamma)
 
-    val_plus_grid = np.square(gamma_grid[0][0] - gamma_plus_mean)
-    val_minus_grid = np.square(np.transpose(gamma_grid[1])[0] - gamma_minus_mean)
-    val_grid = np.meshgrid(val_plus_grid, val_minus_grid)
+    gamma_plus_distr = np.sum(prior, 0)
+    gamma_minus_distr = np.sum(prior, 1)
 
-    gamma_plus_std, gamma_minus_std = calc_mean_gammas(prior, val_grid, delta_gamma)
+    gamma_plus = gamma_grid[0][0]
+    gamma_minus = np.transpose(gamma_grid[1])[0]
 
-    return (gamma_plus_mean, gamma_minus_mean, gamma_plus_std, gamma_minus_std)
+    gamma_plus_std = np.sqrt(np.sum(np.square(gamma_plus - gamma_plus_mean) * gamma_plus_distr * delta_gamma))
+    gamma_minus_std = np.sqrt(np.sum(np.square(gamma_minus - gamma_minus_mean) * gamma_minus_distr * delta_gamma))
+
+    return (gamma_plus_std, gamma_minus_std)
 
 
 def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
