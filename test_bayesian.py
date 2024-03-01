@@ -130,14 +130,14 @@ def BayesianT1(
         tau_plus, tau_minus = tau_opt
 
         ## use taus in measurement
-        M_measured = fake_counts(tau_opt, repetitions, GAMMA_SIM)
-        # M_measured = good_fake_counts(tau_opt)
+        # M_measured = fake_counts(tau_opt, repetitions, GAMMA_SIM)
+        # M_measured_mean = [np.mean(np.transpose(M_measured)[0]), np.mean(np.transpose(M_measured)[1])]
+        # M_measured_sigma = [np.std(np.transpose(M_measured)[0]), np.std(np.transpose(M_measured)[1])]
+
+        M_measured_good = good_fake_counts(tau_opt)        
+        M_measured_mean, M_measured_sigma = M_measured_good
 
         # calculate likelihood from measurement result
-        M_measured_mean = [np.mean(np.transpose(M_measured)[0]), np.mean(np.transpose(M_measured)[1])]
-        M_measured_sigma = [np.std(np.transpose(M_measured)[0]), np.std(np.transpose(M_measured)[1])]
-        # M_measured_mean, M_measured_sigma = M_measured
-
         likelihood = calculate_likelihood(
             M_measured_mean, M_measured_sigma, tau_opt, gamma_grid
         )
@@ -160,67 +160,67 @@ def BayesianT1(
         tau_minus_final[num] = tau_minus
         time_taken[num] = time.time() - start_time
 
-        # if num == 0 or num == N_bayesian - 1:
-        #     printing_and_plotting(gamma_grid, prior_gamma)
+        if num == 0 or num == N_bayesian - 1:
+            printing_and_plotting(gamma_grid, prior_gamma)
 
-    # plot trends
-    fig, axes = plt.subplots(1, 5, figsize=(10, 2.5))
-    fig.suptitle("Trends with Adaptive Cycles")
+    # # plot trends
+    # fig, axes = plt.subplots(1, 5, figsize=(10, 2.5))
+    # fig.suptitle("Trends with Adaptive Cycles")
 
-    axes[0].plot(cycles_range, gamma_plus_est)
-    # axes[0].fill_between(
-    #     cycles_range,
-    #     gamma_plus_est - gamma_plus_delta,
-    #     gamma_plus_est + gamma_plus_delta,
-    #     alpha=0.2,
-    # )
-    # axes[0].fill_between(
-    #     cycles_range,
-    #     gamma_plus_pointzerofive,
-    #     gamma_plus_pointninefive,
-    #     alpha=0.2,
-    # )
-    axes[0].axhline(y=GAMMA_SIM[0], color="black", linestyle="--")
-    axes[0].set_title("gamma_plus", fontsize=10)
-    axes[0].set_xlabel("cycles", fontsize=9)
-    axes[0].set_ylabel("ms^-1", fontsize=9)
+    # axes[0].plot(cycles_range, gamma_plus_est)
+    # # axes[0].fill_between(
+    # #     cycles_range,
+    # #     gamma_plus_est - gamma_plus_delta,
+    # #     gamma_plus_est + gamma_plus_delta,
+    # #     alpha=0.2,
+    # # )
+    # # axes[0].fill_between(
+    # #     cycles_range,
+    # #     gamma_plus_pointzerofive,
+    # #     gamma_plus_pointninefive,
+    # #     alpha=0.2,
+    # # )
+    # axes[0].axhline(y=GAMMA_SIM[0], color="black", linestyle="--")
+    # axes[0].set_title("gamma_plus", fontsize=10)
+    # axes[0].set_xlabel("cycles", fontsize=9)
+    # axes[0].set_ylabel("ms^-1", fontsize=9)
 
-    axes[1].plot(cycles_range, gamma_minus_est)
-    # axes[1].fill_between(
-    #     cycles_range,
-    #     gamma_minus_est - gamma_minus_delta,
-    #     gamma_minus_est + gamma_minus_delta,
-    #     alpha=0.2,
-    # )
-    # axes[1].fill_between(
-    #     cycles_range,
-    #     gamma_minus_pointzerofive,
-    #     gamma_minus_pointninefive,
-    #     alpha=0.2,
-    # )
-    axes[1].axhline(y=GAMMA_SIM[1], color="black", linestyle="--")
-    axes[1].set_title("gamma_minus", fontsize=10)
-    axes[1].set_xlabel("cycles", fontsize=9)
-    axes[1].set_ylabel("ms^-1", fontsize=9)
+    # axes[1].plot(cycles_range, gamma_minus_est)
+    # # axes[1].fill_between(
+    # #     cycles_range,
+    # #     gamma_minus_est - gamma_minus_delta,
+    # #     gamma_minus_est + gamma_minus_delta,
+    # #     alpha=0.2,
+    # # )
+    # # axes[1].fill_between(
+    # #     cycles_range,
+    # #     gamma_minus_pointzerofive,
+    # #     gamma_minus_pointninefive,
+    # #     alpha=0.2,
+    # # )
+    # axes[1].axhline(y=GAMMA_SIM[1], color="black", linestyle="--")
+    # axes[1].set_title("gamma_minus", fontsize=10)
+    # axes[1].set_xlabel("cycles", fontsize=9)
+    # axes[1].set_ylabel("ms^-1", fontsize=9)
 
-    axes[2].plot(cycles_range, tau_plus_final * 1000)
-    axes[2].set_title("tau_plus", fontsize=10)
-    axes[2].set_xlabel("cycles", fontsize=9)
-    axes[2].set_ylabel("us", fontsize=9)
+    # axes[2].plot(cycles_range, tau_plus_final * 1000)
+    # axes[2].set_title("tau_plus", fontsize=10)
+    # axes[2].set_xlabel("cycles", fontsize=9)
+    # axes[2].set_ylabel("us", fontsize=9)
 
-    axes[3].plot(cycles_range, tau_minus_final * 1000)
-    axes[3].set_title("tau_minus", fontsize=10)
-    axes[3].set_xlabel("cycles", fontsize=9)
-    axes[3].set_ylabel("us", fontsize=9)
+    # axes[3].plot(cycles_range, tau_minus_final * 1000)
+    # axes[3].set_title("tau_minus", fontsize=10)
+    # axes[3].set_xlabel("cycles", fontsize=9)
+    # axes[3].set_ylabel("us", fontsize=9)
 
-    time_taken = np.cumsum(time_taken)
-    axes[4].plot(cycles_range, time_taken)
-    axes[4].set_title("Time taken", fontsize=10)
-    axes[4].set_xlabel("cycles", fontsize=9)
-    axes[4].set_ylabel("s", fontsize=9)
+    # time_taken = np.cumsum(time_taken)
+    # axes[4].plot(cycles_range, time_taken)
+    # axes[4].set_title("Time taken", fontsize=10)
+    # axes[4].set_xlabel("cycles", fontsize=9)
+    # axes[4].set_ylabel("s", fontsize=9)
 
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
 
 
 def normalize_2D_pdf(pdf, delta_x, delta_y):
@@ -368,6 +368,9 @@ def fake_counts(tau, num_samples, gamma):
 
     M = np.random.normal(means, stds, (num_samples, 2))
 
+    print('M_mean ', [np.mean(np.transpose(M)[0]), np.mean(np.transpose(M)[1])])
+    print('M_sigma ', [np.std(np.transpose(M)[0]), np.std(np.transpose(M)[1])])
+
     return M
 
 
@@ -375,9 +378,9 @@ def good_fake_counts(
     tau
 ):  # evaluate using R later to find the optimum value for the pillar
     
-    mean_S1 = 1e6
+    mean_S1 = 1000
     var_S1 = mean_S1
-    contrast = 0.25 # assuming 25% contrast for pillar
+    contrast = 0.25 # assume 25% contrast for pillar
     mean_S2 = mean_S1 * (1 - contrast)  
     var_S2 = mean_S2
 
@@ -385,17 +388,16 @@ def good_fake_counts(
     var_delta = var_S1 + var_S2
     delta = np.random.normal(mean_delta, np.sqrt(var_delta), 1)  # here R is 1
 
-    Z_max = (1 / (4 * (var_delta**2))) * (((mean_delta**2) + 8 * (var_delta**2)) ** 0.5 - mean_delta)
+    Z_max = (1 / (4 * (var_delta))) * (np.sqrt((mean_delta**2) + (8 * var_delta)) - mean_delta)
     print('Z_max ', Z_max)
-    var_Z = (Z_max**2) * var_delta / ((2 - (Z_max * mean_delta)) ** 0.5)
-    Z = np.random.normal(Z_max, np.sqrt(var_Z), 1)
+    var_Z = (Z_max**2) * np.sqrt(var_delta) / np.sqrt(2 - (Z_max * mean_delta)) 
 
     mean_A_n = np.array(np.zeros(2))
     A_n = np.array(np.zeros(2))
     mean_A_n[0] = np.exp(- tau[0] * GAMMA_SIM[0]) * (mean_S1 - mean_S2)
     mean_A_n[1] = np.exp(- tau[1] * GAMMA_SIM[1]) * (mean_S1 - mean_S2)
     var_A_n = mean_A_n
-    stdev_A_n = var_A_n ** 0.5
+    stdev_A_n = np.sqrt(var_A_n)
     A_n[0] = np.random.normal(mean_A_n[0], stdev_A_n[0], 1)
     A_n[1] = np.random.normal(mean_A_n[1], stdev_A_n[1], 1)
 
@@ -403,7 +405,10 @@ def good_fake_counts(
     mean_M = A_n * Z_max
     var_M = M * (((var_A_n / A_n) ** 2 + (var_Z / Z_max) ** 2) ** 0.5)
 
-    print('Measured mean_M ', mean_M)
+    print('Good mean_M ', mean_M)
+    # print('np.shape(mean_M)', np.shape(mean_M))
+    print('Good var_M ', var_M)
+    # print('np.shape(var_M) ', np.shape(var_M))
 
     return mean_M, var_M
 
