@@ -20,7 +20,7 @@ from sympy import Symbol
 from sympy import lambdify
 
 
-GAMMA_SIM = [3, 1]  # [gamma_plus_sim, gamma_minus_sim]
+GAMMA_SIM = np.array([3, 1])  # [gamma_plus_sim, gamma_minus_sim]
 
 
 def give_sympy_functions():
@@ -115,12 +115,12 @@ def BayesianT1(
 
         start_time = time.time()
 
-        # print("Doing adaptive cycle", num)
+        print("Doing adaptive cycle", num)
 
         ## find optimized taus from NOB cost function
         # calculate mean gammas
         gamma_plus, gamma_minus = calc_mean_gammas(prior_gamma, gamma_grid, delta_gamma)
-        
+
         # use cdf to calculate mean gammas from asymmetric priors
         # gamma_vals = calculate_conf_intervals(prior_gamma, gamma_grid, delta_gamma)
         # gamma_plus = gamma_vals[0][1]
@@ -130,11 +130,13 @@ def BayesianT1(
         tau_plus, tau_minus = tau_opt
 
         ## use taus in measurement
-        M_measured = fake_counts(tau_opt, repetitions, GAMMA_SIM)
+        # M_measured = fake_counts(tau_opt, repetitions, GAMMA_SIM)
+        M_measured = good_fake_counts(tau_opt)
 
         # calculate likelihood from measurement result
-        M_measured_mean = [np.mean(M_measured[0]), np.mean(M_measured[1])]
-        M_measured_sigma = [np.std(M_measured[0]), np.std(M_measured[1])]
+        # M_measured_mean = [np.mean(M_measured[0]), np.mean(M_measured[1])]
+        # M_measured_sigma = [np.std(M_measured[0]), np.std(M_measured[1])]
+        M_measured_mean, M_measured_sigma = M_measured
 
         likelihood = calculate_likelihood(
             M_measured_mean, M_measured_sigma, tau_opt, gamma_grid
@@ -157,7 +159,6 @@ def BayesianT1(
         tau_plus_final[num] = tau_plus
         tau_minus_final[num] = tau_minus
         time_taken[num] = time.time() - start_time
-
 
         if num == 0 or num == N_bayesian - 1:
             printing_and_plotting(gamma_grid, prior_gamma)
@@ -219,7 +220,7 @@ def BayesianT1(
     # axes[4].set_ylabel("s", fontsize=9)
 
     # plt.tight_layout()
-    # plt.show()  
+    # plt.show()
 
 
 def normalize_2D_pdf(pdf, delta_x, delta_y):
@@ -357,7 +358,7 @@ def nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus):
     # plot cost function
     # plot_cost_function(cost_function, tau_minus, tau_plus)
 
-    return tp[min_cost_idx], tm[min_cost_idx]
+    return np.array([tp[min_cost_idx], tm[min_cost_idx]])
 
 
 def fake_counts(tau, num_samples, gamma):
@@ -369,36 +370,42 @@ def fake_counts(tau, num_samples, gamma):
 
     return M
 
-"""
-def good_fake_counts(num_samples):
 
-    # DRAW M_num from a gaussian distribution with mean_s1_s2 and variance 
-    mean_delta = 
-    var_delta = 
-    delta = np.random.normal(mean_s1_s2, var_s1_s2, 1) 
+def good_fake_counts(
+    tau
+):  # evaluate using R later to find the optimum value for the pillar
 
-    Z_max = (1 / 4 * 
-                (var_delta ** 2)
-            ) * 
-            (
-                (
-                    (mean_delta ** 2) + 8 * (var_delta ** 2)
-                ) ** 0.5 - mean_delta
-            )
-    var_Z = (Z_max ** 2) * var_sigma / ((2 - Z_max * mean_delta) ** 0.5)
-    Z = np.random.normal(Z_max, var_Z)
 
-    M = Z / delta
+    
+    mean_S1 = 1e6
+    var_S1 = mean_S1
+    contrast = 0.25 # assuming 25% contrast for pillar
+    mean_S2 = mean_S1 * (1 - contrast)  
+    var_S2 = mean_S2
+
+    mean_delta = mean_S1 - mean_S2
+    var_delta = var_S1 + var_S2
+    delta = np.random.normal(mean_delta, np.sqrt(var_delta), 1)  # here R is 1
+
+    Z_max = (1 / (4 * (var_delta**2))) * (((mean_delta**2) + 8 * (var_delta**2)) ** 0.5 - mean_delta)
+    print('Z_max ', Z_max)
+    var_Z = (Z_max**2) * var_delta / ((2 - (Z_max * mean_delta)) ** 0.5)
+    Z = np.random.normal(Z_max, np.sqrt(var_Z), 1)
+
+    mean_A_n = np.array(np.zeros(2))
+    A_n = np.array(np.zeros(2))
+    mean_A_n[0] = np.exp(- tau[0] * GAMMA_SIM[0]) * (mean_S1 - mean_S2)
+    mean_A_n[1] = np.exp(- tau[1] * GAMMA_SIM[1]) * (mean_S1 - mean_S2)
+    var_A_n = mean_A_n
+    stdev_A_n = var_A_n ** 0.5
+    A_n[0] = np.random.normal(mean_A_n[0], stdev_A_n[0], 1)
+    A_n[1] = np.random.normal(mean_A_n[1], stdev_A_n[1], 1)
+
+    M = A_n / delta
     mean_M = A_n * Z_max
-    var_M = M * (
-                    ( (var_A_n / A_n) ** 2 + (var_Z / Z_max) ** 2
-                    ) ** 0.5
-                )
+    var_M = M * (((var_A_n / A_n) ** 2 + (var_Z / Z_max) ** 2) ** 0.5)
 
     return mean_M, var_M
-
-
-"""
 
 
 def calculate_likelihood(M_measured_mean, M_measured_sigma, tau_opt, gamma_grid):
@@ -459,7 +466,6 @@ def printing_and_plotting(gamma_grid, prior_gamma):
     axs[1].set_xlabel("Gamma minus")
     fig.tight_layout()
     plt.show()
-
 
 
 ##############################################################################################
