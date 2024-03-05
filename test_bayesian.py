@@ -131,8 +131,8 @@ def BayesianT1(
 
         ## use taus in measurement
         M_measured = fake_counts(tau_opt, repetitions, GAMMA_SIM)
-        # M_measured_mean = [np.mean(np.transpose(M_measured)[0]), np.mean(np.transpose(M_measured)[1])]
-        # M_measured_sigma = [np.std(np.transpose(M_measured)[0]), np.std(np.transpose(M_measured)[1])]
+        M_measured_mean = [np.mean(np.transpose(M_measured)[0]), np.mean(np.transpose(M_measured)[1])]
+        M_measured_sigma = [np.std(np.transpose(M_measured)[0]), np.std(np.transpose(M_measured)[1])]
 
         M_measured_good = good_fake_counts(tau_opt)
         M_measured_mean, M_measured_sigma = M_measured_good
@@ -145,12 +145,11 @@ def BayesianT1(
         # calculate posterior
         posterior_gamma_unnorm = likelihood * prior_gamma
         # posterior = normalize_2D_pdf(posterior_gamma_unnorm, delta_gamma, delta_gamma)
+
+        # normalize posterior
         posterior = trap_normalize_2D_pdf(posterior_gamma_unnorm, gamma_grid)
 
-        # PLOT PRIOR, LIKELIHOOD, POSTERIOR
-        # plot_pdfs(prior_gamma, likelihood, posterior)
-
-        # normalize posterior and update prior
+        # update prior
         prior_gamma = posterior
 
         # prepare plotting arrays
@@ -170,12 +169,6 @@ def BayesianT1(
     axes[0].plot(cycles_range, gamma_plus_est)
     # axes[0].fill_between(
     #     cycles_range,
-    #     gamma_plus_est - gamma_plus_delta,
-    #     gamma_plus_est + gamma_plus_delta,
-    #     alpha=0.2,
-    # )
-    # axes[0].fill_between(
-    #     cycles_range,
     #     gamma_plus_pointzerofive,
     #     gamma_plus_pointninefive,
     #     alpha=0.2,
@@ -187,12 +180,6 @@ def BayesianT1(
     axes[0].set_ylabel("ms^-1", fontsize=9)
 
     axes[1].plot(cycles_range, gamma_minus_est)
-    # axes[1].fill_between(
-    #     cycles_range,
-    #     gamma_minus_est - gamma_minus_delta,
-    #     gamma_minus_est + gamma_minus_delta,
-    #     alpha=0.2,
-    # )
     # axes[1].fill_between(
     #     cycles_range,
     #     gamma_minus_pointzerofive,
@@ -370,30 +357,30 @@ def fake_counts(tau, num_samples, gamma):
 
     M = np.random.normal(means, stds, (num_samples, 2))
 
-    # print("M_mean ", [np.mean(np.transpose(M)[0]), np.mean(np.transpose(M)[1])])
-    # print("M_std ", [np.std(np.transpose(M)[0]), np.std(np.transpose(M)[1])])
-
     return M
 
 
 def good_fake_counts(
     tau,
-):  # evaluate using R later to find the optimum value for the pillar
+):
+    """
+    1. Evaluate using R later to find the optimum value for the pillar
+
+    2. Check performance for small Rs with Cuachy distribution (ratio of two uncorrelated normal distributions)
+    """
 
     tau_plus, tau_minus = tau
     gamma_plus, gamma_minus = GAMMA_SIM
     contrast = 0.25
-    R = int(1)
+    R = int(1e5)
 
-    mean_S1_zero = 1e6
+    mean_S1_zero = 100
     mean_S2_zero = mean_S1_zero * (1 - contrast)
     var_S1_zero = mean_S1_zero
     var_S2_zero = mean_S2_zero
-
     mean_delta = mean_S1_zero - mean_S2_zero
     var_delta = var_S1_zero + var_S2_zero
     std_delta = np.sqrt(var_delta)
-    delta = np.random.normal(mean_delta, std_delta, R)
 
     Z_max = (1 / (4 * var_delta)) * (
         np.sqrt((mean_delta**2) + (8 * var_delta)) - mean_delta
@@ -401,7 +388,7 @@ def good_fake_counts(
     std_Z = (Z_max**2) * std_delta / np.sqrt(2 - (Z_max * mean_delta))
 
     mean_S1_tau_plus = mean_S1_zero * np.exp(-tau_plus * gamma_plus)
-    mean_S2_tau_plus = mean_S2_zero * (1 - contrast)
+    mean_S2_tau_plus = mean_S1_tau_plus * (1 - contrast)
     var_S1_tau_plus = mean_S1_tau_plus
     var_S2_tau_plus = mean_S2_tau_plus
     mean_A_n_plus = mean_S1_tau_plus - mean_S2_tau_plus
@@ -409,70 +396,71 @@ def good_fake_counts(
     std_A_n_plus = np.sqrt(var_A_n_plus)
 
     mean_S1_tau_minus = mean_S1_zero * np.exp(-tau_minus * gamma_minus)
-    mean_S2_tau_minus = mean_S2_zero * (1 - contrast)
+    mean_S2_tau_minus = mean_S1_tau_minus * (1 - contrast)
     var_S1_tau_minus = mean_S1_tau_minus
     var_S2_tau_minus = mean_S2_tau_minus
     mean_A_n_minus = mean_S1_tau_minus - mean_S2_tau_minus
     var_A_n_minus = var_S1_tau_minus + var_S2_tau_minus
     std_A_n_minus = np.sqrt(var_A_n_minus)
 
-    A_n_plus = delta * np.exp(-tau_plus * gamma_plus)
-    A_n_minus = delta * np.exp(-tau_minus * gamma_minus)
-    M_plus = A_n_plus / delta
-    M_minus = A_n_minus / delta
+    # let's try drawing the numerator and denominator and taking mean and std from there
+    num_plus = np.random.normal(mean_A_n_plus, std_A_n_plus, R)
+    num_minus = np.random.normal(mean_A_n_minus, std_A_n_minus, R)
+    den = np.random.normal(Z_max, std_Z, R)
 
-    mean_M_plus = A_n_plus * Z_max
-    mean_M_minus = A_n_minus * Z_max
-    std_M_plus = M_plus * np.sqrt((std_A_n_plus / A_n_plus) ** 2 + (std_Z / Z_max) ** 2)
-    std_M_minus = M_minus * np.sqrt((std_A_n_minus / A_n_minus) ** 2 + (std_Z / Z_max) ** 2)
+    drawn_M_plus = num_plus / den
+    print('drawn_M_plus ', drawn_M_plus)
+    plt.hist(drawn_M_plus)
+    plt.show()
+    drawn_M_minus = num_minus / den
 
-    mean_M = [mean_M_plus, mean_M_minus]
-    std_M = [std_M_plus, std_M_minus]
+    drawn_mean_M_plus = np.mean(drawn_M_plus)
+    drawn_mean_M_minus = np.mean(drawn_M_minus)
 
-    # fig, axes = plt.subplots(1, 5, figsize=(10, 2))
-    # fig.suptitle("Fake Data Distributions")
+    drawn_std_M_plus = np.std(drawn_M_plus)
+    drawn_std_M_minus = np.std(drawn_M_minus)
 
-    # # generate fake data for plotting purposes
-    # delta_plot = np.random.normal(mean_delta, std_delta, 1000)
-    # A_n_plus_plot = np.random.normal(mean_A_n[0], std_A_n[0], 1000)
-    # A_n_minus_plot = np.random.normal(mean_A_n[1], std_A_n[1], 1000)
-    # M_plus_plot = ((A_n_plus_plot / delta_plot) - (mean_A_n[0] * Z_max)) / std_M[0]
-    # M_minus_plot = ((A_n_minus_plot / delta_plot) - (mean_A_n[1] * Z_max)) / std_M[1]
+    calc_mean_M_plus = mean_A_n_plus * Z_max
+    calc_mean_M_minus = mean_A_n_minus * Z_max
 
-    # axes[0].hist(delta_plot)
-    # axes[0].set_title("Delta", fontsize=10)
-    # axes[0].set_ylabel("distr", fontsize=9)
-    # axes[0].set_xlabel("kctps", fontsize=9)
-    # axes[0].ticklabel_format(axis="both", style="sci", scilimits=(0, 0))
+    calc_std_M_plus = calc_mean_M_plus * np.sqrt(
+        ((std_A_n_plus / mean_A_n_plus) ** 2) + ((std_Z / Z_max) ** 2)
+    )
+    calc_std_M_minus = calc_mean_M_minus * np.sqrt(
+        ((std_A_n_minus / mean_A_n_minus) ** 2) + ((std_Z / Z_max) ** 2)
+    )
 
-    # axes[1].hist(A_n_plus_plot)
-    # axes[1].set_title("A_n_+", fontsize=10)
-    # axes[1].set_ylabel("distr", fontsize=9)
-    # axes[1].set_xlabel("kctps", fontsize=9)
-    # axes[1].ticklabel_format(axis="both", style="sci", scilimits=(0, 0))
+    # mean_M = [mean_M_plus, mean_M_minus]
+    # std_M = [std_M_plus, std_M_minus]  
 
-    # axes[2].hist(A_n_minus_plot)
-    # axes[2].set_title("A_n_-", fontsize=10)
-    # axes[2].set_ylabel("distr", fontsize=9)
-    # axes[2].set_xlabel("kctps", fontsize=9)
-    # axes[2].ticklabel_format(axis="both", style="sci", scilimits=(0, 0))
+    fig, axes = plt.subplots(1, 2)
 
-    # axes[3].hist(M_plus_plot)
-    # axes[3].set_title("M+", fontsize=10)
-    # axes[3].set_ylabel("distr", fontsize=9)
-    # axes[3].set_xlabel("a.u.", fontsize=9)
-    # axes[3].axvline(x=0, color="black", linestyle="--")
-    # axes[3].ticklabel_format(axis="both", style="sci", scilimits=(0, 0))
+    # axes[0].hist(num_plus)
+    # axes[0].axvline(x = mean_A_n_plus, color = "black", linestyle = "--")
+    # axes[0].set_title("A_n_plus distribution", fontsize=10)
 
-    # axes[4].hist(M_minus_plot)
-    # axes[4].set_title("M-", fontsize=10)
-    # axes[4].set_ylabel("distr", fontsize=9)
-    # axes[4].set_xlabel("a.u.", fontsize=9)
-    # axes[4].axvline(x=0, color="black", linestyle="--")
-    # axes[4].ticklabel_format(axis="both", style="sci", scilimits=(0, 0))
+    # axes[1].hist(num_minus)
+    # axes[1].axvline(x = mean_A_n_minus, color = "black", linestyle = "--")
+    # axes[1].set_title("A_n_minus distribution", fontsize=10)
 
-    # plt.tight_layout()
-    # plt.show()
+    axes[0].hist(drawn_M_plus)
+    axes[0].axvline(x = drawn_mean_M_plus, color = "black")
+    # axes[0]. axvline(x = drawn_mean_M_plus - drawn_std_M_plus, color = "black", linestyle = "--")
+    # axes[0]. axvline(x = drawn_mean_M_plus + drawn_std_M_plus, color = "black", linestyle = "--")
+    axes[0].axvline(x = calc_mean_M_plus, color = "red")
+    # axes[0]. axvline(x = calc_mean_M_plus - calc_std_M_plus, color = "red", linestyle = "--")
+    # axes[0]. axvline(x = calc_mean_M_plus + calc_std_M_plus, color = "red", linestyle = "--")
+
+    axes[1].hist(drawn_M_minus)
+    axes[1].axvline(x = drawn_mean_M_minus, color = "black")
+    # axes[1]. axvline(x = drawn_mean_M_minus - drawn_std_M_minus, color = "black", linestyle = "--")
+    # axes[1]. axvline(x = drawn_mean_M_minus + drawn_std_M_minus, color = "black", linestyle = "--")
+    axes[1].axvline(x = calc_mean_M_minus, color = "red")
+    # axes[1]. axvline(x = calc_mean_M_minus - calc_std_M_minus, color = "red", linestyle = "--")
+    # axes[1]. axvline(x = calc_mean_M_minus + calc_std_M_minus, color = "red", linestyle = "--")
+
+    plt.tight_layout()
+    plt.show()
 
     return mean_M, std_M
 
