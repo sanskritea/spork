@@ -406,13 +406,10 @@ def good_fake_counts(
     # let's try drawing the numerator and denominator and taking mean and std from there
     num_plus = np.random.normal(mean_A_n_plus, std_A_n_plus, R)
     num_minus = np.random.normal(mean_A_n_minus, std_A_n_minus, R)
-    den = np.random.normal(Z_max, std_Z, R)
+    one_by_den = np.random.normal(Z_max, std_Z, R)
 
-    drawn_M_plus = num_plus / den
-    print('drawn_M_plus ', drawn_M_plus)
-    plt.hist(drawn_M_plus)
-    plt.show()
-    drawn_M_minus = num_minus / den
+    drawn_M_plus = num_plus * one_by_den
+    drawn_M_minus = num_minus * one_by_den
 
     drawn_mean_M_plus = np.mean(drawn_M_plus)
     drawn_mean_M_minus = np.mean(drawn_M_minus)
@@ -430,37 +427,34 @@ def good_fake_counts(
         ((std_A_n_minus / mean_A_n_minus) ** 2) + ((std_Z / Z_max) ** 2)
     )
 
-    # mean_M = [mean_M_plus, mean_M_minus]
-    # std_M = [std_M_plus, std_M_minus]  
+    # print('drawn_mean_M_plus ', drawn_mean_M_plus)
+    # print('calc_mean_M_plus ', calc_mean_M_plus)
+    # print('drawn_std_M_plus ', drawn_std_M_plus)
+    # print('calc_std_M_plus ', calc_std_M_plus)
 
-    fig, axes = plt.subplots(1, 2)
+    mean_M = [drawn_mean_M_plus, drawn_mean_M_minus]
+    std_M = [drawn_std_M_plus, drawn_std_M_minus]  
 
-    # axes[0].hist(num_plus)
-    # axes[0].axvline(x = mean_A_n_plus, color = "black", linestyle = "--")
-    # axes[0].set_title("A_n_plus distribution", fontsize=10)
+    # fig, axes = plt.subplots(1, 2)
 
-    # axes[1].hist(num_minus)
-    # axes[1].axvline(x = mean_A_n_minus, color = "black", linestyle = "--")
-    # axes[1].set_title("A_n_minus distribution", fontsize=10)
-
-    axes[0].hist(drawn_M_plus)
-    axes[0].axvline(x = drawn_mean_M_plus, color = "black")
+    # axes[0].hist(drawn_M_plus)
+    # axes[0].axvline(x = drawn_mean_M_plus, color = "black")
     # axes[0]. axvline(x = drawn_mean_M_plus - drawn_std_M_plus, color = "black", linestyle = "--")
     # axes[0]. axvline(x = drawn_mean_M_plus + drawn_std_M_plus, color = "black", linestyle = "--")
-    axes[0].axvline(x = calc_mean_M_plus, color = "red")
+    # axes[0].axvline(x = calc_mean_M_plus, color = "red")
     # axes[0]. axvline(x = calc_mean_M_plus - calc_std_M_plus, color = "red", linestyle = "--")
     # axes[0]. axvline(x = calc_mean_M_plus + calc_std_M_plus, color = "red", linestyle = "--")
 
-    axes[1].hist(drawn_M_minus)
-    axes[1].axvline(x = drawn_mean_M_minus, color = "black")
+    # axes[1].hist(drawn_M_minus)
+    # axes[1].axvline(x = drawn_mean_M_minus, color = "black")
     # axes[1]. axvline(x = drawn_mean_M_minus - drawn_std_M_minus, color = "black", linestyle = "--")
     # axes[1]. axvline(x = drawn_mean_M_minus + drawn_std_M_minus, color = "black", linestyle = "--")
-    axes[1].axvline(x = calc_mean_M_minus, color = "red")
+    # axes[1].axvline(x = calc_mean_M_minus, color = "red")
     # axes[1]. axvline(x = calc_mean_M_minus - calc_std_M_minus, color = "red", linestyle = "--")
     # axes[1]. axvline(x = calc_mean_M_minus + calc_std_M_minus, color = "red", linestyle = "--")
 
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
 
     return mean_M, std_M
 
