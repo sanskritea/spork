@@ -9,12 +9,10 @@ Sanskriti Chitransh, Aditya Vijaykumar (CITA)
 """
 
 import time
-
 import numpy as np
-
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
-
+from scipy.interpolate import interp1d
 import sympy
 from sympy import Symbol
 from sympy import lambdify
@@ -240,32 +238,12 @@ def calculate_conf_intervals(prior_gamma, gamma_grid, delta_gamma):
     gamma_plus_cdf = np.cumsum(norm_gamma_plus_distr) * delta_gamma
     gamma_minus_cdf = np.cumsum(norm_gamma_minus_distr) * delta_gamma
 
-    gamma_plus_cdf_pointzerofive = np.abs(gamma_plus_cdf - 0.05)
-    gamma_plus_cdf_pointfive = np.abs(gamma_plus_cdf - 0.5)
-    gamma_plus_cdf_pointninefive = np.abs(gamma_plus_cdf - 0.95)
+    gamma_plus_cdf_interp = interp1d(gamma_plus_cdf, gamma_plus)
+    gamma_minus_cdf_interp = interp1d(gamma_minus_cdf, gamma_minus)
 
-    gamma_minus_cdf_pointzerofive = np.abs(gamma_minus_cdf - 0.05)
-    gamma_minus_cdf_pointfive = np.abs(gamma_minus_cdf - 0.5)
-    gamma_minus_cdf_pointninefive = np.abs(gamma_minus_cdf - 0.95)
+    gamma_plus_vals = gamma_plus_cdf_interp(np.array([0.05, 0.5, 0.95]))
 
-    gamma_plus_pointzerofive = gamma_plus[np.argmin(gamma_plus_cdf_pointzerofive)]
-    gamma_plus_pointfive = gamma_plus[np.argmin(gamma_plus_cdf_pointfive)]
-    gamma_plus_pointninefive = gamma_plus[np.argmin(gamma_plus_cdf_pointninefive)]
-
-    gamma_minus_pointzerofive = gamma_minus[np.argmin(gamma_minus_cdf_pointzerofive)]
-    gamma_minus_pointfive = gamma_minus[np.argmin(gamma_minus_cdf_pointfive)]
-    gamma_minus_pointninefive = gamma_minus[np.argmin(gamma_minus_cdf_pointninefive)]
-
-    gamma_plus_vals = [
-        gamma_plus_pointzerofive,
-        gamma_plus_pointfive,
-        gamma_plus_pointninefive,
-    ]
-    gamma_minus_vals = [
-        gamma_minus_pointzerofive,
-        gamma_minus_pointfive,
-        gamma_minus_pointninefive,
-    ]
+    gamma_minus_vals = gamma_minus_cdf_interp(np.array([0.05, 0.5, 0.95]))
 
     return gamma_plus_vals, gamma_minus_vals
 
