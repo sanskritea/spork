@@ -10,6 +10,7 @@ from itertools import count
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import scipy as scp
 
 from nspyre import DataSource
 from nspyre import InstrumentGateway
@@ -115,6 +116,7 @@ class Bayesian_T1_Meas:
 
     def calculate_likelihood(self, M_measured_mean, M_measured_sigma, tau_opt, gamma_grid):
         
+        print('tau_opt received ', tau_opt)
         start_likelihood_calculation = time.time()
         M_plus_measured, M_minus_measured = M_measured_mean
         sigma_M_plus_measured, sigma_M_minus_measured = M_measured_sigma
@@ -127,9 +129,9 @@ class Bayesian_T1_Meas:
         )
 
         chi_sq = (chi_plus**2) + (chi_minus**2)
-        chi_sq_final = chi_sq - np.min(chi_sq)
+        # chi_sq_final = chi_sq - np.min(chi_sq)
         # likelihood = np.exp(-(chi_sq_final))
-        log_likelihood = - chi_sq_final
+        log_likelihood = - chi_sq
 
         # print('Time taken to calculate likelihood ', time.time() - start_likelihood_calculation)
 
@@ -146,6 +148,15 @@ class Bayesian_T1_Meas:
         M_minus_tilde = Symbols.Mtminus(gamma_plus, gamma_minus, tau_minus)
 
         return [M_plus_tilde, M_minus_tilde]
+
+
+    def fit_data_to_gaussian(self, data_list):
+
+        mean, stdev = scipy.stats.norm.fit(data_list)
+
+        return mean, stdev
+
+
 
 
     def BayesianT1(
@@ -201,11 +212,11 @@ class Bayesian_T1_Meas:
 
             # SETUP BAYESIAN VARIABLES
             gamma_lower = 1 # in ms^-1 (correspoonding T1: 5ms)
-            gamma_upper = 5   # in ms^-1 (correspoonding T1: 100us)
+            gamma_upper = 10   # in ms^-1 (correspoonding T1: 100us)
             n_gamma = 1000
             tau_lower = 0.01  # in ms (10us)
             tau_upper = 5  # in ms
-            n_tau = 1000
+            n_tau = 10000
             repetitions = num_samples 
 
             # decay rates grid
@@ -224,11 +235,15 @@ class Bayesian_T1_Meas:
             tau_minus_arr = np.geomspace(tau_lower, tau_upper, n_tau)
             tau_grid = np.meshgrid(tau_plus_arr, tau_minus_arr)
 
-            tau_plus_forced = np.geomspace(1000*10, 1000*1000*5, bayesian_iterations)
-            tau_minus_forced = np.geomspace(1000*10, 1000*1000*5, bayesian_iterations)
+            tau_plus_forced = np.linspace(1000*50, 1000*500*1, bayesian_iterations)
+            random.shuffle(tau_plus_forced)
+            tau_minus_forced = np.linspace(1000*50, 1000*500*1, bayesian_iterations)
+            random.shuffle(tau_minus_forced)
+            z_list = []
 
-            tau_high_slope = np.linspace(1000*100, 1000*500, bayesian_iterations)
-            random.shuffle(tau_high_slope)
+            # tau_high_slope = np.space(1000*100, 1000*500, bayesian_iterations)
+            # tau_high_slope = 1000 * np.random.normal(100, 0.01, bayesian_iterations)
+            # print('tau_high_slope in us', 1e-3 * tau_high_slope)
 
             # begin with a flat prior in gammas
             prior_gamma = gamma_distr.copy()
@@ -245,18 +260,20 @@ class Bayesian_T1_Meas:
             feedback_timer = time.time()
             feedback_counter = 0
 
+            sum_log_likelihood = np.zeros((n_gamma, n_gamma))
+
             for num in range(bayesian_iterations):
 
-                # SPATIAL FEEDBACK EVERY 5 minutes
-                if ((time.time() - feedback_timer) > 300):
-                    feedback_counter = feedback_counter + 1
-                    print('Feedback')
-                    begin_feedback = time.time()
-                    SpatialFeedback.Feedback(x_init_position, y_init_position, z_init_position)
-                    feedback_duration = time.time() - begin_feedback
-                    print('Feedback duration: ', feedback_duration)
-                    print('Feedback counter ', feedback_counter)
-                    feedback_timer = time.time()
+                # # SPATIAL FEEDBACK EVERY 5 minutes
+                # if ((time.time() - feedback_timer) > 300):
+                #     feedback_counter = feedback_counter + 1
+                #     print('Feedback')
+                #     begin_feedback = time.time()
+                #     SpatialFeedback.Feedback(x_init_position, y_init_position, z_init_position)
+                #     feedback_duration = time.time() - begin_feedback
+                #     print('Feedback duration: ', feedback_duration)
+                #     print('Feedback counter ', feedback_counter)
+                #     feedback_timer = time.time()
 
                 # MAIN EXPERIMENT
                 print('Bayesian iteration number ', int(num + 1))
@@ -275,14 +292,14 @@ class Bayesian_T1_Meas:
                 print('gamma_minus (ms^-1) ', gamma_minus)
 
                 # GET OPTIMIZED TAUS FROM NOB TO USE IN EXPERIMENT
-                print('Optimizing taus for pulse sequences')
-                T_overhead = 0
-                tau_opt = self.nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus, T_overhead)
-                tau_plus, tau_minus = tau_opt
-                tau_plus_list[num] = tau_plus
-                tau_minus_list[num] = tau_minus
-                print('calculated tau_plus (ms) ', tau_plus)
-                print('calculated tau_minus (ms) ', tau_minus)
+                # print('Optimizing taus for pulse sequences')
+                # T_overhead = 0
+                # tau_opt = self.nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus, T_overhead)
+                # tau_plus, tau_minus = tau_opt
+                # tau_plus_list[num] = tau_plus
+                # tau_minus_list[num] = tau_minus
+                # print('calculated tau_plus (ms) ', tau_plus)
+                # print('calculated tau_minus (ms) ', tau_minus)
 
                 # CREATE PULSE SEQUENCES FOR OPTIMIZED TAUS
                 print('Creating pulse sequences')
@@ -294,24 +311,26 @@ class Bayesian_T1_Meas:
                 #             int(1e6 * tau_minus), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[1]
                 #         ))
 
-                # print('tau_plus_forced[num] in ms ', 1e-6 * tau_plus_forced[num])
-                # print('tau_minus_forced[num] in ms ', 1e-6 * tau_minus_forced[num])
-                # seqs.append(Pulses(gw).BAYESIAN_T1(
-                #             int(tau_plus_forced[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[0]
-                #         ))
-                # seqs.append(Pulses(gw).BAYESIAN_T1(
-                #             int(tau_minus_forced[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[1]
-                #         ))
+                print('tau_plus_forced[num] in ms ', 1e-6 * tau_plus_forced[num])
+                print('tau_minus_forced[num] in ms ', 1e-6 * tau_minus_forced[num])
+                tau_opt = 1e-6 * tau_plus_forced[num], 1e-6 * tau_minus_forced[num]
+                print('tau_opt ', tau_opt)
+                seqs.append(Pulses(gw).BAYESIAN_T1(
+                            int(tau_plus_forced[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[0]
+                        ))
+                seqs.append(Pulses(gw).BAYESIAN_T1(
+                            int(tau_minus_forced[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[1]
+                        ))
 
-                print('tau_high_slope[num] in us', 1e-3 * tau_high_slope[num])
-                tau_opt = tau_high_slope[num] * 1e-6, tau_high_slope[num] * 1e-6
-                print('tau_opt in ms ', tau_opt)
-                seqs.append(Pulses(gw).BAYESIAN_T1(
-                            int(tau_high_slope[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[0]
-                        ))
-                seqs.append(Pulses(gw).BAYESIAN_T1(
-                            int(tau_high_slope[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[1]
-                        ))
+                # print('tau_high_slope[num] in us', 1e-3 * tau_high_slope[num])
+                # tau_opt = tau_high_slope[num] * 1e-6, tau_high_slope[num] * 1e-6
+                # print('tau_opt in ms ', tau_opt)
+                # seqs.append(Pulses(gw).BAYESIAN_T1(
+                #             int(tau_high_slope[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[0]
+                #         ))
+                # seqs.append(Pulses(gw).BAYESIAN_T1(
+                #             int(tau_high_slope[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[1]
+                #         ))
 
                 # MEASURE COUNTS
                 start_counting = time.time()
@@ -374,6 +393,8 @@ class Bayesian_T1_Meas:
                         inv_bottom = z0
                         inv_bottom_err = ez0
 
+                        # z_list.append(inv_bottom)
+
                         z = top * inv_bottom
                         z_err = ((top * inv_bottom_err)**2 + (inv_bottom_err * top_err) ** 2) ** 0.5
 
@@ -399,6 +420,10 @@ class Bayesian_T1_Meas:
                 # CALCULATE LIKELIHOOD FROM THE MEASUREMENT RESULT
                 print('Calculating likelihood')
                 log_likelihood = self.calculate_likelihood(M_measured_mean, M_measured_sigma, tau_opt, gamma_grid)
+                sum_log_likelihood = sum_log_likelihood + log_likelihood
+                plt.pcolormesh(sum_log_likelihood)
+                plt.colorbar()
+                # plt.show()
                 # print('np.max(log_likelihood) ', np.max(log_likelihood))
                 # print('np.mim(log_likelihood) ', np.min(log_likelihood))
 
