@@ -20,11 +20,11 @@ from guis.guiElements_general import flexSave
 from drivers.zurich.mfli import MFLI
 
 
-class AUXOutVsTime_Measurement:
+class PIDOutVsTime_Measurement:
 
 	def auxoutvstime(self, datasetname: str, time_per_point: float, aux_chan: int):
 
-		with InstrumentGateway() as gw, DataSource(datasetname) as AUXOutVsTime:
+		with InstrumentGateway() as gw, DataSource(datasetname) as PIDOutVsTime:
 			self.start_time = time.time()
 			iterator = count()
 
@@ -35,15 +35,15 @@ class AUXOutVsTime_Measurement:
 				self.auxop = np.append(self.auxop, gw.mfli.AUXOUT_read(aux_chan))
 				self.times = np.append(self.times, time.time() - self.start_time)
 
-				AUXOutVsTime.push({
+				PIDOutVsTime.push({
 			    						'params': {
 			    									'datasetname': datasetname, 
 			    									'time_per_point': time_per_point, 
 			    									'aux_chan':aux_chan
 			    								},
-			    	'title': 'AOUX Out VS Time',
+			    	'title': 'PID Out VS Time',
 			    	'xlabel': 'time (s)',
-			    	'ylabel': 'AUX OP (V)',
+			    	'ylabel': 'PID OP (V)',
 			    	'datasets': {'time': self.times,
 			    				'AUX': self.auxop,
 			    	}
@@ -51,6 +51,6 @@ class AUXOutVsTime_Measurement:
 
 				time.sleep(time_per_point)
 
-			flexSave(datasetName, 'AUXOutVsTime', 'final') # after measurement finishes
+			flexSave(datasetName, 'PIDOutVsTime', 'final') # after measurement finishes
 
 

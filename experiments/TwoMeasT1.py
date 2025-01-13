@@ -280,25 +280,4 @@ class Adaptive_Two_Meas_T1_Measurement:
             print("Experiment finished!")
 
 
-if __name__ == "__main__":
 
-    exp = CW_ODMR_Measurement()
-    print(
-        """Running ODMR with 1Hz sampling rate, 10us MW+lasers before counts, 50us of counting, 20us of laser reinit, 
-    30us wait with 1mW of laser power. Saving to CW_ODMR on dataserv"""
-    )
-    exp.cwODMR(
-        datasetName="CW_ODMR",
-        sampleFreq=1,
-        maxIterations=3,
-        startFreq=2.75e9,
-        endFreq=2.95e9,
-        numFreqs=5,
-        rfPower=-17,
-        # preReadoutLaserAndMwTime=10000, laserAndMwReadOutTime=50000,
-        # extraLaserInitTime=20000, waitTime=30000, debug=False
-        num_samples=100000,
-        clock_time=11,
-        probe_time=50000,
-    )
-    print("Completed cwODMR.py")

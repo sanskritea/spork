@@ -26,9 +26,9 @@ from drivers.ni.nidaq_final import NIDAQ
 # from PulsePatterns import Pulses
 
 
-class CW_ODMR_Measurement:
+class Pulsed_ODMR_Measurement:
 
-    def cwODMR(
+    def PulsedODMR(
         self,
         datasetName: str,
         samplingFreq: float,
@@ -40,11 +40,11 @@ class CW_ODMR_Measurement:
         laser_power: float,
         num_samples: int,
         clock_time: int,
+        init_time: int,
+        laser_lag: int,
         probe_time: int,
-        wait_time: int,
-        # laser_lag: int,
-        # init_time: int,
-        # singlet_decay: int,
+        singlet_decay: int,
+        pi_time: int
 
     ):
         """Run a CW ODMR experiment
@@ -55,14 +55,12 @@ class CW_ODMR_Measurement:
         # connect to the data server and create a data set, or connect to an
         # existing one with the same name if it was created earlier.
 
-        with InstrumentGateway() as gw, DataSource(datasetName) as cwODMRdata:
+        with InstrumentGateway() as gw, DataSource(datasetName) as PulsedODMRdata:
 
             # SRS actions
             gw.sg.set_rf_amplitude(rfPower)  # set ouput power
             gw.sg.set_mod_state(False)
-            # gw.sg.set_mod_type("7")
-            # gw.sg.set_mod_func("5")
-            # gw.sg.set_rf_state("1")
+            print('probe time ', probe_time)
 
             # set up frequencies to sweep over
             # self.freqs = np.random.permutation(np.linspace(startFreq, endFreq, numFreqs, endpoint=True)) # permute the order of freqs to minimize time effects
@@ -94,30 +92,29 @@ class CW_ODMR_Measurement:
                         gw.sg.set_frequency(freq)
                         print("freq : ", freq)
                         gw.sg.set_rf_state("1")
-                        # time.sleep(2)
 
                         # START TASK
                         # num_samples = int(readout_time  * 1e-9 * 20e6)
-                        mynidaq.start_external_read_task(samplingFreq, ((2 * num_samples) + 1))
+                        mynidaq.start_external_read_task(samplingFreq, ((4 * num_samples) + 1))
 
                         # START PULSESTREAMER
                         gw.swabian.runSequenceInfinitely(
-                            Pulses(gw).CW_ODMR(clock_time, probe_time)
+                            Pulses(gw).PULSED_ODMR(clock_time, init_time, laser_lag, probe_time, singlet_decay, pi_time)
                         )
 
                         # COUNTING WITH EXTERNAL TRIGGER
                         print('counting')
-                        raw_counts = (obtain(mynidaq.external_read_task(20e6, ((2 * num_samples) + 1))))
+                        raw_counts = (obtain(mynidaq.external_read_task(20e6, ((4 * num_samples) + 1))))
 
                         # SEPARATING COUNTS INTO MW ON / MW OFF
                         # print('counts : ', counts)
-                        signal_counts = 1e9 * np.mean(raw_counts[0::2]) / probe_time
-                        bg_counts = 1e9 * np.mean(raw_counts[1::2]) / probe_time
+                        signal_counts = 1e9 * np.mean(raw_counts[2::4]) / probe_time
+                        bg_counts = 1e9 * np.mean(raw_counts[0::4]) / probe_time
                         self.mwCountsDict[freq].append(signal_counts)
                         self.noMwCountsDict[freq].append(bg_counts)
 
                         # SAVE CURRENT DATA TO DATA SERVER
-                        cwODMRdata.push(
+                        PulsedODMRdata.push(
                             {
                                 "params": {
                                     "datasetName": datasetName,
@@ -127,13 +124,15 @@ class CW_ODMR_Measurement:
                                     "endFreq": endFreq,
                                     "numFreqs": numFreqs,
                                     "rfPower": rfPower,
-                                    # 'preReadoutLaserAndMwTime': preReadoutLaserAndMwTime, 'laserAndMwReadOutTime': laserAndMwReadOutTime,
-                                    # 'extraLaserInitTime': extraLaserInitTime, 'waitTime': waitTime,
                                     "num_samples": num_samples,
                                     "clock_time": clock_time,
-                                    "probe_time": probe_time,
+                                    "init_time": init_time,
+                                    "laser_lag": laser_lag,
+                                    "probe_time": probe_time, 
+                                    "singlet_decay": singlet_decay,
+                                    "pi_time": pi_time
                                 },
-                                "title": "CW ODMR",
+                                "title": "Pulsed ODMR",
                                 "xlabel": "Freq",
                                 "ylabel": "Counts",
                                 "datasets": {
@@ -150,25 +149,25 @@ class CW_ODMR_Measurement:
             print("Experiment finished!")
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    exp = CW_ODMR_Measurement()
-    print(
-        """Running ODMR with 1Hz sampling rate, 10us MW+lasers before counts, 50us of counting, 20us of laser reinit, 
-    30us wait with 1mW of laser power. Saving to CW_ODMR on dataserv"""
-    )
-    exp.cwODMR(
-        datasetName="CW_ODMR",
-        sampleFreq=1,
-        maxIterations=3,
-        startFreq=2.75e9,
-        endFreq=2.95e9,
-        numFreqs=5,
-        rfPower=-17,
-        # preReadoutLaserAndMwTime=10000, laserAndMwReadOutTime=50000,
-        # extraLaserInitTime=20000, waitTime=30000, debug=False
-        num_samples=100000,
-        clock_time=11,
-        probe_time=50000,
-    )
-    print("Completed cwODMR.py")
+#     exp = Pulsed_ODMR_Measurement()
+#     print(
+#         """Running ODMR with 1Hz sampling rate, 10us MW+lasers before counts, 50us of counting, 20us of laser reinit, 
+#     30us wait with 1mW of laser power. Saving to CW_ODMR on dataserv"""
+#     )
+#     exp.cwODMR(
+#         datasetName="CW_ODMR",
+#         sampleFreq=1,
+#         maxIterations=3,
+#         startFreq=2.75e9,
+#         endFreq=2.95e9,
+#         numFreqs=5,
+#         rfPower=-17,
+#         # preReadoutLaserAndMwTime=10000, laserAndMwReadOutTime=50000,
+#         # extraLaserInitTime=20000, waitTime=30000, debug=False
+#         num_samples=100000,
+#         clock_time=11,
+#         probe_time=50000,
+#     )
+#     print("Completed cwODMR.py")

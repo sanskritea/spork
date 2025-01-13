@@ -10,13 +10,12 @@ from nspyre import InstrumentGateway
 from rpyc.utils.classic import obtain
 
 from experiments.NewPulses import Pulses
-from experiments.NewportSpatialFeedback import SpatialFeedback
 from drivers.ni.nidaq_final import NIDAQ
 
 
-class Rabi_Measurement:
+class Rabi_With_Spatial_Feedback_Measurement:
 
-    def Rabi(
+    def RabiSpatFeed(
         self,
         datasetName: str,
         samplingFreq: float,
@@ -33,11 +32,11 @@ class Rabi_Measurement:
         laser_lag: int,     # laser stabilizing time, usually ~100ns
         probe_time: int,    # readout laser ON time
         singlet_decay: int, # NV singlet state emptying duration
-        # initial_counts: float,
-        x_init_position: float, 
-        y_init_position: float,
-        z_init_position: float,   
-        # threshold: float, 
+        initial_counts: float,
+        x_location: float, 
+        y_location: float,
+        z_location: float,   
+        threshold: float, 
     ):
         """Run a Rabi experiment
         Arguments:  *
@@ -92,35 +91,28 @@ class Rabi_Measurement:
 
                 for i in iters:
 
-                    # # SPATIAL FEEDBACK (almost) EVERY 2 HOURS
-                    # if (int(time.time() - self.start_time) >= 2):
+                    # SPATIAL FEEDBACK EVERY 2 HOURS
+                    if (int(time.time() - self.start_time) == 7200):
                     
-                    #     # Measure counts after 2 hours
-                    #     # turn on laser
-                    #     trigger_rate = int(20e3)
-                    #     time_per_point = 0.01
-                    #     num_samples = int(trigger_rate * time_per_point)
-                    #     print('Measuring counts')
-                    #     gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
-                    #     current_counts = np.mean(obtain(mynidaq.internal_read_task(int(trigger_rate), num_samples))) / (1 / trigger_rate)
-                    #     gw.swabian.reset()
+                        # Measure counts after 2 hours
+                        current_counts = np.mean(obtain(mynidaq.internal_read_task(int(20e3), 20e3))) / 20e3
 
-                    #     # If counts dropped, do spatial feedback
-                    #     # if (np.abs(initial_counts - current_counts) / initial_counts)  > threshold:
-                    #     print('Feedback')
-                    #     x_final_position, y_final_position, z_final_position = SpatialFeedback.Feedback(x_init_position, y_init_position, z_init_position, initial_counts, current_counts, 10)
-                    #     print('New locations')
-                    #     print('X ', x_final_position, 'mm')
-                    #     print('Y ', y_final_position, 'mm')
-                    #     print('Z ', z_final_position, 'mm')
+                        # If counts dropped, do spatial feedback
+                        if (np.abs((initial_counts - current_counts) / initial_counts)  > threshold):
+                            x_final_position, y_final_position, z_final_position = Feedback(x_init_position, y_init_position, z_init_position, initial_counts, current_counts, threshold)
+                            print('New locations')
+                            print('X ', x_final_position, 'mm')
+                            print('Y ', y_final_position, 'mm')
+                            print('Z ', z_final_position, 'mm')
 
-                    #     self.start_time = time.time()
+                        self.start_time = time.time()
 
+                    # RABI EXPERIMENT
                     for j in np.arange(num_MW_times):
 
                         # START TASK
                         mw_time = self.mw_times[j]
-                        # print('MW duration ', mw_time, ' ns')
+                        print('MW duration ', mw_time, ' ns')
                         # time.sleep(10)
                         mynidaq.start_external_read_task(samplingFreq, ((4 * num_samples) + 1))
 
@@ -173,6 +165,7 @@ class Rabi_Measurement:
                         )
 
                         
+
             print("Experiment finished!")
 
            
