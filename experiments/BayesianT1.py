@@ -227,7 +227,7 @@ class Bayesian_T1_Meas:
             tau_plus_forced = np.geomspace(1000*10, 1000*1000*5, bayesian_iterations)
             tau_minus_forced = np.geomspace(1000*10, 1000*1000*5, bayesian_iterations)
 
-            tau_high_slope = np.linspace(1000*50, 1000*500, bayesian_iterations)
+            tau_high_slope = np.linspace(1000*100, 1000*500, bayesian_iterations)
             random.shuffle(tau_high_slope)
 
             # begin with a flat prior in gammas
@@ -240,23 +240,23 @@ class Bayesian_T1_Meas:
             feedback_time_per_point = 0.05
             feedback_num_samples = int(feedback_trigger_rate * feedback_time_per_point)
             x_init_position = 7.4196
-            y_init_position = 10.3072
+            y_init_position = 10.307
             z_init_position = 4.5083
             feedback_timer = time.time()
             feedback_counter = 0
 
             for num in range(bayesian_iterations):
 
-                ## SPATIAL FEEDBACK EVERY 5 minutes
-                # if ((time.time() - feedback_timer) > 300):
-                #     feedback_counter = feedback_counter + 1
-                #     print('Feedback')
-                #     begin_feedback = time.time()
-                #     SpatialFeedback.Feedback(x_init_position, y_init_position, z_init_position)
-                #     feedback_duration = time.time() - begin_feedback
-                #     print('Feedback duration: ', feedback_duration)
-                #     print('Feedback counter ', feedback_counter)
-                #     feedback_timer = time.time()
+                # SPATIAL FEEDBACK EVERY 5 minutes
+                if ((time.time() - feedback_timer) > 300):
+                    feedback_counter = feedback_counter + 1
+                    print('Feedback')
+                    begin_feedback = time.time()
+                    SpatialFeedback.Feedback(x_init_position, y_init_position, z_init_position)
+                    feedback_duration = time.time() - begin_feedback
+                    print('Feedback duration: ', feedback_duration)
+                    print('Feedback counter ', feedback_counter)
+                    feedback_timer = time.time()
 
                 # MAIN EXPERIMENT
                 print('Bayesian iteration number ', int(num + 1))
@@ -303,7 +303,9 @@ class Bayesian_T1_Meas:
                 #             int(tau_minus_forced[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[1]
                 #         ))
 
-                print('tau_high_slope[num] in us', 1e-3 * tau_high_slope[num] )
+                print('tau_high_slope[num] in us', 1e-3 * tau_high_slope[num])
+                tau_opt = tau_high_slope[num] * 1e-6, tau_high_slope[num] * 1e-6
+                print('tau_opt in ms ', tau_opt)
                 seqs.append(Pulses(gw).BAYESIAN_T1(
                             int(tau_high_slope[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[0]
                         ))
