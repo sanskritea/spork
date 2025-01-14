@@ -203,17 +203,19 @@ class Bayesian_T1_Meas:
             self.gamma_minus_list = np.zeros(0)
             self.M_plus = np.zeros(0)
             self.M_minus = np.zeros(0)
+            self.M_plus_err = np.zeros(0)
+            self.M_minus_err = np.zeros(0)
             tau_plus_list = np.zeros(bayesian_iterations)
             tau_minus_list = np.zeros(bayesian_iterations)
-            S_0_0_0_list = np.zeros((2, bayesian_iterations))
-            S_0_0_tau_list = np.zeros((2, bayesian_iterations))
-            S_level_0_0_list = np.zeros((2, bayesian_iterations))
-            S_level_0_tau_list = np.zeros((2, bayesian_iterations))
+            S_0_0_0_list = []
+            S_0_0_tau_list = []
+            S_level_0_0_list = []
+            S_level_0_tau_list = []
 
             # SETUP BAYESIAN VARIABLES
             gamma_lower = 1 # in ms^-1 (correspoonding T1: 5ms)
             gamma_upper = 10   # in ms^-1 (correspoonding T1: 100us)
-            n_gamma = 1000
+            n_gamma = 10000
             tau_lower = 0.01  # in ms (10us)
             tau_upper = 5  # in ms
             n_tau = 10000
@@ -238,7 +240,7 @@ class Bayesian_T1_Meas:
             tau_plus_forced = np.linspace(1000*50, 1000*500*1, bayesian_iterations)
             random.shuffle(tau_plus_forced)
             tau_minus_forced = np.linspace(1000*50, 1000*500*1, bayesian_iterations)
-            random.shuffle(tau_minus_forced)
+            tau_minus_forced = tau_plus_forced
             z_list = []
 
             # tau_high_slope = np.space(1000*100, 1000*500, bayesian_iterations)
@@ -342,6 +344,12 @@ class Bayesian_T1_Meas:
                     # SET LASER POWER
                     mynidaq.laser_power_atten(laser_power)
 
+                    # lists
+                    S_0_0_0 = []
+                    S_0_0_tau = []
+                    S_level_0_0 = []
+                    S_level_0_tau = []
+
                     for t in range(
                         2 
                     ):  # measure NV with delay = tau_plus and then delay = tau_minus
@@ -362,20 +370,20 @@ class Bayesian_T1_Meas:
                         counts = obtain(mynidaq.external_read_task(samplingFreq, ((10 * num_samples) + 1)))
 
                         # SEPARATE COUNTS S_(initial level)_(final level)_delay
-                        S_0_0_0_list = 1e9 * counts[0::8] / readout_time
-                        S_0_0_tau_list = 1e9 * counts[2::8] / readout_time 
-                        S_level_0_0_list = 1e9 * counts[4::8] / readout_time
-                        S_level_0_tau_list = 1e9 * counts[6::8] / readout_time
+                        S_0_0_0.append(1e9 * counts[0::8] / readout_time)
+                        S_0_0_tau.append(1e9 * counts[2::8] / readout_time) 
+                        S_level_0_0.append(1e9 * counts[4::8] / readout_time)
+                        S_level_0_tau.append(1e9 * counts[6::8] / readout_time)
 
-                        S_0_0_0_mean = np.mean(S_0_0_0_list)
-                        S_0_0_tau_mean = np.mean(S_0_0_tau_list) 
-                        S_level_0_0_mean = np.mean(S_level_0_0_list) 
-                        S_level_0_tau_mean = np.mean(S_level_0_tau_list) 
+                        S_0_0_0_mean = np.mean(S_0_0_0)
+                        S_0_0_tau_mean = np.mean(S_0_0_tau) 
+                        S_level_0_0_mean = np.mean(S_level_0_0) 
+                        S_level_0_tau_mean = np.mean(S_level_0_tau) 
 
-                        S_0_0_0_err = np.std(S_0_0_0_list) / (num_samples ** 0.5)
-                        S_0_0_tau_err = np.std(S_0_0_tau_list) / (num_samples ** 0.5)
-                        S_level_0_0_err = np.std(S_level_0_0_list) / (num_samples ** 0.5)
-                        S_level_0_tau_err = np.std(S_level_0_tau_list) / (num_samples ** 0.5)
+                        S_0_0_0_err = np.std(S_0_0_0) / (num_samples ** 0.5)
+                        S_0_0_tau_err = np.std(S_0_0_tau) / (num_samples ** 0.5)
+                        S_level_0_0_err = np.std(S_level_0_0) / (num_samples ** 0.5)
+                        S_level_0_tau_err = np.std(S_level_0_tau) / (num_samples ** 0.5)
 
                         # FINAL MEASURE AND MOMENTS (Appendix E)
                         top = S_0_0_tau_mean - S_level_0_tau_mean
@@ -411,9 +419,17 @@ class Bayesian_T1_Meas:
 
                     print('Counting time ', time.time() - start_counting)
 
+                # update larger list
+                S_0_0_0_list.append(S_0_0_0)
+                S_0_0_tau_list.append(S_0_0_tau)
+                S_level_0_0_list.append(S_level_0_0)
+                S_level_0_tau_list.append(S_level_0_tau)
+
                 # MEASUREMENT STATISTICS
                 self.M_plus = np.append(self.M_plus, M_mean_list[0])
                 self.M_minus = np.append(self.M_minus, M_mean_list[1])
+                self.M_plus_err = np.append(self.M_plus_err, M_std_list[0])
+                self.M_minus_err = np.append(self.M_minus_err, M_std_list[1])
                 M_measured_mean = [M_mean_list[0], M_mean_list[1]]
                 M_measured_sigma = [M_std_list[0], M_std_list[1]]
 
@@ -462,23 +478,26 @@ class Bayesian_T1_Meas:
                             'iteration_number': self.iteration_number,
                             'M_plus': self.M_plus,
                             'M_minus': self.M_minus,
+                            'M_plus_err': self.M_plus_err,
+                            'M_minus_err': self.M_minus_err,
                             'GammaPlus': self.gamma_plus_list,
                             'GammaMinus': self.gamma_minus_list,
                             'TauPlus': tau_plus_list,
                             'TauMinus': tau_minus_list,
-                            'S000Plus': S_0_0_0_list[0],
-                            'S000Minus': S_0_0_0_list[1],
-                            'S00tauPlus': S_0_0_tau_list[0],
-                            'S00tauMinus': S_0_0_tau_list[1],
-                            'Slevel00Plus': S_level_0_0_list[0],
-                            'Slevel00Minus': S_level_0_0_list[1],
-                            'Slevel0tauPlus': S_level_0_tau_list[0],
-                            'Slevel0tauMinus': S_level_0_tau_list[1],
+                            'S000Plus': S_0_0_0_list[num][0],
+                            'S000Minus': S_0_0_0_list[num][1],
+                            'S00tauPlus': S_0_0_tau_list[num][0],
+                            'S00tauMinus': S_0_0_tau_list[num][1],
+                            'Slevel00Plus': S_level_0_0_list[num][0],
+                            'Slevel00Minus': S_level_0_0_list[num][1],
+                            'Slevel0tauPlus': S_level_0_tau_list[num][0],
+                            'Slevel0tauMinus': S_level_0_tau_list[num][1],
                         }
                     }
                 )
 
             flexSave(datasetName, 'Bayesian T1', 'final')
+            plt.show()
             print('time taken ', time.time() - start_time)
             print("Experiment finished!")
 
