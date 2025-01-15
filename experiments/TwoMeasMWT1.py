@@ -63,8 +63,8 @@ class Two_Meas_MW_T1_Meas:
                 iters = range(maxIterations)
 
             # list of tau wait times 
-            tau_short = np.linspace(tau_min, 10 * tau_min, int(tau_num / 6), endpoint = False)
-            tau_med = np.linspace(10 * tau_min, 200 * tau_min, int(2 * tau_num / 3) + 1, endpoint = False)
+            tau_short = np.linspace(tau_min, 5 * tau_min, int(tau_num / 6), endpoint = False)
+            tau_med = np.linspace(5 * tau_min, 200 * tau_min, int(2 * tau_num / 3) + 1, endpoint = False)
             tau_long = np.linspace(200 * tau_min, tau_max, int(tau_num / 6), endpoint = True )
             self.tau_list = np.concatenate([tau_short, tau_med, tau_long])
             tau_list_size = int(np.size(self.tau_list))
