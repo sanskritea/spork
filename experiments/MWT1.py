@@ -62,12 +62,22 @@ class MW_T1_Meas:
                 iters = range(maxIterations)
 
             # list of tau wait times 
-            self.tau_list = np.geomspace(tau_min, tau_max, int(tau_num))
+            tau_short = np.linspace(tau_min, 10 * tau_min, int(tau_num / 6), endpoint = False)
+            tau_med = np.linspace(10 * tau_min, 200 * tau_min, int(2 * tau_num / 3) + 1, endpoint = False)
+            tau_long = np.linspace(200 * tau_min, tau_max, int(tau_num / 6), endpoint = True )
+            self.tau_list = np.concatenate([tau_short, tau_med, tau_long])
+            tau_list_size = int(np.size(self.tau_list))
+
+            # print('self.tau_list ', self.tau_list)
+            # print('np.size(self.tau_list) ', np.size(self.tau_list))
+            # self.tau_list = np.geomspace(tau_min, tau_max, int(tau_num))
             # self.tau_list = np.linspace(tau_min, tau_max, int(tau_num))
 
             # storing experiment data
             self.BrightCounts = dict([[tau, []] for tau in self.tau_list])
             self.DarkCounts = dict([[tau, []] for tau in self.tau_list])
+            self.raw_bright_counts_list = []
+            self.raw_dark_counts_list = []
 
             # SRS actions
             gw.sg.set_rf_amplitude(rf_power)  # set ouput power
@@ -84,9 +94,9 @@ class MW_T1_Meas:
             feedback_trigger_rate = int(20e3)
             feedback_time_per_point = 0.05
             feedback_num_samples = int(feedback_trigger_rate * feedback_time_per_point)
-            x_init_position = 7.416
-            y_init_position = 10.3008
-            z_init_position = 4.512
+            x_init_position = 7.4192
+            y_init_position = 10.3064
+            z_init_position = 4.5083
             feedback_timer = time.time()
             feedback_counter = 0
             start_time = time.time()
@@ -94,9 +104,15 @@ class MW_T1_Meas:
             for i in iters:
 
                 print('Iteration number ', i)
+
+                raw_bright_counts = []
+                raw_dark_counts = []
                 
                 # MAIN EXPERIMENT LOOP
-                for j in range(int(tau_num)):
+                for j in range(tau_list_size):
+
+                    tau = self.tau_list[j]
+                    print('tau: ', tau)
 
                     with NIDAQ() as mynidaq:
 
@@ -110,8 +126,6 @@ class MW_T1_Meas:
                         mynidaq.laser_power_atten(laser_power)
 
                         # START TASK
-                        tau = self.tau_list[j]
-                        tau_dark = self.tau_list[int(tau_num - j - 1)]
                         mynidaq.start_external_read_task(samplingFreq, ((4 * num_samples) + 1))
 
                         # START PULSESTREAMER
@@ -121,58 +135,73 @@ class MW_T1_Meas:
                         raw_counts = (obtain(mynidaq.external_read_task(samplingFreq, ((4 * num_samples) + 1))))
 
                         # SEPARATING COUNTS INTO MW ON / MW OFF
-                        bright_counts = 1e9 * np.mean(raw_counts[2::4]) / readout_time
-                        dark_counts = 1e9 * np.mean(raw_counts[0::4]) / readout_time
+                        raw_bright_counts.append(raw_counts[2::4])
+                        raw_dark_counts.append(raw_counts[0::4])
+                        bright_counts = 1e9 * np.mean(raw_bright_counts[j]) / readout_time
+                        dark_counts = 1e9 * np.mean(raw_dark_counts[j]) / readout_time
                         diff = bright_counts - dark_counts
                         self.BrightCounts[tau].append(bright_counts)
-                        self.DarkCounts[tau_dark].append(dark_counts)
+                        self.DarkCounts[tau].append(dark_counts)
+
+                        # print('raw bright counts for iteration number ', i, 'and tau ', tau, ' : ', raw_bright_counts[j])
 
                         # RESET SWABIAN OUTPUTS
                         gw.swabian.reset()
 
-                    # SAVE DATA TO DATASERVER
-                    MWT1Data.push(
-                        {
-                            "params": {
-                                "datasetName": datasetName,
-                                "samplingFreq": samplingFreq,
-                                "maxIterations": maxIterations,
-                                "freq": freq,
-                                "tau_min": tau_min,
-                                "tau_max": tau_max,
-                                "tau_num": tau_num,
-                                "rf_power": rf_power,
-                                "laser_power": laser_power,
-                                "num_samples": num_samples,
-                                "clock_time": clock_time,    
-                                "init_time": init_time,    
-                                "laser_lag": laser_lag,    
-                                "readout_time": readout_time,    
-                                "singlet_decay": singlet_decay, 
-                                "pi_time": pi_time
-                            },
-                            "title": "MW T1",
-                            "xlabel": "Tau Time (s)",
-                            "ylabel": "PL (cts/s)",
-                            "datasets": {
-                                "taus": self.tau_list,
-                                "BrightCounts": self.BrightCounts,
-                                "DarkCounts": self.DarkCounts,
-                            },
-                        }
-                    )
+                        # SPATIAL FEEDBACK EVERY 10mins
+                        if ((time.time() - feedback_timer) > 300):
+                            feedback_counter = feedback_counter + 1
+                            print('Feedback')
+                            begin_feedback = time.time()
+                            SpatialFeedback.Feedback(x_init_position, y_init_position, z_init_position)
+                            feedback_duration = time.time() - begin_feedback
+                            print('Feedback duration: ', feedback_duration)
+                            print('Feedback counter ', feedback_counter)
+                            feedback_timer = time.time()
 
-                    # SPATIAL FEEDBACK EVERY 10mins
-                    if ((time.time() - feedback_timer) > 180):
-                        feedback_counter = feedback_counter + 1
-                        print('Feedback')
-                        begin_feedback = time.time()
-                        SpatialFeedback.Feedback(x_init_position, y_init_position, z_init_position)
-                        feedback_duration = time.time() - begin_feedback
-                        print('Feedback duration: ', feedback_duration)
-                        print('Feedback counter ', feedback_counter)
-                        feedback_timer = time.time()
+                # print('raw bright counts for iteration number ', i, ' : ', raw_bright_counts)            
 
+                # update raw counts compendium
+                self.raw_bright_counts_list.append(raw_bright_counts)
+                self.raw_dark_counts_list.append(raw_dark_counts)
+
+                # print('self.raw_bright_counts_list ', self.raw_bright_counts_list)
+
+                # SAVE DATA TO DATASERVER
+                MWT1Data.push(
+                    {
+                        "params": {
+                            "datasetName": datasetName,
+                            "samplingFreq": samplingFreq,
+                            "maxIterations": maxIterations,
+                            "freq": freq,
+                            "tau_min": tau_min,
+                            "tau_max": tau_max,
+                            "tau_num": tau_num,
+                            "rf_power": rf_power,
+                            "laser_power": laser_power,
+                            "num_samples": num_samples,
+                            "clock_time": clock_time,    
+                            "init_time": init_time,    
+                            "laser_lag": laser_lag,    
+                            "readout_time": readout_time,    
+                            "singlet_decay": singlet_decay, 
+                            "pi_time": pi_time
+                        },
+                        "title": "MW T1",
+                        "xlabel": "Tau Time (s)",
+                        "ylabel": "PL (cts/s)",
+                        "datasets": {
+                            "taus": self.tau_list,
+                            "BrightCounts": self.BrightCounts,
+                            "DarkCounts": self.DarkCounts,
+                            "raw_bright_counts": self.raw_bright_counts_list,
+                            "raw_dark_counts": self.raw_dark_counts_list
+                        },
+                    }
+                )
+
+            flexSave(datasetName, 'MWT1', 'final')
             print('Total time taken ', time.time() - start_time)
             print("Experiment finished!")
 
