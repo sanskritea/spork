@@ -11,6 +11,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import scipy as scp
+# from scipy.interpolate import interp1d
+import sympy
+from sympy import Symbol
+from sympy import lambdify
+import emcee
+from datetime import datetime
+from os import mkdir
 
 from nspyre import DataSource
 from nspyre import InstrumentGateway
@@ -23,47 +30,45 @@ from experiments.NewportSpatialFeedback import SpatialFeedback
 from drivers.ni.nidaq_final import NIDAQ
 # from experiments.BayesianFunctions import BF
 
-from scipy.interpolate import interp1d
-import sympy
-from sympy import Symbol
-from sympy import lambdify
+gamma_bounds = [0.1,10]
+
 
 
 class Bayesian_T1_Meas:
 
-    def trap_normalize_2D_pdf(self, pdf, gamma_grid):
+    # def trap_normalize_2D_pdf(self, pdf, gamma_grid):
 
-        gamma_plus, gamma_minus = gamma_grid[0][0], np.transpose(gamma_grid[1])[0]
-        norm = np.trapz(np.trapz(pdf, gamma_minus), gamma_plus)
-        # print('norm ', norm)
+    #     gamma_plus, gamma_minus = gamma_grid[0][0], np.transpose(gamma_grid[1])[0]
+    #     norm = np.trapz(np.trapz(pdf, gamma_minus), gamma_plus)
+    #     # print('norm ', norm)
 
-        return norm
+    #     return norm
 
 
-    def calculate_conf_intervals(self, prior_gamma, gamma_grid, delta_gamma):
+    # def calculate_conf_intervals(self, prior_gamma, gamma_grid, delta_gamma):
 
-        gamma_plus = gamma_grid[0][0]
-        gamma_minus = np.transpose(gamma_grid[1])[0]
+    #     gamma_plus = gamma_grid[0][0]
+    #     gamma_minus = np.transpose(gamma_grid[1])[0]
 
-        # print('Normalizing pdfs')
-        gamma_plus_distr = np.sum(prior_gamma, 0) * delta_gamma
-        norm_gamma_plus_distr = gamma_plus_distr / (np.sum(gamma_plus_distr) * delta_gamma)
+    #     # print('Normalizing pdfs')
+    #     gamma_plus_distr = np.sum(prior_gamma, 0) * delta_gamma
+    #     norm_gamma_plus_distr = gamma_plus_distr / (np.sum(gamma_plus_distr) * delta_gamma)
 
-        gamma_minus_distr = np.sum(prior_gamma, 1) * delta_gamma
-        norm_gamma_minus_distr = gamma_minus_distr / (np.sum(gamma_minus_distr) * delta_gamma)
+    #     gamma_minus_distr = np.sum(prior_gamma, 1) * delta_gamma
+    #     norm_gamma_minus_distr = gamma_minus_distr / (np.sum(gamma_minus_distr) * delta_gamma)
 
-        # print('Calculating cdfs')
-        gamma_plus_cdf = np.cumsum(norm_gamma_plus_distr) * delta_gamma
-        gamma_minus_cdf = np.cumsum(norm_gamma_minus_distr) * delta_gamma
+    #     # print('Calculating cdfs')
+    #     gamma_plus_cdf = np.cumsum(norm_gamma_plus_distr) * delta_gamma
+    #     gamma_minus_cdf = np.cumsum(norm_gamma_minus_distr) * delta_gamma
 
-        # print('Interpolating')
-        gamma_plus_cdf_interp = interp1d(gamma_plus_cdf, gamma_plus) #, fill_value = 'extrapolate')
-        gamma_minus_cdf_interp = interp1d(gamma_minus_cdf, gamma_minus) #, fill_value = 'extrapolate')
+    #     # print('Interpolating')
+    #     gamma_plus_cdf_interp = interp1d(gamma_plus_cdf, gamma_plus) #, fill_value = 'extrapolate')
+    #     gamma_minus_cdf_interp = interp1d(gamma_minus_cdf, gamma_minus) #, fill_value = 'extrapolate')
 
-        gamma_plus_vals = gamma_plus_cdf_interp(np.array([0.5]))
-        gamma_minus_vals = gamma_minus_cdf_interp(np.array([0.5]))
+    #     gamma_plus_vals = gamma_plus_cdf_interp(np.array([0.5]))
+    #     gamma_minus_vals = gamma_minus_cdf_interp(np.array([0.5]))
 
-        return gamma_plus_vals, gamma_minus_vals
+    #     return gamma_plus_vals, gamma_minus_vals
 
 
     def nob_calculate_tau_opt(self, tau_grid, repetitions, gamma_plus, gamma_minus, T_overhead):
@@ -114,34 +119,74 @@ class Bayesian_T1_Meas:
         return np.array([tp[min_cost_idx], tm[min_cost_idx]])
 
 
-    def calculate_likelihood(self, M_measured_mean, M_measured_sigma, tau_opt, gamma_grid):
+    # def calculate_likelihood(self, M_measured_mean, M_measured_sigma, tau_opt, gamma_grid):
         
-        print('tau_opt received ', tau_opt)
-        start_likelihood_calculation = time.time()
-        M_plus_measured, M_minus_measured = M_measured_mean
-        sigma_M_plus_measured, sigma_M_minus_measured = M_measured_sigma
+    #     print('tau_opt received ', tau_opt)
+    #     start_likelihood_calculation = time.time()
+    #     M_plus_measured, M_minus_measured = M_measured_mean
+    #     sigma_M_plus_measured, sigma_M_minus_measured = M_measured_sigma
 
-        M_plus_tilde, M_minus_tilde = self.calculate_M_tildes(gamma_grid, tau_opt)
+    #     M_plus_tilde, M_minus_tilde = self.calculate_M_tildes(gamma_grid, tau_opt)
 
-        chi_plus = (M_plus_measured - M_plus_tilde) / ((2**0.5) * (sigma_M_plus_measured))
-        chi_minus = (M_minus_measured - M_minus_tilde) / (
-            (2**0.5) * (sigma_M_minus_measured)
-        )
+    #     chi_plus = (M_plus_measured - M_plus_tilde) / ((2**0.5) * (sigma_M_plus_measured))
+    #     chi_minus = (M_minus_measured - M_minus_tilde) / (
+    #         (2**0.5) * (sigma_M_minus_measured)
+    #     )
 
-        chi_sq = (chi_plus**2) + (chi_minus**2)
-        # chi_sq_final = chi_sq - np.min(chi_sq)
-        # likelihood = np.exp(-(chi_sq_final))
-        log_likelihood = - chi_sq
+    #     chi_sq = (chi_plus**2) + (chi_minus**2)
+    #     # chi_sq_final = chi_sq - np.min(chi_sq)
+    #     # likelihood = np.exp(-(chi_sq_final))
+    #     log_likelihood = - chi_sq
 
-        # print('Time taken to calculate likelihood ', time.time() - start_likelihood_calculation)
+    #     # print('Time taken to calculate likelihood ', time.time() - start_likelihood_calculation)
 
-        return log_likelihood
+    #     return log_likelihood
 
 
-    def calculate_M_tildes(self, gamma_grid, tau_opt):
+    def log_likelihood(self, gamma, tau, M, M_err):  # calculate log likelihood
+    
+        M_plus, M_minus = M
+        M_plus_err, M_minus_err = M_err
+        tau_plus, tau_minus = tau
+
+        chi_sq = 0
+
+        for i in range(len(tau_plus)):
+
+            M_plus_tilde, M_minus_tilde = self.calculate_M_tildes(gamma, tau_plus[i], tau_minus[i])
+
+            chi_plus = (M_plus[i] - M_plus_tilde) / ((2**0.5) * M_plus_err[i])
+            chi_minus = (M_minus[i] - M_minus_tilde) / ((2**0.5) * M_minus_err[i])
+            chi_sum = (chi_plus**2) + (chi_minus**2)
+
+            chi_sq = chi_sq - chi_sum
+
+        return chi_sq
+
+
+    def log_prior(self, gamma):  # create flat prior for the gammas
+
+        gamma_plus, gamma_minus = gamma
+
+        if gamma_bounds[0] < gamma_plus < gamma_bounds[1] and gamma_bounds[0] < gamma_minus < gamma_bounds[1]:
+            return 0.0
+
+        return -np.inf
+
+
+    def log_posterior(self, gamma, tau, M, M_err):
+
+        lp = self.log_prior(gamma)
+
+        if not np.isfinite(lp):
+            return -np.inf
+
+        return lp + self.log_likelihood(gamma, tau, M, M_err)
+
+
+    def calculate_M_tildes(self, gamma_grid, tau_plus, tau_minus):
 
         gamma_plus, gamma_minus = gamma_grid
-        tau_plus, tau_minus = tau_opt
         # pp, pm, mm, mp, Mtplus, Mtminus = BF.give_sympy_functions()
         
         M_plus_tilde = Symbols.Mtplus(gamma_plus, gamma_minus, tau_plus)
@@ -150,21 +195,9 @@ class Bayesian_T1_Meas:
         return [M_plus_tilde, M_minus_tilde]
 
 
-    def fit_data_to_gaussian(self, data_list):
-
-        mean, stdev = scipy.stats.norm.fit(data_list)
-
-        return mean, stdev
-
-
-
-
     def BayesianT1(
         self,
         datasetName: str,
-        samplingFreq: float,
-        maxIterations: int,
-        freq: float,
         rf_power: float,
         laser_power: float,
         num_samples: int,
@@ -173,13 +206,7 @@ class Bayesian_T1_Meas:
         laser_lag: int,         # laser stabilizing time, usually ~100ns
         probe_time: int,        # readout laser ON time
         singlet_decay: int,     # NV singlet state emptying duration
-        # x_init_position: float, 
-        # y_init_position: float,
-        # z_init_position: float,
         bayesian_iterations: int,
-        pi_time: int,           # ideally should be pi_x/y for gamma_plus/minus but let's run with this until IQ works        
-        # gamma_lower: float,   # for now, let's use the preset gamma bounds
-        # gamma_upper: float,
     ):
 
         # connect to the instrument server
@@ -188,76 +215,73 @@ class Bayesian_T1_Meas:
         readout_time = probe_time
         with InstrumentGateway() as gw, DataSource(datasetName) as BayesianT1Data:
 
-            # setup a relevant iterator depending on maxIterations
-            if maxIterations < 0:
-                iters = count()  # infinite iterator
-            else:
-                iters = range(maxIterations)
+            # # setup a relevant iterator depending on maxIterations
+            # if maxIterations < 0:
+            #     iters = count()  # infinite iterator
+            # else:
+            #     iters = range(maxIterations)
 
-            freq_list = [2.914e9, 2.828e9]
-            pi_time_list = [30, 60]
+            freq_list = [2.92, 2.85]
+            pi_time_list = [42, 60]
+            start_time = time.time()
 
             # PLOTTING VARIABLES
             self.iteration_number = np.zeros(0)
             self.gamma_plus_list = np.zeros(0)
             self.gamma_minus_list = np.zeros(0)
+            self.gamma_plus_err_list = np.zeros(0)
+            self.gamma_minus_err_list = np.zeros(0)
+            self.elapsed_time = np.zeros(0)
             self.M_plus = np.zeros(0)
             self.M_minus = np.zeros(0)
             self.M_plus_err = np.zeros(0)
             self.M_minus_err = np.zeros(0)
-            tau_plus_list = np.zeros(bayesian_iterations)
-            tau_minus_list = np.zeros(bayesian_iterations)
+            self.tau_plus_list = np.zeros(0)
+            self.tau_minus_list = np.zeros(0)
+            self.elapsed_time = np.zeros(0)
             self.S_0_0_0_list = []
             self.S_0_0_tau_list = []
             self.S_level_0_0_list = []
             self.S_level_0_tau_list = []
 
             # SETUP BAYESIAN VARIABLES
-            gamma_lower = 1 # in ms^-1 (correspoonding T1: 5ms)
-            gamma_upper = 10   # in ms^-1 (correspoonding T1: 100us)
-            n_gamma = 10000
-            tau_lower = 0.01  # in ms (10us)
-            tau_upper = 5  # in ms
-            n_tau = 10000
+            tau_lower = 0.005  # in ms (10us)
+            tau_upper = 2  # in ms
+            n_tau = 1000
             repetitions = num_samples 
-
-            # decay rates grid
-            gamma_plus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)
-            gamma_minus_arr = np.linspace(gamma_lower, gamma_upper, n_gamma)
-            gamma_grid = np.meshgrid(gamma_plus_arr, gamma_minus_arr)
-            delta_gamma = gamma_plus_arr[1] - gamma_plus_arr[0]
-
-            # decay rates distribution
-            gamma_distr = np.ones((n_gamma, n_gamma))
-            gamma_distr_norm =  self.trap_normalize_2D_pdf(gamma_distr, gamma_grid)
-            gamma_distr = gamma_distr / gamma_distr_norm
+            control_tau_list = np.geomspace(tau_lower, tau_upper, bayesian_iterations)
 
             # relaxometry delay tau grid
             tau_plus_arr = np.geomspace(tau_lower, tau_upper, n_tau)
             tau_minus_arr = np.geomspace(tau_lower, tau_upper, n_tau)
             tau_grid = np.meshgrid(tau_plus_arr, tau_minus_arr)
 
-            tau_plus_forced = np.linspace(1000*50, 1000*500*1, bayesian_iterations)
-            random.shuffle(tau_plus_forced)
-            tau_minus_forced = np.linspace(1000*50, 1000*500*1, bayesian_iterations)
-            tau_minus_forced = tau_plus_forced
-
-            # begin with a flat prior in gammas
-            prior_gamma = gamma_distr.copy()
-            tau_plus, tau_minus = 0, 0
-            start_time = time.time()
-
             # Feedback parameters
             feedback_trigger_rate = int(20e3)
             feedback_time_per_point = 0.05
             feedback_num_samples = int(feedback_trigger_rate * feedback_time_per_point)
-            x_init_position = 7.4194
-            y_init_position = 10.3068
+            x_init_position = 7.4188
+            y_init_position = 10.306
             z_init_position = 4.5083
             feedback_timer = time.time()
             feedback_counter = 0
 
-            sum_log_likelihood = np.zeros((n_gamma, n_gamma))
+            # SAMPLER PARAMETERS
+            n_dim = 2   # gamma_plus, gamma_minus
+            n_walkers = 50
+            n_steps = 1000
+            burn_in = 500
+
+            # STARTING POSITION FOR WALKERS AROUND INITIAL GUESS
+            init_guess = [2, 2]
+            p0 = [init_guess + (1e-4 * np.random.randn(n_dim)) for i in range(n_walkers)]
+
+            # GAMMA SAMPLES LIST
+            gamma_samples_list = []
+
+            # CREATE GAMMA CLOUD DIRECTORY
+            dir_title = 'C://Users/awschlab/Desktop/data/gamma_clouds/WEIRD_TauGuess=0.005ms_GammaBounds=' + str(gamma_bounds) + '_InitialGuess=' + str(init_guess) + '_Freqs=' + str(freq_list) + '_R=' + str(num_samples)
+            mkdir(dir_title)
 
             for num in range(bayesian_iterations):
 
@@ -273,96 +297,92 @@ class Bayesian_T1_Meas:
                     feedback_timer = time.time()
 
                 # MAIN EXPERIMENT
-                print('Bayesian iteration number ', int(num + 1))
-                self.iteration_number = np.append(self.iteration_number, int(num + 1))
+                print('Bayesian iteration number ', num)
+                self.iteration_number = np.append(self.iteration_number, num)
 
-                # USE CDF TO CALCULATE MEAN GAMMAS FROM PRIOR DISTRIBUTIONS
-                start_mean_gamma_calculation = time.time()
-                print('Calculating mean gammas from priors')
-                gamma_vals = self.calculate_conf_intervals(prior_gamma, gamma_grid, delta_gamma)
-                gamma_plus = gamma_vals[0][0]
-                gamma_minus = gamma_vals[1][0]
-                # itnum = self.iteration_number[num]
-                self.gamma_plus_list = np.append(self.gamma_plus_list, gamma_plus)
-                self.gamma_minus_list = np.append(self.gamma_minus_list, gamma_minus)
-                print('gamma_plus (ms^-1) ', gamma_plus)
-                print('gamma_minus (ms^-1) ', gamma_minus)
+                #### STARTING WITH GAMMA GUESS ####
+                # USE INITIAL WALKER POSITION AS GAMMA GUESS
+                # if num == 0:
+                #     self.gamma_plus_list = np.append(self.gamma_plus_list, init_guess[0])
+                #     self.gamma_minus_list = np.append(self.gamma_minus_list, init_guess[1])
+                #     self.gamma_plus_err_list = np.append(self.gamma_plus_list, init_guess[0])
+                #     self.gamma_minus_err_list = np.append(self.gamma_minus_list, init_guess[1])
+                # gamma_plus = self.gamma_plus_list[num]
+                # gamma_minus = self.gamma_minus_list[num]
 
-                # GET OPTIMIZED TAUS FROM NOB TO USE IN EXPERIMENT
+                # # OPTIMIZE TAU WITH THIS GAMMA
                 # print('Optimizing taus for pulse sequences')
                 # T_overhead = 0
                 # tau_opt = self.nob_calculate_tau_opt(tau_grid, repetitions, gamma_plus, gamma_minus, T_overhead)
                 # tau_plus, tau_minus = tau_opt
-                # tau_plus_list[num] = tau_plus
-                # tau_minus_list[num] = tau_minus
-                # print('calculated tau_plus (ms) ', tau_plus)
-                # print('calculated tau_minus (ms) ', tau_minus)
+                # self.tau_plus_list = np.append(self.tau_plus_list, tau_plus)
+                # self.tau_minus_list = np.append(self.tau_minus_list, tau_minus)
+                # print('tau_plus_opt (ms) ', tau_plus)
+                # print('tau_minus_opt (ms) ', tau_minus)
+
+
+                #### STARTING WITH TAU GUESS/CALCULATION ####
+                # GET OPTIMIZED TAUS FROM NOB TO USE IN EXPERIMENT
+                print('Optimizing taus for pulse sequences')
+                T_overhead = 0
+                tau_opt = []
+                if num == 0:
+                    # tau_opt = tau_lower, tau_lower
+                    tau_opt = 0.005, 0.005
+                else:
+                    tau_opt = self.nob_calculate_tau_opt(tau_grid, repetitions, self.gamma_plus_list[num - 1], self.gamma_minus_list[num - 1], T_overhead)
+                tau_plus, tau_minus = tau_opt
+                self.tau_plus_list = np.append(self.tau_plus_list, tau_plus)
+                self.tau_minus_list = np.append(self.tau_minus_list, tau_minus)
+                print('tau_plus_opt (ms) ', tau_plus)
+                print('tau_minus_opt (ms) ', tau_minus)
+
+                # print('Using prix fixe tau without tau optimization')
+                # tau_plus, tau_minus = control_tau_list[num], control_tau_list[num]
+                # self.tau_plus_list = np.append(self.tau_plus_list, tau_plus)
+                # self.tau_minus_list = np.append(self.tau_minus_list, tau_minus)
 
                 # CREATE PULSE SEQUENCES FOR OPTIMIZED TAUS
                 print('Creating pulse sequences')
                 seqs = []
-                # seqs.append(Pulses(gw).BAYESIAN_T1(
-                #             int(1e6 * tau_plus), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[0]
-                #         ))
-                # seqs.append(Pulses(gw).BAYESIAN_T1(
-                #             int(1e6 * tau_minus), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[1]
-                #         ))
-
-                print('tau_plus_forced[num] in ms ', 1e-6 * tau_plus_forced[num])
-                print('tau_minus_forced[num] in ms ', 1e-6 * tau_minus_forced[num])
-                tau_opt = 1e-6 * tau_plus_forced[num], 1e-6 * tau_minus_forced[num]
-                print('tau_opt ', tau_opt)
                 seqs.append(Pulses(gw).BAYESIAN_T1(
-                            int(tau_plus_forced[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[0]
+                            int(1e6 * tau_plus), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[0]
                         ))
                 seqs.append(Pulses(gw).BAYESIAN_T1(
-                            int(tau_minus_forced[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[1]
+                            int(1e6 * tau_minus), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[1]
                         ))
-
-                # print('tau_high_slope[num] in us', 1e-3 * tau_high_slope[num])
-                # tau_opt = tau_high_slope[num] * 1e-6, tau_high_slope[num] * 1e-6
-                # print('tau_opt in ms ', tau_opt)
-                # seqs.append(Pulses(gw).BAYESIAN_T1(
-                #             int(tau_high_slope[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[0]
-                #         ))
-                # seqs.append(Pulses(gw).BAYESIAN_T1(
-                #             int(tau_high_slope[num]), clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_time_list[1]
-                #         ))
 
                 # MEASURE COUNTS
-                start_counting = time.time()
                 print('Measuring counts')
-                M_mean_list = np.zeros(2)
-                M_std_list = np.zeros(2)
                 with NIDAQ() as mynidaq:
 
                     # SET LASER POWER
                     mynidaq.laser_power_atten(laser_power)
 
-                    # lists
+                    # temporary storage lists
+                    M = []
+                    M_err = []
                     S_0_0_0 = []
                     S_0_0_tau = []
                     S_level_0_0 = []
                     S_level_0_tau = []
 
-                    for t in range(
-                        2 
-                    ):  # measure NV with delay = tau_plus and then delay = tau_minus
+                    for t in range(2 ):  # measure NV with delay = tau_plus and then delay = tau_minus
 
                         # SRS ACTIONS
                         gw.sg.set_rf_amplitude(rf_power)    # set ouput power
-                        gw.sg.set_frequency(freq_list[t])
+                        gw.sg.set_frequency(1e9*freq_list[t])
                         gw.sg.set_mod_state(False) # make QAM/external after IQ is ready
                         gw.sg.set_rf_state("1")
 
                         # START READ TASK
-                        mynidaq.start_external_read_task(samplingFreq, ((10 * num_samples) + 1))
+                        mynidaq.start_external_read_task(20e6, ((8 * num_samples) + 1))
 
                         # START PULSESTREAMER
                         gw.swabian.runSequenceInfinitely(seqs[t])
 
                         # COUNT WITH EXTERNAL TRIGGER
-                        counts = obtain(mynidaq.external_read_task(samplingFreq, ((10 * num_samples) + 1)))
+                        counts = obtain(mynidaq.external_read_task(20e6, ((8 * num_samples) + 1)))
 
                         # SEPARATE COUNTS S_(initial level)_(final level)_delay
                         S_0_0_0.append(1e9 * counts[0::8] / readout_time)
@@ -370,15 +390,15 @@ class Bayesian_T1_Meas:
                         S_level_0_0.append(1e9 * counts[4::8] / readout_time)
                         S_level_0_tau.append(1e9 * counts[6::8] / readout_time)
 
-                        S_0_0_0_mean = np.mean(S_0_0_0)
-                        S_0_0_tau_mean = np.mean(S_0_0_tau) 
-                        S_level_0_0_mean = np.mean(S_level_0_0) 
-                        S_level_0_tau_mean = np.mean(S_level_0_tau) 
+                        S_0_0_0_mean = np.mean(S_0_0_0[t])
+                        S_0_0_tau_mean = np.mean(S_0_0_tau[t]) 
+                        S_level_0_0_mean = np.mean(S_level_0_0[t]) 
+                        S_level_0_tau_mean = np.mean(S_level_0_tau[t]) 
 
-                        S_0_0_0_err = np.std(S_0_0_0) / (num_samples ** 0.5)
-                        S_0_0_tau_err = np.std(S_0_0_tau) / (num_samples ** 0.5)
-                        S_level_0_0_err = np.std(S_level_0_0) / (num_samples ** 0.5)
-                        S_level_0_tau_err = np.std(S_level_0_tau) / (num_samples ** 0.5)
+                        S_0_0_0_err = np.std(S_0_0_0[t]) / (num_samples ** 0.5)
+                        S_0_0_tau_err = np.std(S_0_0_tau[t]) / (num_samples ** 0.5)
+                        S_level_0_0_err = np.std(S_level_0_0[t]) / (num_samples ** 0.5)
+                        S_level_0_tau_err = np.std(S_level_0_tau[t]) / (num_samples ** 0.5)
 
                         # FINAL MEASURE AND MOMENTS (Appendix E)
                         top = S_0_0_tau_mean - S_level_0_tau_mean
@@ -396,103 +416,129 @@ class Bayesian_T1_Meas:
                         inv_bottom = z0
                         inv_bottom_err = ez0
 
-                        # z_list.append(inv_bottom)
-
                         z = top * inv_bottom
                         z_err = ((top * inv_bottom_err)**2 + (inv_bottom_err * top_err) ** 2) ** 0.5
 
-                        M_mean = z
-                        M_std = z_err
-                        
-                        print('M_mean ', M_mean)
-                        print('M_std ', M_std)
-
-                        M_mean_list[t] = M_mean
-                        M_std_list[t] = M_std
+                        M.append(z)
+                        M_err.append(z_err)
+                        print('M_mean ', z)
+                        print('M_err ', z_err)
                         
                         gw.swabian.reset()
 
-                    print('Counting time ', time.time() - start_counting)
+                    # UPDATE LISTS
+                    print('Updating all lists')
+                    self.S_0_0_0_list.append(S_0_0_0)
+                    self.S_0_0_tau_list.append(S_0_0_tau)
+                    self.S_level_0_0_list.append(S_level_0_0)
+                    self.S_level_0_tau_list.append(S_level_0_tau)
+                    self.M_plus = np.append(self.M_plus, M[0])
+                    self.M_minus = np.append(self.M_minus, M[1])
+                    self.M_plus_err = np.append(self.M_plus_err, M_err[0])
+                    self.M_minus_err = np.append(self.M_minus_err, M_err[1])
 
-                # update global lists
-                self.S_0_0_0_list.append(S_0_0_0)
-                self.S_0_0_tau_list.append(S_0_0_tau)
-                self.S_level_0_0_list.append(S_level_0_0)
-                self.S_level_0_tau_list.append(S_level_0_tau)
+                    # SLICE DATA TO RUN SAMPLER WITH FIRST N SAMPLES
+                    print('Slicing data')
+                    tau_plus_slice = self.tau_plus_list[:num+1]     # x data
+                    tau_minus_slice = self.tau_minus_list[:num+1]   # x data
+                    M_plus_slice = self.M_plus[:num+1]              # y1 data
+                    M_minus_slice = self.M_minus[:num+1]            # y2 data
+                    M_plus_err_slice = self.M_plus_err[:num+1]      # y1 data
+                    M_minus_err_slice = self.M_minus_err[:num+1]    # y2 data
 
-                # MEASUREMENT STATISTICS
-                self.M_plus = np.append(self.M_plus, M_mean_list[0])
-                self.M_minus = np.append(self.M_minus, M_mean_list[1])
-                self.M_plus_err = np.append(self.M_plus_err, M_std_list[0])
-                self.M_minus_err = np.append(self.M_minus_err, M_std_list[1])
-                M_measured_mean = [M_mean_list[0], M_mean_list[1]]
-                M_measured_sigma = [M_std_list[0], M_std_list[1]]
+                    # RUN MCMC SAMPLER
+                    print('Running sampler')
+                    sampler = emcee.EnsembleSampler(
+                        n_walkers, n_dim, self.log_posterior, args = ((tau_plus_slice, tau_minus_slice), (M_plus_slice, M_minus_slice), (M_plus_err_slice, M_minus_err_slice)))
+                    sampler.run_mcmc(p0, n_steps)#, progress=True)
 
-                # CALCULATE LIKELIHOOD FROM THE MEASUREMENT RESULT
-                print('Calculating likelihood')
-                log_likelihood = self.calculate_likelihood(M_measured_mean, M_measured_sigma, tau_opt, gamma_grid)
-                sum_log_likelihood = sum_log_likelihood + log_likelihood
-                plt.pcolormesh(sum_log_likelihood)
-                plt.colorbar()
-                # plt.show()
-                # print('np.max(log_likelihood) ', np.max(log_likelihood))
-                # print('np.mim(log_likelihood) ', np.min(log_likelihood))
+                    # STORE GAMMA SAMPLES AFTER BURN-IN
+                    print('Storing gamma_samples')
+                    gamma_samples = sampler.get_chain(discard=burn_in, flat=True)
+                    gamma_samples_list.append(gamma_samples)
 
-                # CALCULATE POSTERIOR
-                print('Calculating posterior')
-                log_prior = np.log(prior_gamma)
-                log_posterior = log_prior + log_likelihood
-                posterior_gamma_unnorm = np.exp(log_posterior - np.max(log_posterior))
+                    gamma_plus_samples = gamma_samples[:, 0]
+                    gamma_minus_samples = gamma_samples[:, 1]
 
-                # UPDATE PRIOR
-                print('Updating prior')
-                prior_gamma = posterior_gamma_unnorm
+                    # save gamma scatter plot
+                    plt.figure(figsize=(6, 6))
+                    plt.scatter(gamma_plus_samples, gamma_minus_samples, color="blue", s=0.1, alpha=0.5)
+                    plt.xlabel("gamma_plus")
+                    plt.ylabel("gamma_minus")
+                    plt.xlim(0.1, 10)
+                    plt.ylim(0.1, 10)
+                    title = 'Gammas after ' + str(num) + ' iterations'
+                    plt.suptitle(title)
+                    filetitle = dir_title + '/' + str(datetime.now().strftime("%Y_%m_%d_%H_%M_%S")) + '.png' 
+                    plt.tight_layout()
+                    plt.savefig(filetitle)
 
-                # SAVE CURRENT DATA TO DATA SERVER
-                BayesianT1Data.push(
-                    {'params': {
-                        'datasetName': datasetName,
-                        'samplingFreq': samplingFreq,
-                        'maxIterations': maxIterations,
-                        'freq': freq,
-                        'rf_power': rf_power,
-                        'laser_power': laser_power,
-                        'num_samples' : num_samples,
-                        'clock_time' : clock_time,
-                        'init_time' : init_time,
-                        'laser_lag' : laser_lag,
-                        'probe_time' : probe_time,
-                        'singlet_decay' : singlet_decay,
-                        'bayesian_iterations' : bayesian_iterations,
-                        'pi_time' : pi_time
-                        },
-                        'title': 'Bayesian T1',
-                        'xlabel': 'Iteration number',
-                        'ylabel': 'Gamma (ms^-1)',
-                        'datasets': {
-                            'iteration_number': self.iteration_number,
-                            'M_plus': self.M_plus,
-                            'M_minus': self.M_minus,
-                            'M_plus_err': self.M_plus_err,
-                            'M_minus_err': self.M_minus_err,
-                            'GammaPlus': self.gamma_plus_list,
-                            'GammaMinus': self.gamma_minus_list,
-                            'TauPlus': tau_plus_list,
-                            'TauMinus': tau_minus_list,
-                            'S000Plus': S_0_0_0_list[num][0],
-                            'S000Minus': S_0_0_0_list[num][1],
-                            'S00tauPlus': S_0_0_tau_list[num][0],
-                            'S00tauMinus': S_0_0_tau_list[num][1],
-                            'Slevel00Plus': S_level_0_0_list[num][0],
-                            'Slevel00Minus': S_level_0_0_list[num][1],
-                            'Slevel0tauPlus': S_level_0_tau_list[num][0],
-                            'Slevel0tauMinus': S_level_0_tau_list[num][1],
+                    mean_gamma_plus = np.mean(gamma_plus_samples)
+                    mean_gamma_minus = np.mean(gamma_minus_samples)
+                    err_gamma_plus = np.std(gamma_plus_samples) / np.sqrt(len(gamma_plus_samples))
+                    err_gamma_minus = np.std(gamma_minus_samples) / np.sqrt(len(gamma_minus_samples))
+
+                    print('Updating gamma lists')
+                    self.gamma_plus_list = np.append(self.gamma_plus_list, mean_gamma_plus)
+                    self.gamma_minus_list = np.append(self.gamma_minus_list, mean_gamma_minus)
+                    self.gamma_plus_err_list = np.append(self.gamma_plus_err_list, err_gamma_plus)
+                    self.gamma_minus_err_list = np.append(self.gamma_minus_err_list, err_gamma_minus)
+                    print('gamma_plus ', mean_gamma_plus)
+                    print('gamma_minus ', mean_gamma_minus)
+
+                    print('self.gamma_plus_list ', self.gamma_plus_list)
+                    print('self.M_plus ', self.M_plus)
+                    print('self.iteration_number ', self.iteration_number)
+
+                    self.elapsed_time = np.append(self.elapsed_time, time.time() - start_time)
+
+                    # print('Push to GUI')
+                    # SAVE CURRENT DATA TO DATA SERVER
+                    BayesianT1Data.push(
+                        {'params': {
+                            'datasetName': datasetName,
+                            'rf_power': rf_power,
+                            'laser_power': laser_power,
+                            'num_samples' : num_samples,
+                            'clock_time' : clock_time,
+                            'init_time' : init_time,
+                            'laser_lag' : laser_lag,
+                            'probe_time' : probe_time,
+                            'singlet_decay' : singlet_decay,
+                            'bayesian_iterations' : bayesian_iterations,
+                            },
+                            'title': 'Bayesian T1',
+                            'xlabel': 'Iteration number',
+                            # 'ylabel': 'Gamma (ms^-1)',
+                            'datasets': {
+                                'iteration_number': self.iteration_number,
+                                'M_plus': self.M_plus,
+                                'M_minus': self.M_minus,
+                                'M_plus_err': self.M_plus_err,
+                                'M_minus_err': self.M_minus_err,
+                                'GammaPlus': self.gamma_plus_list,
+                                'GammaMinus': self.gamma_minus_list,
+                                'GammaPlusErr': self.gamma_plus_err_list,
+                                'GammaMinusErr': self.gamma_minus_err_list,
+                                'TauPlus': self.tau_plus_list,
+                                'TauMinus': self.tau_minus_list,
+                                'S000Plus': np.array(self.S_0_0_0_list)[:,0,:],
+                                'S000Minus': np.array(self.S_0_0_0_list)[:,1,:],
+                                'S00tauPlus': np.array(self.S_0_0_tau_list)[:,0,:],
+                                'S00tauMinus': np.array(self.S_0_0_tau_list)[:,1,:],
+                                'Slevel00Plus': np.array(self.S_level_0_0_list)[:,0,:],
+                                'Slevel00Minus': np.array(self.S_level_0_0_list)[:,1,:],
+                                'Slevel0tauPlus': np.array(self.S_level_0_tau_list)[:,0,:],
+                                'Slevel0tauMinus': np.array(self.S_level_0_tau_list)[:,1,:],
+                                'TotalTime': self.elapsed_time
+                            }
                         }
-                    }
-                )
+                    )
 
-            flexSave(datasetName, 'Bayesian T1', 'final')
-            plt.show()
+                    flexSave(datasetName, 'Bayesian T1', 'final')
+
+                    
+
             print('time taken ', time.time() - start_time)
             print("Experiment finished!")
 
