@@ -1,0 +1,1656 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 13.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     72881,       1646]
+NotebookOptionsPosition[     71849,       1621]
+NotebookOutlinePosition[     72281,       1638]
+CellTagsIndexPosition[     72238,       1635]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"G", "[", 
+   RowBox[{"\[CapitalGamma]plus_", ",", " ", "\[CapitalGamma]minus_"}], "]"}],
+   "=", " ", 
+  RowBox[{
+   SuperscriptBox[
+    RowBox[{"(", "\[CapitalGamma]plus", ")"}], "2"], " ", "+", " ", 
+   SuperscriptBox[
+    RowBox[{"(", "\[CapitalGamma]minus", ")"}], "2"], "-", " ", 
+   RowBox[{
+   "\[CapitalGamma]plus", "*", 
+    "\[CapitalGamma]minus"}]}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"\[Beta]plus", "[", 
+   RowBox[{
+   "G_", ",", " ", "\[CapitalGamma]plus_", ",", " ", 
+    "\[CapitalGamma]minus_"}], "]"}], "=", " ", 
+  RowBox[{
+  "\[CapitalGamma]plus", " ", "+", " ", "\[CapitalGamma]minus", " ", "+", " ", 
+   RowBox[{"G", "[", 
+    RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+    "]"}]}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"\[Beta]minus", "[", 
+   RowBox[{
+   "G_", ",", " ", "\[CapitalGamma]plus_", ",", " ", 
+    "\[CapitalGamma]minus_"}], "]"}], "=", " ", 
+  RowBox[{
+  "\[CapitalGamma]plus", " ", "+", " ", "\[CapitalGamma]minus", " ", "-", " ", 
+   RowBox[{"G", "[", 
+    RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+    "]"}]}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"Mtildeplus", "[", 
+    RowBox[{
+    "G_", ",", " ", "\[CapitalGamma]plus_", ",", " ", "\[CapitalGamma]minus_",
+      ",", " ", "\[Beta]plus_", ",", " ", "\[Beta]minus_"}], "]"}], "=", 
+   RowBox[{
+    FractionBox["1", 
+     RowBox[{"2", "*", 
+      RowBox[{"G", "[", 
+       RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+       "]"}]}]], 
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"G", "[", 
+          RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+          "]"}], " ", "+", " ", "\[CapitalGamma]plus"}], ")"}], "*", " ", 
+       RowBox[{"Exp", "[", 
+        RowBox[{
+         RowBox[{"-", "1"}], " ", "*", " ", 
+         RowBox[{"\[Beta]plus", "[", 
+          RowBox[{
+          "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+           "\[CapitalGamma]minus"}], "]"}], " ", "*", " ", "\[Tau]plus"}], 
+        "]"}]}], " ", "+", " ", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"G", "[", 
+          RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+          "]"}], "-", " ", "\[CapitalGamma]plus"}], ")"}], 
+       RowBox[{"Exp", "[", 
+        RowBox[{
+         RowBox[{"-", "1"}], " ", "*", " ", 
+         RowBox[{"\[Beta]minus", "[", 
+          RowBox[{
+          "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+           "\[CapitalGamma]minus"}], "]"}], " ", "*", " ", "\[Tau]plus"}], 
+        "]"}]}]}], ")"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"Mtildeminus", "[", 
+    RowBox[{
+    "G_", ",", " ", "\[CapitalGamma]plus_", ",", " ", "\[CapitalGamma]minus_",
+      ",", " ", "\[Beta]plus_", ",", " ", "\[Beta]minus_"}], "]"}], "=", 
+   RowBox[{
+    FractionBox["1", 
+     RowBox[{"2", "*", 
+      RowBox[{"G", "[", 
+       RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+       "]"}]}]], 
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"G", "[", 
+          RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+          "]"}], " ", "+", " ", "\[CapitalGamma]minus"}], ")"}], "*", " ", 
+       RowBox[{"Exp", "[", 
+        RowBox[{
+         RowBox[{"-", "1"}], " ", "*", " ", 
+         RowBox[{"\[Beta]plus", "[", 
+          RowBox[{
+          "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+           "\[CapitalGamma]minus"}], "]"}], " ", "*", " ", "\[Tau]minus"}], 
+        "]"}]}], " ", "+", " ", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"G", "[", 
+          RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+          "]"}], " ", "-", " ", "\[CapitalGamma]minus"}], ")"}], 
+       RowBox[{"Exp", "[", 
+        RowBox[{
+         RowBox[{"-", "1"}], " ", "*", " ", 
+         RowBox[{"\[Beta]minus", "[", 
+          RowBox[{
+          "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+           "\[CapitalGamma]minus"}], "]"}], " ", "*", " ", "\[Tau]minus"}], 
+        "]"}]}]}], ")"}]}]}], ";"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.9163264071306963`*^9, 3.916326618102072*^9}, {
+  3.916326720740472*^9, 3.916326752006056*^9}, {3.916326783990834*^9, 
+  3.9163271819567013`*^9}, {3.91632728755832*^9, 3.916327303589123*^9}, {
+  3.9163273865353713`*^9, 3.9163274597333574`*^9}, {3.9163275160849934`*^9, 
+  3.9163275781331854`*^9}, {3.916327609653898*^9, 3.9163276365822363`*^9}, {
+  3.916327683672062*^9, 3.9163276880223827`*^9}, {3.916328011639907*^9, 
+  3.916328210405486*^9}, {3.916328256246711*^9, 3.916328258212424*^9}, {
+  3.916329035823276*^9, 
+  3.916329064516469*^9}},ExpressionUUID->"c2f5f5d6-5e63-4992-86c4-\
+24caab9aaf3f"],
+
+Cell[BoxData[
+ RowBox[{
+  SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+  RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+  SuperscriptBox["\[CapitalGamma]plus", "2"]}]], "Output",
+ CellChangeTimes->{
+  3.9163275790157204`*^9, 3.916327639044066*^9, {3.916327676742416*^9, 
+   3.916327690630854*^9}, 3.916328006871194*^9, {3.9163280489812727`*^9, 
+   3.9163280673477955`*^9}, {3.9163281645415287`*^9, 3.9163282112503185`*^9}, 
+   3.916328258769656*^9},
+ CellLabel->"Out[54]=",ExpressionUUID->"708bd082-dbfe-4262-a420-836b1afdb464"],
+
+Cell[BoxData[
+ RowBox[{"\[CapitalGamma]minus", "+", 
+  SuperscriptBox["\[CapitalGamma]minus", "2"], "+", "\[CapitalGamma]plus", 
+  "-", 
+  RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+  SuperscriptBox["\[CapitalGamma]plus", "2"]}]], "Output",
+ CellChangeTimes->{
+  3.9163275790157204`*^9, 3.916327639044066*^9, {3.916327676742416*^9, 
+   3.916327690630854*^9}, 3.916328006871194*^9, {3.9163280489812727`*^9, 
+   3.9163280673477955`*^9}, {3.9163281645415287`*^9, 3.9163282112503185`*^9}, 
+   3.916328258780627*^9},
+ CellLabel->"Out[55]=",ExpressionUUID->"9d94e948-2e60-4da0-9f1a-c1a6a84324ce"],
+
+Cell[BoxData[
+ RowBox[{"\[CapitalGamma]minus", "-", 
+  SuperscriptBox["\[CapitalGamma]minus", "2"], "+", "\[CapitalGamma]plus", 
+  "+", 
+  RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+  SuperscriptBox["\[CapitalGamma]plus", "2"]}]], "Output",
+ CellChangeTimes->{
+  3.9163275790157204`*^9, 3.916327639044066*^9, {3.916327676742416*^9, 
+   3.916327690630854*^9}, 3.916328006871194*^9, {3.9163280489812727`*^9, 
+   3.9163280673477955`*^9}, {3.9163281645415287`*^9, 3.9163282112503185`*^9}, 
+   3.9163282587846284`*^9},
+ CellLabel->"Out[56]=",ExpressionUUID->"721568a8-9610-40a8-8081-5985c907b7ef"]
+}, Open  ]],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"plusplus", "[", 
+    RowBox[{"\[CapitalGamma]plus_", ",", " ", "\[CapitalGamma]minus_"}], 
+    "]"}], " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{
+     RowBox[{"Mtildeplus", "[", 
+      RowBox[{
+       RowBox[{"G", "[", 
+        RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+        "]"}], ",", " ", "\[CapitalGamma]plus", ",", " ", 
+       "\[CapitalGamma]minus", ",", " ", 
+       RowBox[{"\[Beta]plus", "[", 
+        RowBox[{
+        "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+         "\[CapitalGamma]minus"}], "]"}], ",", " ", 
+       RowBox[{"\[Beta]minus", "[", 
+        RowBox[{
+        "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+         "\[CapitalGamma]minus"}], "]"}]}], "]"}], ",", 
+     "\[CapitalGamma]plus"}], " ", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"plusminus", "[", 
+    RowBox[{"\[CapitalGamma]plus_", ",", " ", "\[CapitalGamma]minus_"}], 
+    "]"}], " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{
+     RowBox[{"Mtildeplus", "[", 
+      RowBox[{
+       RowBox[{"G", "[", 
+        RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+        "]"}], ",", " ", "\[CapitalGamma]plus", ",", " ", 
+       "\[CapitalGamma]minus", ",", " ", 
+       RowBox[{"\[Beta]plus", "[", 
+        RowBox[{
+        "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+         "\[CapitalGamma]minus"}], "]"}], ",", " ", 
+       RowBox[{"\[Beta]minus", "[", 
+        RowBox[{
+        "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+         "\[CapitalGamma]minus"}], "]"}]}], "]"}], ",", 
+     "\[CapitalGamma]minus"}], " ", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"minusplus", "[", 
+    RowBox[{"\[CapitalGamma]plus_", ",", " ", "\[CapitalGamma]minus_"}], 
+    "]"}], "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{
+     RowBox[{"Mtildeminus", "[", 
+      RowBox[{
+       RowBox[{"G", "[", 
+        RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+        "]"}], ",", " ", "\[CapitalGamma]plus", ",", " ", 
+       "\[CapitalGamma]minus", ",", " ", 
+       RowBox[{"\[Beta]plus", "[", 
+        RowBox[{
+        "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+         "\[CapitalGamma]minus"}], "]"}], ",", " ", 
+       RowBox[{"\[Beta]minus", "[", 
+        RowBox[{
+        "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+         "\[CapitalGamma]minus"}], "]"}]}], "]"}], ",", 
+     "\[CapitalGamma]plus"}], " ", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"minusminus", "[", 
+    RowBox[{"\[CapitalGamma]plus_", ",", " ", "\[CapitalGamma]minus_"}], 
+    "]"}], " ", "=", " ", 
+   RowBox[{"D", "[", 
+    RowBox[{
+     RowBox[{"Mtildeminus", "[", 
+      RowBox[{
+       RowBox[{"G", "[", 
+        RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+        "]"}], ",", " ", "\[CapitalGamma]plus", ",", " ", 
+       "\[CapitalGamma]minus", ",", " ", 
+       RowBox[{"\[Beta]plus", "[", 
+        RowBox[{
+        "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+         "\[CapitalGamma]minus"}], "]"}], ",", " ", 
+       RowBox[{"\[Beta]minus", "[", 
+        RowBox[{
+        "G", ",", " ", "\[CapitalGamma]plus", ",", " ", 
+         "\[CapitalGamma]minus"}], "]"}]}], "]"}], ",", 
+     "\[CapitalGamma]minus"}], " ", "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.9163277490642776`*^9, 3.91632779486913*^9}, {
+   3.916327827671014*^9, 3.9163278555889115`*^9}, {3.916327900391619*^9, 
+   3.9163279256540265`*^9}, {3.9163280167726903`*^9, 3.916328045253002*^9}, {
+   3.916328269684161*^9, 3.9163282717645407`*^9}, {3.9163284741176667`*^9, 
+   3.9163285144051933`*^9}, {3.9163285494634438`*^9, 3.916328569252859*^9}, 
+   3.9163286086474357`*^9, {3.916328652612388*^9, 3.916328664342372*^9}, {
+   3.916328716724723*^9, 
+   3.9163287212843533`*^9}},ExpressionUUID->"06c77fbc-aeed-4ad7-9cd9-\
+af7abf6bd37f"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"CostFunction", " ", "[", 
+   RowBox[{"\[CapitalGamma]plus_", ",", " ", "\[CapitalGamma]minus_"}], "]"}],
+   "=", " ", 
+  RowBox[{
+   FractionBox["1", 
+    RowBox[{"\[CapitalGamma]plus", " ", "*", "\[CapitalGamma]minus"}]], "*", 
+   SuperscriptBox[
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{
+        SuperscriptBox[
+         RowBox[{"(", 
+          RowBox[{"\[CapitalGamma]minus", " ", "*", " ", 
+           RowBox[{"minusminus", "[", 
+            RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}],
+             "]"}]}], ")"}], "2"], "+", " ", 
+        RowBox[{
+         SuperscriptBox[
+          RowBox[{"(", 
+           RowBox[{"\[CapitalGamma]minus", " ", "*", " ", 
+            RowBox[{"plusminus", "[", 
+             RowBox[{
+             "\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+             "]"}]}], ")"}], "2"], 
+         SuperscriptBox[
+          RowBox[{"(", 
+           RowBox[{"\[CapitalGamma]plus", " ", "*", " ", 
+            RowBox[{"minusplus", "[", 
+             RowBox[{
+             "\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+             "]"}]}], ")"}], "2"], 
+         SuperscriptBox[
+          RowBox[{"(", 
+           RowBox[{"\[CapitalGamma]plus", " ", "*", " ", 
+            RowBox[{"plusplus", "[", 
+             RowBox[{
+             "\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+             "]"}]}], ")"}], "2"]}]}], ")"}], "/", 
+      SuperscriptBox[
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"plusminus", "[", 
+           RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+           "]"}], " ", "*", " ", 
+          RowBox[{"minusplus", "[", 
+           RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+           "]"}]}], " ", "-", " ", 
+         RowBox[{
+          RowBox[{"minusminus", "[", 
+           RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+           "]"}], " ", "*", " ", 
+          RowBox[{"plusplus", "[", 
+           RowBox[{"\[CapitalGamma]plus", ",", " ", "\[CapitalGamma]minus"}], 
+           "]"}]}]}], ")"}], "2"]}], ")"}], "0.5"]}]}]], "Input",
+ CellChangeTimes->{{3.9163286867766542`*^9, 3.91632891142866*^9}, {
+  3.916328942883913*^9, 3.9163289562610073`*^9}, {3.9163289979901085`*^9, 
+  3.916329003510351*^9}, {3.916329141940332*^9, 3.916329144452364*^9}},
+ CellLabel->"In[87]:=",ExpressionUUID->"b4445280-3243-4237-9d59-97a6a6421767"],
+
+Cell[BoxData[
+ RowBox[{
+  FractionBox["1", 
+   RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}]], 
+  SuperscriptBox[
+   RowBox[{"(", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\[CapitalGamma]minus", "2"], " ", 
+        SuperscriptBox[
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            RowBox[{
+             FractionBox["1", 
+              RowBox[{"2", " ", 
+               SuperscriptBox[
+                RowBox[{"(", 
+                 RowBox[{
+                  SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                  RowBox[{
+                  "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                  SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], 
+                "2"]}]], 
+             RowBox[{
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                "\[CapitalGamma]plus"}], ")"}], " ", 
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]minus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}], "+", 
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]minus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{"\[CapitalGamma]minus", "+", 
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]}], 
+               ")"}]}]}]}], "+", 
+           RowBox[{
+            FractionBox["1", 
+             RowBox[{"2", " ", 
+              RowBox[{"(", 
+               RowBox[{
+                SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], 
+                "+", 
+                SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]], 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "1"}], "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}]}], "+", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}]}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "-", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "+", 
+                 "\[CapitalGamma]plus"}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]minus"}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{"\[CapitalGamma]minus", "+", 
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]minus"}]}], ")"}]}]}], ")"}], "2"]}], "+", 
+       RowBox[{
+        SuperscriptBox["\[CapitalGamma]minus", "2"], " ", 
+        SuperscriptBox["\[CapitalGamma]plus", "4"], " ", 
+        SuperscriptBox[
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            RowBox[{
+             FractionBox["1", 
+              RowBox[{"2", " ", 
+               SuperscriptBox[
+                RowBox[{"(", 
+                 RowBox[{
+                  SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                  RowBox[{
+                  "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                  SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], 
+                "2"]}]], 
+             RowBox[{
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]minus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}], "+", 
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]minus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{"\[CapitalGamma]minus", "+", 
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]}], 
+               ")"}]}]}]}], "+", 
+           RowBox[{
+            FractionBox["1", 
+             RowBox[{"2", " ", 
+              RowBox[{"(", 
+               RowBox[{
+                SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], 
+                "+", 
+                SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]], 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}]}], "+", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}]}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "+", "\[CapitalGamma]minus", "-", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]minus"}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "-", "\[CapitalGamma]minus", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{"\[CapitalGamma]minus", "+", 
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]minus"}]}], ")"}]}]}], ")"}], "2"], " ", 
+        SuperscriptBox[
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            RowBox[{
+             FractionBox["1", 
+              RowBox[{"2", " ", 
+               SuperscriptBox[
+                RowBox[{"(", 
+                 RowBox[{
+                  SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                  RowBox[{
+                  "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                  SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], 
+                "2"]}]], 
+             RowBox[{
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                "\[CapitalGamma]plus"}], ")"}], " ", 
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]plus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   "\[CapitalGamma]plus", "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}], "+", 
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]plus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                   "\[CapitalGamma]plus", "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]}], 
+               ")"}]}]}]}], "+", 
+           RowBox[{
+            FractionBox["1", 
+             RowBox[{"2", " ", 
+              RowBox[{"(", 
+               RowBox[{
+                SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], 
+                "+", 
+                SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]], 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}]}], "+", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}]}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "-", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "+", 
+                 "\[CapitalGamma]plus"}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 "\[CapitalGamma]plus", "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]plus"}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                 "\[CapitalGamma]plus", "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]plus"}]}], ")"}]}]}], ")"}], "2"], " ", 
+        SuperscriptBox[
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            RowBox[{
+             FractionBox["1", 
+              RowBox[{"2", " ", 
+               SuperscriptBox[
+                RowBox[{"(", 
+                 RowBox[{
+                  SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                  RowBox[{
+                  "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                  SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], 
+                "2"]}]], 
+             RowBox[{
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]plus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   "\[CapitalGamma]plus", "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}], "+", 
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]plus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                   "\[CapitalGamma]plus", "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]}], 
+               ")"}]}]}]}], "+", 
+           RowBox[{
+            FractionBox["1", 
+             RowBox[{"2", " ", 
+              RowBox[{"(", 
+               RowBox[{
+                SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], 
+                "+", 
+                SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]], 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "1"}], "-", "\[CapitalGamma]minus", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}]}], "+", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "-", "\[CapitalGamma]minus", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}]}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "+", "\[CapitalGamma]minus", "-", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 "\[CapitalGamma]plus", "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]plus"}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "-", "\[CapitalGamma]minus", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                 "\[CapitalGamma]plus", "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]plus"}]}], ")"}]}]}], ")"}], "2"]}]}], ")"}], "/", 
+     SuperscriptBox[
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            RowBox[{
+             FractionBox["1", 
+              RowBox[{"2", " ", 
+               SuperscriptBox[
+                RowBox[{"(", 
+                 RowBox[{
+                  SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                  RowBox[{
+                  "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                  SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], 
+                "2"]}]], 
+             RowBox[{
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]minus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}], "+", 
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]minus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{"\[CapitalGamma]minus", "+", 
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]}], 
+               ")"}]}]}]}], "+", 
+           RowBox[{
+            FractionBox["1", 
+             RowBox[{"2", " ", 
+              RowBox[{"(", 
+               RowBox[{
+                SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], 
+                "+", 
+                SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]], 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}]}], "+", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}]}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "+", "\[CapitalGamma]minus", "-", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]minus"}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "-", "\[CapitalGamma]minus", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{"\[CapitalGamma]minus", "+", 
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]minus"}]}], ")"}]}]}], ")"}], " ", 
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            RowBox[{
+             FractionBox["1", 
+              RowBox[{"2", " ", 
+               SuperscriptBox[
+                RowBox[{"(", 
+                 RowBox[{
+                  SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                  RowBox[{
+                  "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                  SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], 
+                "2"]}]], 
+             RowBox[{
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                "\[CapitalGamma]plus"}], ")"}], " ", 
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]plus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   "\[CapitalGamma]plus", "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}], "+", 
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]plus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                   "\[CapitalGamma]plus", "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]}], 
+               ")"}]}]}]}], "+", 
+           RowBox[{
+            FractionBox["1", 
+             RowBox[{"2", " ", 
+              RowBox[{"(", 
+               RowBox[{
+                SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], 
+                "+", 
+                SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]], 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}]}], "+", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}]}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "-", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "+", 
+                 "\[CapitalGamma]plus"}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 "\[CapitalGamma]plus", "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]plus"}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                 "\[CapitalGamma]plus", "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]plus"}]}], ")"}]}]}], ")"}]}], "-", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            RowBox[{
+             FractionBox["1", 
+              RowBox[{"2", " ", 
+               SuperscriptBox[
+                RowBox[{"(", 
+                 RowBox[{
+                  SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                  RowBox[{
+                  "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                  SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], 
+                "2"]}]], 
+             RowBox[{
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                "\[CapitalGamma]plus"}], ")"}], " ", 
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]minus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}], "+", 
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]minus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{"\[CapitalGamma]minus", "+", 
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]}], 
+               ")"}]}]}]}], "+", 
+           RowBox[{
+            FractionBox["1", 
+             RowBox[{"2", " ", 
+              RowBox[{"(", 
+               RowBox[{
+                SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], 
+                "+", 
+                SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]], 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "1"}], "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}]}], "+", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}]}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "-", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "+", 
+                 "\[CapitalGamma]plus"}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]minus"}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]minus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]minus"}], "-", 
+                 "\[CapitalGamma]plus"}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{"\[CapitalGamma]minus", "+", 
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]minus"}]}], ")"}]}]}], ")"}], " ", 
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            RowBox[{
+             FractionBox["1", 
+              RowBox[{"2", " ", 
+               SuperscriptBox[
+                RowBox[{"(", 
+                 RowBox[{
+                  SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                  RowBox[{
+                  "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                  SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], 
+                "2"]}]], 
+             RowBox[{
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{"-", "\[CapitalGamma]minus"}], "+", 
+                RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]plus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                   "\[CapitalGamma]plus", "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}], "+", 
+                RowBox[{
+                 SuperscriptBox["\[ExponentialE]", 
+                  RowBox[{"-", 
+                   RowBox[{"(", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                    "\[Tau]plus"}], ")"}]}]], " ", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                   "\[CapitalGamma]plus", "-", 
+                   RowBox[{
+                   "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                   SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]}], 
+               ")"}]}]}]}], "+", 
+           RowBox[{
+            FractionBox["1", 
+             RowBox[{"2", " ", 
+              RowBox[{"(", 
+               RowBox[{
+                SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], 
+                "+", 
+                SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}]}]], 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"-", "1"}], "-", "\[CapitalGamma]minus", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}]}], "+", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "-", "\[CapitalGamma]minus", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}]}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "-", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "+", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "-", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "+", "\[CapitalGamma]minus", "-", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "-", 
+                 "\[CapitalGamma]plus", "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]plus"}], "-", 
+              RowBox[{
+               SuperscriptBox["\[ExponentialE]", 
+                RowBox[{"-", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"(", 
+                    RowBox[{"\[CapitalGamma]minus", "+", 
+                    SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                    "\[CapitalGamma]plus", "-", 
+                    RowBox[{
+                    "\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}], "+", 
+                    SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+                   "\[Tau]plus"}], ")"}]}]], " ", 
+               RowBox[{"(", 
+                RowBox[{"1", "-", "\[CapitalGamma]minus", "+", 
+                 RowBox[{"2", " ", "\[CapitalGamma]plus"}]}], ")"}], " ", 
+               RowBox[{"(", 
+                RowBox[{
+                 SuperscriptBox["\[CapitalGamma]minus", "2"], "+", 
+                 "\[CapitalGamma]plus", "-", 
+                 RowBox[{"\[CapitalGamma]minus", " ", "\[CapitalGamma]plus"}],
+                  "+", 
+                 SuperscriptBox["\[CapitalGamma]plus", "2"]}], ")"}], " ", 
+               "\[Tau]plus"}]}], ")"}]}]}], ")"}]}]}], ")"}], "2"]}], ")"}], 
+   "0.5`"]}]], "Output",
+ CellChangeTimes->{3.916329161207441*^9},
+ CellLabel->"Out[87]=",ExpressionUUID->"47030cf0-7738-403a-9164-50ed8c4bfe8c"]
+}, Open  ]]
+},
+WindowSize->{718.5, 741},
+WindowMargins->{{Automatic, -5.25}, {Automatic, 0}},
+Magnification:>0.8 Inherited,
+FrontEndVersion->"13.3 for Microsoft Windows (64-bit) (July 24, 2023)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"c40f4fc0-10d5-4984-ac71-7afe11ee4a70"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 4902, 126, 197, "Input",ExpressionUUID->"c2f5f5d6-5e63-4992-86c4-24caab9aaf3f"],
+Cell[5485, 150, 555, 10, 25, "Output",ExpressionUUID->"708bd082-dbfe-4262-a420-836b1afdb464"],
+Cell[6043, 162, 615, 11, 25, "Output",ExpressionUUID->"9d94e948-2e60-4da0-9f1a-c1a6a84324ce"],
+Cell[6661, 175, 617, 11, 25, "Output",ExpressionUUID->"721568a8-9610-40a8-8081-5985c907b7ef"]
+}, Open  ]],
+Cell[7293, 189, 3936, 97, 175, "Input",ExpressionUUID->"06c77fbc-aeed-4ad7-9cd9-af7abf6bd37f"],
+Cell[CellGroupData[{
+Cell[11254, 290, 2507, 61, 124, "Input",ExpressionUUID->"b4445280-3243-4237-9d59-97a6a6421767"],
+Cell[13764, 353, 58069, 1265, 1759, "Output",ExpressionUUID->"47030cf0-7738-403a-9164-50ed8c4bfe8c"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
+
