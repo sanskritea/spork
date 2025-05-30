@@ -9,10 +9,11 @@ from nspyre import ParamsWidget
 from nspyre import ProcessRunner
 from nspyre import DataSink
 
-import experiments.rabi as rabi
+import experiments.Rabi as Rabi
+import numpy as np
 
 
-class RabiWidget(QtWidgets.QWidget):
+class Rabi_Widget(QtWidgets.QWidget):
     
     def __init__(self):
         super().__init__()
@@ -23,118 +24,29 @@ class RabiWidget(QtWidgets.QWidget):
 
             'datasetName': {
                 'display_text': 'Dataset Name',
-                'widget': QtWidgets.QLineEdit('Rabi'),
+                'widget': QtWidgets.QLineEdit('RabiData'),
             },
 
-           """ 'mwTime': {
-                'display_text': 'Tau',
+            'samplingFreq': {
+                'display_text': 'Sampling Freq',
                 'widget': SpinBox(
-                    value=1,
-                    suffix='us',
-                    siPrefix=True,
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },"""
-
-            'minMwTime': {
-                'display_text': 'Min MW Time',
-                'widget': SpinBox(
-                    value=0e-9,
-                    suffix='s',
-                    siPrefix=True,
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'maxMwTime': {
-                'display_text': 'Max MW Time',
-                'widget': SpinBox(
-                    value=1e-6,
-                    suffix='s',
-                    siPrefix=True,
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'mwNum': {
-                'display_text': 'Taus',
-                'widget': SpinBox(
-                    value=21,
-                    #suffix='us',
-                    siPrefix=False,
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'delayTime': {
-                'display_text': 'delayTime',
-                'widget': SpinBox(
-                    value=3600,
-                    suffix='s',
-                    siPrefix=False, #kiloseconds are cursed
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'aomLag': {
-                'display_text': 'AOM Lag',
-                'widget': SpinBox(
-                    value=1e-6,
-                    suffix='s',
-                    siPrefix=True, 
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'readoutTime': {
-                'display_text': 'Readout Time',
-                'widget': SpinBox(
-                    value=1,
-                    suffix='s',
-                    siPrefix=True, 
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'initTime': {
-                'display_text': 'Readout Time',
-                'widget': SpinBox(
-                    value=1,
-                    suffix='s',
-                    siPrefix=True, 
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'samplingRate': {
-                'display_text': 'Sampling Rate',
-                'widget': SpinBox(
-                    value=1,
+                    value=20e6,
                     suffix='Hz',
                     siPrefix=True,
                     dec=True,
                 ),
             },
 
-            'timePerPoint': {
-                'display_text': 'Time/Pt',
+            'maxIterations': {
+                'display_text': 'Iterations',
                 'widget': SpinBox(
-                    value=1,
-                    suffix='s',
-                    siPrefix=True,
+                    value=100,
                     dec=True,
+                    int=True,
                 ),
             },
 
-            'frequency': {
+            'freq': {
                 'display_text': 'Frequency',
                 'widget': SpinBox(
                     value=2.87e9,
@@ -144,61 +56,165 @@ class RabiWidget(QtWidgets.QWidget):
                 ),
             },
 
-            'laserPower': {
-                'display_text': 'Laser Power',
+            'min_MW_time': {
+                'display_text': 'Min MW pulse duration',
                 'widget': SpinBox(
-                    value=1e-3,
-                    suffix='W',
+                    value=10e-9,
+                    suffix='s',
                     siPrefix=True,
-                    bounds=(1e-3, 1e-1),
+                    #bounds=(100e3, 10e9),
                     dec=True,
                 ),
             },
 
-            'rfPower': {
+            'max_MW_time': {
+                'display_text': 'Max MW pulse duration',
+                'widget': SpinBox(
+                    value=1e-6,
+                    suffix='s',
+                    siPrefix=True,
+                    #bounds=(100e3, 10e9),
+                    dec=True,
+                ),
+            },
+
+            'num_MW_times': {
+                'display_text': 'Number of Taus',
+                'widget': SpinBox(
+                    value=21,
+                    #suffix='us',
+                    siPrefix=False,
+                    #bounds=(100e3, 10e9),
+                    dec=True,
+                    int=True
+                ),
+            },
+
+            'rf_power': {
                 'display_text': 'RF Power',
                 'widget': SpinBox(
-                    value=-17,
+                    value=6,
                     suffix='dBm',
                     siPrefix=False,
-                    bounds=(-42, 0),
+                    bounds=(-42, 6),
                     dec=True,
                 ),
             },
 
-            """'mwTimes': {
-                'display_text': 'MW Times',
+            'laser_power': {
+                'display_text': 'Laser Power',
                 'widget': SpinBox(
-                    value=0e-9,
-                    suffix='s',
-                    siPrefix=True,
-                    bounds=(1e-9, 1e-6),
+                    value=2,
+                    bounds=(0,5),
                     dec=True,
-                ),
-            },   """ 
-
-            'initTime': {
-                'display_text': 'MW Time',
-                'widget': SpinBox(
-                    value=0e-9,
-                    suffix='s',
-                    siPrefix=True,
-                    bounds=(1e-9, 1e-6),
-                    dec=True,
-                ),
-            },   
-
-            'sweeps': {
-                'display_text': 'Sweeps',
-                'widget': SpinBox(
-                    value=100,
                 ),
             },
 
-            
+            'num_samples': {
+                'display_text': 'Samples per MW tau',
+                'widget': SpinBox(
+                    value=10000,
+                    dec=True,
+                    int=True
+                ),
+            },
 
+            'clock_time': {
+                'display_text': 'Clock pulse duration',
+                'widget': SpinBox(
+                    value=11e-9,
+                    suffix='s',
+                    siPrefix=True,
+                    bounds=(1e-9, 1),
+                    dec=True,
+                ),
+            },
 
-            
+            'init_time': {
+                'display_text': 'NV Init Pulse',
+                'widget': SpinBox(
+                    value=2e-6,
+                    suffix='s',
+                    siPrefix=True, #kiloseconds are cursed
+                    #bounds=(100e3, 10e9),
+                    dec=True,
+                ),
+            },
+
+            'laser_lag': {
+                'display_text': 'Laser Stabilization Lag',
+                'widget': SpinBox(
+                    value=300e-9,
+                    suffix='s',
+                    siPrefix=True, #kiloseconds are cursed
+                    #bounds=(100e3, 10e9),
+                    dec=True,
+                ),
+            },
+
+            'probe_time': {
+                'display_text': 'Readout Duration',
+                'widget': SpinBox(
+                    value=300e-9,
+                    suffix='s',
+                    siPrefix=True, 
+                    #bounds=(100e3, 10e9),
+                    dec=True,
+                ),
+            },
+
+            'singlet_decay': {
+                'display_text': 'NV Singlet Decay',
+                'widget': SpinBox(
+                    value=1e-6,
+                    suffix='s',
+                    siPrefix=True, 
+                    #bounds=(100e3, 10e9),
+                    dec=True,
+                ),
+            },
+
+            # 'initial_counts': {
+            #     'display_text': 'Starting PL from CountVSTime',
+            #     'widget': SpinBox(
+            #         value=270000,
+            #         dec=True,
+            #     ),
+            # },
+
+            'x_init_position': {
+                'display_text': 'X Init Pos mm',
+                'widget': SpinBox(
+                    value=0,
+                    dec=True,
+                ),
+            },
+
+            'y_init_position': {
+                'display_text': 'Y Init Pos mm',
+                'widget': SpinBox(
+                    value=0 ,
+                    dec=True,
+                ),
+            },
+
+            'z_init_position': {
+                'display_text': 'Z Init Pos mm',
+                'widget': SpinBox(
+                    value=0 ,
+                    dec=True,
+                ),
+            },
+
+            # 'threshold': {
+            #     'display_text': 'Feedback threshold',
+            #     'widget': SpinBox(
+            #         value=1,
+            #         dec=True,
+            #     ),
+            # },
+
+        
             })
 
         #Set-up check boxes for each channel
@@ -222,7 +238,7 @@ class RabiWidget(QtWidgets.QWidget):
         # Qt layout that arranges the params, checkboxes, and buttons vertically
         params_layout = QtWidgets.QVBoxLayout()
         params_layout.addWidget(self.params_widget)
-        params_layout.addWidget(self.turnLaserOffAtEndButton)
+        # params_layout.addWidget(self.turnLaserOffAtEndButton)
         params_layout.addStretch()
         params_layout.addWidget(runButton)
         params_layout.addWidget(stopButton)
@@ -234,65 +250,68 @@ class RabiWidget(QtWidgets.QWidget):
         """Runs when the 'run' button is pressed."""
 
         # reload the spin measurements module at runtime in case any changes were made to the code
-        reload(rabi)
+        reload(Rabi)
 
         # create an instance of the ODMR class that implements the experimental logic.
-        rabiMeas = rabi.Rabi_Measurement()
+        rabiMeas = Rabi.Rabi_Measurement()
 
         # run the sweep function in a new thread
         self.sweepProc.run(
-            rabiMeas.rabi,
+            rabiMeas.Rabi,
             self.params_widget.datasetName,
-            self.params_widget.aomLag,
-            self.params_widget.delayTime,
-            self.params_widget.mwTime,
-            self.params_widget.maxMwTime,
-            self.params_widget.minMwTime,
-            self.params_widget.numMwTimes,
-            self.params_widget.readoutTime,
-            self.params_widget.initTime,
-            self.params_widget.samplingRate,
-            self.params_widget.frequency,
-            self.params_widget.laserPower,
-            self.params_widget.timePerPoint,
-            self.params_widget.sweeps
+            self.params_widget.samplingFreq,
+            self.params_widget.maxIterations,
+            self.params_widget.freq,
+            int(1e9*self.params_widget.min_MW_time),
+            int(1e9*self.params_widget.max_MW_time),
+            self.params_widget.num_MW_times,
+            self.params_widget.rf_power,
+            self.params_widget.laser_power,
+            self.params_widget.num_samples,
+            int(1e9*self.params_widget.clock_time),
+            int(1e9*self.params_widget.init_time),
+            int(1e9*self.params_widget.laser_lag),
+            int(1e9*self.params_widget.probe_time),
+            int(1e9*self.params_widget.singlet_decay),
+            # self.params_widget.initial_counts,
+            self.params_widget.x_init_position,
+            self.params_widget.y_init_position,
+            self.params_widget.z_init_position,
+            # self.params_widget.threshold,
         )
 
 
     def stop(self):
         """Stop the sweep process."""
-        #Re-enable all checkboxes
-        for checkBox in self.checkBoxes.values():
-            checkBox.setEnabled(True)
-
+        
         #kill the TaskVsTime sweep process
         self.sweepProc.kill()
 
 
 
-class rabiPlotWidget(LinePlotWidget):
+class RabiPlotWidget(LinePlotWidget):
+
     def __init__(self):
         title = 'Rabi'
-        super().__init__(title=title, xlabel='Times', ylabel='PL')
+        super().__init__(title=title, xlabel='Times (ns)', ylabel='PL')
 
 
     def setup(self):
-        self.sink = DataSink('Rabi')
+        self.sink = DataSink('RabiData')
         self.sink.__enter__() 
-        self.add_plot('PL')
+        self.add_plot('MW_ON')
+        self.add_plot('MW_OFF')
         self.plot_widget.setYRange(-100, 5100)
-
 
 
     def teardown(self):
         self.sink.stop()
         self.sink.__exit__()
 
-
     def update(self):
         self.sink.pop() #wait for some data to be saved to sink
         # update the plot
-        mwTime = np.sort(self.sink.datasets['mwTime'])
-        self.set_data('rabi-signal', mwTime, [np.mean(self.sink.datasets[mwTime]['noMwCountsDict']) for freq in freqs])
-       # self.set_data('cwODMR-background', freqs, [np.mean(self.sink.datasets['noMwCountsDict'][freq]) for freq in freqs])
+        mw_time_list = np.sort(self.sink.datasets['mw_times'])
+        self.set_data('MW_ON', mw_time_list, [np.mean(self.sink.datasets['mwCountsDict'][mw_time]) for mw_time in mw_time_list])
+        self.set_data('MW_OFF', mw_time_list, [np.mean(self.sink.datasets['noMwCountsDict'][mw_time]) for mw_time in mw_time_list])
 

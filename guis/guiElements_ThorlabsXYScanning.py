@@ -18,11 +18,11 @@ from nspyre import ProcessRunner
 from nspyre import DataSink
 from nspyre.gui.widgets.heatmap import HeatMapWidget
 
-import experiments.XYScanning as XYScanning
+import experiments.ThorlabsXYScanning as ThorlabsXYScanning
 import numpy as np
 
 
-class XYScanning_Widget(QtWidgets.QWidget):
+class ThorlabsXYScanning_Widget(QtWidgets.QWidget):
     
     def __init__(self):
         super().__init__()
@@ -32,7 +32,7 @@ class XYScanning_Widget(QtWidgets.QWidget):
         self.params_widget = ParamsWidget({
             'datasetName': {
                 'display_text': 'Dataset Name',
-                'widget': QtWidgets.QLineEdit('CW_ODMR'),
+                'widget': QtWidgets.QLineEdit('ScanningData'),
             },
 
             'device': {
@@ -40,62 +40,44 @@ class XYScanning_Widget(QtWidgets.QWidget):
                 'widget': QtWidgets.QLineEdit('Dev4'),
             },
 
-            'x_init_voltage': {
-                'display_text': 'DAQ Initial Voltage X axis',
+            'x_init_position': {
+                'display_text': 'X Initial Position mm',
                 'widget': SpinBox(
-                    value=0,
+                    value=10.54,
                     dec=True,
                 ),
             },
 
-            'x_final_voltage': {
-                'display_text': 'DAQ Final Voltage X axis',
+            'y_init_position': {
+                'display_text': 'Y Initial Position mm',
+                'widget': SpinBox(
+                    value=9.34 ,
+                    dec=True,
+                ),
+            },
+
+            'position_steps': {
+                'display_text': 'Number of Steps',
+                'widget': SpinBox(
+                    value=20,
+                    dec=True,
+                    int=True,
+                ),
+            },
+
+            'step_length': {
+                'display_text': 'Step Length um',
                 'widget': SpinBox(
                     value=5,
                     dec=True,
                 ),
             },
 
-            'y_init_voltage': {
-                'display_text': 'DAQ Initial Voltage Y axis',
+            'time_per_pixel': {
+                'display_text': 'Time per pixel',
                 'widget': SpinBox(
-                    value=0,
+                    value=0.005,
                     dec=True,
-                ),
-            },
-
-            'y_final_voltage': {
-                'display_text': 'DAQ Final Voltage Y axis',
-                'widget': SpinBox(
-                    value=5,
-                    dec=True,
-                ),
-            },
-
-            'x_voltage_steps': {
-                'display_text': 'Number of X Steps',
-                'widget': SpinBox(
-                    value=1001,
-                    dec=True,
-                    int=True,
-                ),
-            },
-
-            'y_voltage_steps': {
-                'display_text': 'Number of Y Steps',
-                'widget': SpinBox(
-                    value=1001,
-                    dec=True,
-                    int=True,
-                ),
-            },
-
-            'counts_per_pixel': {
-                'display_text': 'Counts per pixel',
-                'widget': SpinBox(
-                    value=1001,
-                    dec=True,
-                    int=True,
                 ),
             },
 
@@ -132,25 +114,23 @@ class XYScanning_Widget(QtWidgets.QWidget):
         """Runs when the 'run' button is pressed."""
 
         # reload the spin measurements module at runtime in case any changes were made to the code
-        reload(XYScanning)
+        reload(ThorlabsXYScanning)
 
         # create an instance of the ODMR class that implements the experimental logic.
-        XYScanningMeas = XYScanning.XYScan()
+        ThorlabsXYScanningMeas = ThorlabsXYScanning.XYScan()
 
         # self.turnLaserOffAtEndButton.setEnabled(False)
 
         # run the sweep function in a new thread
         self.sweepProc.run(
-            XYScanningMeas.scanning,
+            ThorlabsXYScanningMeas.scanning,
             self.params_widget.datasetName, 
             self.params_widget.device,
-            self.params_widget.x_init_voltage, 
-            self.params_widget.x_final_voltage,
-            self.params_widget.y_init_voltage, 
-            self.params_widget.y_final_voltage,
-            self.params_widget.x_voltage_steps,
-            self.params_widget.y_voltage_steps, 
-            self.params_widget.counts_per_pixel, 
+            self.params_widget.x_init_position,
+            self.params_widget.y_init_position, 
+            self.params_widget.position_steps,
+            self.params_widget.step_length, 
+            self.params_widget.time_per_pixel, 
         )
 
 
@@ -164,11 +144,11 @@ class XYScanning_Widget(QtWidgets.QWidget):
 
 
 
-class XYScanningPlotWidget(HeatMapWidget):
+class ThorlabsXYScanningPlotWidget(HeatMapWidget):
 
     def __init__(self):
         title = 'XY Scan'
-        super().__init__(title=title, btm_label='X voltage', lft_label='Y voltage') #TODO: Switch this over to contrast
+        super().__init__(title=title, btm_label='X position ', lft_label='Y position') #TODO: Switch this over to contrast
 
 
     def setup(self):
@@ -184,6 +164,7 @@ class XYScanningPlotWidget(HeatMapWidget):
     def update(self):
         self.sink.pop() # wait for some data to be saved to sink
         # update the plot
-        self.set_data(self.sink.datasets['xvoltage'], self.sink.datasets['yvoltage'], self.sink.datasets['counts'])
+        self.set_data(self.sink.datasets['x_position'], self.sink.datasets['y_position'], self.sink.datasets['counts'])
+        self.plot_item.enableAutoRange(True)
 
 

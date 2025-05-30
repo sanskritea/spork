@@ -12,6 +12,7 @@ import math
 
 from nspyre import DataSource
 from nspyre import InstrumentGateway
+from guis.guiElements_general import flexSave
 
 from rpyc.utils.classic import obtain
 
@@ -62,10 +63,11 @@ class MW_T1_Meas:
                 iters = range(maxIterations)
 
             # list of tau wait times 
-            tau_short = np.linspace(tau_min, 10 * tau_min, int(tau_num / 6), endpoint = False)
-            tau_med = np.linspace(10 * tau_min, 200 * tau_min, int(2 * tau_num / 3) + 1, endpoint = False)
-            tau_long = np.linspace(200 * tau_min, tau_max, int(tau_num / 6), endpoint = True )
-            self.tau_list = np.concatenate([tau_short, tau_med, tau_long])
+            # tau_short = np.linspace(tau_min, 1000000, int((tau_num - 10)), endpoint = False)
+            # # tau_med = np.linspace(tau_min * 100, tau_min * 400, int((tau_num / 3) - 5), endpoint = False)
+            # tau_long = np.linspace(1000000, tau_max, 30, endpoint = True )
+            # self.tau_list = np.concatenate([tau_short, tau_long])
+            self.tau_list = np.geomspace(tau_min, tau_max, tau_num)
             tau_list_size = int(np.size(self.tau_list))
 
             # print('self.tau_list ', self.tau_list)
@@ -94,9 +96,9 @@ class MW_T1_Meas:
             feedback_trigger_rate = int(20e3)
             feedback_time_per_point = 0.05
             feedback_num_samples = int(feedback_trigger_rate * feedback_time_per_point)
-            x_init_position = 7.4192
-            y_init_position = 10.3064
-            z_init_position = 4.5083
+            x_init_position = 9.2232
+            y_init_position = 11.3118
+            z_init_position = 7.8037
             feedback_timer = time.time()
             feedback_counter = 0
             start_time = time.time()

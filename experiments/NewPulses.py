@@ -422,57 +422,23 @@ class Pulses():
         # create sequence object
         seq = self.Pulser.createSequence()
 
-        # # define laser sequence
-        # laser_off_0 = 2000 + int(tau_max - tau_time)
-        # laser_on_1 = init_time
-        # laser_off_1 = singlet_decay + pi_time + tau_time
-        # laser_on_2 = init_time
-        # laser_off_2 = 2000 + int(tau_max - tau_time) 
-        # laser_on_3 = init_time
-        # laser_off_3 = singlet_decay + pi_time + tau_time
-        # laser_on_4 = init_time
-        # laser_seq = [(laser_off_0, 0), (laser_on_1, 1), (laser_off_1, 0), (laser_on_2, 1), (laser_off_2, 0), (laser_on_3, 1), (laser_off_3, 0), (laser_on_4, 1)] 
-
-        # # define DAQ counting sequence triggers
-        # daq_off_0 = 2000 + tau_max + init_time + singlet_decay + pi_time + laser_lag
-        # daq_on_1 = clock_time 
-        # daq_off_1 = probe_time
-        # daq_on_2 = clock_time
-        # daq_off_2 = init_time - (2 * clock_time) - probe_time - laser_lag + 2000 + tau_max + init_time + singlet_decay + pi_time + laser_lag
-        # daq_on_3 = clock_time
-        # daq_off_3 = probe_time
-        # daq_on_4 = clock_time
-        # daq_off_4 = init_time - (2 * clock_time) - probe_time - laser_lag 
-        # daq_clock_seq = [(daq_off_0, 0), (daq_on_1, 1), (daq_off_1, 0), (daq_on_2, 1), (daq_off_2, 0), (daq_on_3, 1), (daq_off_3, 0), (daq_on_4, 1), (daq_off_4, 0)]
-
-        # # define sequence for MW (switch)
-        # switch_off_0 = 2000 + int(tau_max - tau_time) + init_time + singlet_decay 
-        # switch_on_1 = pi_time
-        # switch_off_1 = tau_time + init_time + 2000 + tau_max + init_time + singlet_decay + pi_time + init_time
-        # switch_ttl_seq = [(switch_off_0, 0), (switch_on_1, 1), (switch_off_1, 0)]
-
-        # # assign sequences to respective channels
-        # seq.setDigital(0, daq_clock_seq) # DAQ clock -- record data
-        # seq.setDigital(1, laser_seq)
-        # seq.setDigital(4, switch_ttl_seq)
-
         # define laser sequence
-        laser_off_0 = 2000  
+        laser_off_0 = 2000 + int(tau_max - tau_time)
         laser_on_1 = init_time
         laser_off_1 = singlet_decay + pi_time + tau_time
         laser_on_2 = init_time
-        laser_off_2 = 2000 
+        laser_off_2 = 2000 + int(tau_max - tau_time) 
         laser_on_3 = init_time
-        laser_off_3 = singlet_decay + pi_time + int(tau_max - tau_time)
+        laser_off_3 = singlet_decay + tau_time
         laser_on_4 = init_time
         laser_seq = [(laser_off_0, 0), (laser_on_1, 1), (laser_off_1, 0), (laser_on_2, 1), (laser_off_2, 0), (laser_on_3, 1), (laser_off_3, 0), (laser_on_4, 1)] 
 
         # define DAQ counting sequence triggers
-        daq_off_0 = 2000 + init_time + singlet_decay + pi_time + tau_time + laser_lag
+        daq_off_0 = 2000 + tau_max + init_time + singlet_decay + pi_time + laser_lag
         daq_on_1 = clock_time 
         daq_off_1 = probe_time
         daq_on_2 = clock_time
-        daq_off_2 = init_time - (2 * clock_time) - probe_time - laser_lag + 2000 + init_time + singlet_decay + pi_time + int(tau_max - tau_time) + laser_lag
+        daq_off_2 = init_time - (2 * clock_time) - probe_time - laser_lag + 2000 + tau_max + init_time + singlet_decay + laser_lag
         daq_on_3 = clock_time
         daq_off_3 = probe_time
         daq_on_4 = clock_time
@@ -480,15 +446,49 @@ class Pulses():
         daq_clock_seq = [(daq_off_0, 0), (daq_on_1, 1), (daq_off_1, 0), (daq_on_2, 1), (daq_off_2, 0), (daq_on_3, 1), (daq_off_3, 0), (daq_on_4, 1), (daq_off_4, 0)]
 
         # define sequence for MW (switch)
-        switch_off_0 = 2000 + init_time + singlet_decay 
+        switch_off_0 = 2000 + int(tau_max - tau_time) + init_time + singlet_decay 
         switch_on_1 = pi_time
-        switch_off_1 = tau_time + init_time + 2000 + init_time + singlet_decay + pi_time + int(tau_max - tau_time) + init_time
+        switch_off_1 = tau_time + init_time + 2000 + tau_max + init_time + singlet_decay + init_time
         switch_ttl_seq = [(switch_off_0, 0), (switch_on_1, 1), (switch_off_1, 0)]
 
         # assign sequences to respective channels
         seq.setDigital(0, daq_clock_seq) # DAQ clock -- record data
         seq.setDigital(1, laser_seq)
         seq.setDigital(4, switch_ttl_seq)
+
+        # # define laser sequence
+        # laser_off_0 = 2000  
+        # laser_on_1 = init_time
+        # laser_off_1 = singlet_decay + pi_time + tau_time
+        # laser_on_2 = init_time
+        # laser_off_2 = 2000 
+        # laser_on_3 = init_time
+        # laser_off_3 = singlet_decay + pi_time + int(tau_max - tau_time)
+        # laser_on_4 = init_time
+        # laser_seq = [(laser_off_0, 0), (laser_on_1, 1), (laser_off_1, 0), (laser_on_2, 1), (laser_off_2, 0), (laser_on_3, 1), (laser_off_3, 0), (laser_on_4, 1)] 
+
+        # # define DAQ counting sequence triggers
+        # daq_off_0 = 2000 + init_time + singlet_decay + pi_time + tau_time + laser_lag
+        # daq_on_1 = clock_time 
+        # daq_off_1 = probe_time
+        # daq_on_2 = clock_time
+        # daq_off_2 = init_time - (2 * clock_time) - probe_time - laser_lag + 2000 + init_time + singlet_decay + pi_time + int(tau_max - tau_time) + laser_lag
+        # daq_on_3 = clock_time
+        # daq_off_3 = probe_time
+        # daq_on_4 = clock_time
+        # daq_off_4 = init_time - (2 * clock_time) - probe_time - laser_lag 
+        # daq_clock_seq = [(daq_off_0, 0), (daq_on_1, 1), (daq_off_1, 0), (daq_on_2, 1), (daq_off_2, 0), (daq_on_3, 1), (daq_off_3, 0), (daq_on_4, 1), (daq_off_4, 0)]
+
+        # # define sequence for MW (switch)
+        # switch_off_0 = 2000 + init_time + singlet_decay 
+        # switch_on_1 = pi_time
+        # switch_off_1 = tau_time + init_time + 2000 + init_time + singlet_decay + pi_time + int(tau_max - tau_time) + init_time
+        # switch_ttl_seq = [(switch_off_0, 0), (switch_on_1, 1), (switch_off_1, 0)]
+
+        # # assign sequences to respective channels
+        # seq.setDigital(0, daq_clock_seq) # DAQ clock -- record data
+        # seq.setDigital(1, laser_seq)
+        # seq.setDigital(4, switch_ttl_seq)
 
         return seq
 

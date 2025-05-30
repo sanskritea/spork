@@ -15,7 +15,8 @@
 
 import numpy as np
 # from lantz import Action, Feat, DictFeat, ureg
-from lantz.messagebased import MessageBasedDriver
+from lantz.core import MessageBasedDriver
+# from lantz.messagebased import MessageBasedDriver
 from collections import OrderedDict
 
 class SG396(MessageBasedDriver):

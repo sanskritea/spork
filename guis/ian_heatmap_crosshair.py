@@ -1,0 +1,332 @@
+###Edited by Ian using Spyre as a template. 
+
+
+import time
+from functools import partial
+from typing import Any
+from typing import Dict
+
+
+from pyqtgraph import ImageView
+from pyqtgraph import PlotItem
+from pyqtgraph.colormap import getFromMatplotlib
+from pyqtgraph.Qt import QtCore
+from PyQt6.QtCore import QMutex, QMutexLocker, pyqtSignal 
+
+from pyqtgraph.Qt import QtGui
+from pyqtgraph.Qt import QtWidgets
+
+from PyQt6.QtWidgets import QToolBox, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, QLineEdit
+import pyqtgraph as pg
+from pyqtgraph import SpinBox 
+import numpy as np
+from pyqtgraph import functions as fn
+
+# from General.splitter_widget2 import Splitter, SplitterOrientation
+# from General.Crosshair3 import CrosshairAddon
+from guis.ian_splitter_widget import Splitter, SplitterOrientation
+from guis.ian_crosshair import CrosshairAddon
+
+
+from nspyre.gui.style._style import nspyre_font
+from nspyre.gui.widgets.update_loop import UpdateLoop
+from nspyre import DataSink
+
+
+class HeatMapWidget(QtWidgets.QWidget):
+    """Qt widget for displaying 2D data using pyqtgraph ImageView."""
+
+    new_data = QtCore.Signal()
+    new_drop_down = QtCore.Signal()#pyqtSignal(int)
+    """Qt Signal emitted when new data is available."""
+
+    def __init__(
+        self,
+        *args,
+        title: str = '',
+        btm_label: str = '',
+        lft_label: str = '',
+        colormap=None,
+        font: QtGui.QFont = nspyre_font,
+        w = None,
+        **kwargs,
+    ):
+
+        super().__init__(*args, **kwargs)
+
+
+
+        if colormap is None:
+            colormap = getFromMatplotlib('magma')
+
+        # layout for storing plot
+        self.layout = QtWidgets.QVBoxLayout()
+
+
+        control = QHBoxLayout()
+        
+        self.buttonPlot = QPushButton('Plot Scan #')
+        self.buttonPlot.clicked.connect(self.switch_key)
+        
+
+        self.dataName = QLineEdit("FsmScan")
+        control.addWidget(self.dataName)
+        self.dropdown = QComboBox() 
+        control.addWidget(self.dropdown)
+        control.addWidget(self.buttonPlot)
+
+        self.sinkButton = QPushButton('Switch Sink')
+        self.sinkButton.clicked.connect(lambda: self.switch_sink(self.dataName.text()))
+
+        control.addWidget(self.sinkButton)
+        self.layout.addLayout(control)
+        
+
+
+
+
+        # pyqtgraph widget for displaying an Image (2d or 3d plot) and related
+        # items like axes, legends, etc.
+        self.plot_item = PlotItem()
+        self.image_view = ImageView(view=self.plot_item)
+        #self.layout.addWidget(self.image_view)
+
+        # plot settings
+        self.plot_item.setTitle(title, size=f'{font.pointSize()}pt')
+        self.plot_item.enableAutoRange(True)
+        self.plot_item.setAspectLocked(False)
+
+        # colormap
+        self.image_view.setColorMap(colormap)
+
+        # axes
+        self.btm_axis = self.plot_item.getAxis('bottom')
+        self.btm_axis.setLabel(text=btm_label)
+        self.btm_axis.label.setFont(font)
+        self.btm_axis.setTickFont(font)
+        self.btm_axis.enableAutoSIPrefix(False)
+        self.lft_axis = self.plot_item.getAxis('left')
+        self.lft_axis.setLabel(text=lft_label)
+        self.lft_axis.label.setFont(font)
+        self.lft_axis.setTickFont(font)
+        self.lft_axis.enableAutoSIPrefix(False)
+
+        # we keep a dict containing the x-axis, y-axis, z-axis (optional, only
+        # for 3D images), data, semaphore, and pyqtgraph PlotDataItem
+        # associated with each line plot
+        self.image: Dict[str, Any] = {
+            'x': [],
+            'y': [],
+            'z': None,
+            'data': [],
+            'mutex': QMutex(),
+        }
+        self.sink_switch_mutex = QMutex()
+
+        self.droplength = 9
+        self.olddroplength = 1 
+        # if w is None:
+        #     w = pg.PlotWidget()
+        # if plot_item is None:
+        #     plot_item = w.getPlotItem()
+        # self.w = w
+
+
+
+        self.crosshairs = CrosshairAddon(self.plot_item)
+        
+                # create toolbox and add tools
+        self.toolbox = QToolBox()
+        
+
+
+        self.toolbox.addItem(self.crosshairs, "Interactive Crosshairs")
+        
+
+        splitter_config = {
+            'main_w': self.image_view,
+            'side_w': self.toolbox,
+            'orientation': SplitterOrientation.vertical_left_button,
+        }
+        splitter = Splitter(**splitter_config)
+
+
+
+        # Collaspe the tools to start
+        #splitter.showEvent = show_event
+
+        #layout = QtWidgets.QGridLayout()
+        self.layout.addWidget(splitter)
+        #layout.setContentsMargins(0, 0, 0, 0)
+
+
+        self.setLayout(self.layout)
+
+
+###########
+        # TODO
+        self.destroyed.connect(partial(self._stop))
+
+        # Plot setup code
+        self.setup()
+        #########heatmap: 
+        # thread for updating the plot data
+        self.update_loop = UpdateLoop(self.update)
+        # process new data when a signal is generated by the update thread
+        self.new_data.connect(self._process_data)
+        # start the thread
+        self.update_loop.start()
+
+
+
+
+        #self.update_dropdown = UpdateLoop(self.updateDropdown)
+
+        self.new_drop_down.connect(self._process_data_dropdown)
+
+        #self.update_dropdown.start()
+
+
+   
+##########
+
+    def switch_sink(self, new_sink_name):
+        with QMutexLocker(self.sink_switch_mutex):
+            self.sink.stop()
+            self.sink = DataSink(new_sink_name)
+            self.sink.start()
+            self.key = 'Avg'
+
+
+    def updateDropdown(self): 
+        #has to be with plot so that there is only one sink.pop()
+        pass         
+        # try: 
+        #     self.sink.pop(timeout = 5)
+        #     self.set_drop(self.sink.params['shots'])
+        # except TimeoutError: 
+        #     print("dropdown: sink couldn't pop")
+        
+            
+ 
+    def set_drop(self, shotN):
+        with QMutexLocker(self.sink_switch_mutex):
+            self.droplength = shotN 
+            self.new_drop_down.emit()
+
+
+
+    def _process_data_dropdown(self):
+        if self.olddroplength != self.droplength: 
+            shotN = self.droplength 
+            self.dropdown.clear()
+            self.dropdown.addItem('Avg')
+            for s in range(shotN): 
+                self.dropdown.addItem(str(s+1))
+            self.olddroplength = self.droplength
+        
+            
+    def switch_key(self): 
+        currkeyidx = self.dropdown.currentIndex()
+        #print(self.droplength)
+        if currkeyidx < (self.droplength+1): 
+            keystr = str(currkeyidx)
+            if keystr == '0': keystr = 'Avg'
+            self.key = keystr
+            self.set_data(self.sink.datasets[self.key]['xSteps'], self.sink.datasets[self.key]['ySteps'], self.sink.datasets[self.key]['ScanCounts'])
+            
+            return
+        if (currkeyidx+1) >= self.droplength:
+            self.key = 'Avg'  
+            self.set_data(self.sink.datasets[self.key]['xSteps'], self.sink.datasets[self.key]['ySteps'], self.sink.datasets[self.key]['ScanCounts'])
+              
+
+
+
+    def setup(self):
+        pass 
+
+    def teardown(self):
+        pass 
+
+
+
+    def update(self):
+
+        try: 
+            self.sink.pop() #wait for some data to be saved to sink
+
+            try:
+                self.set_drop(self.sink.params['shotCount'])
+                self.set_data(self.sink.datasets[self.key]['xSteps'], self.sink.datasets[self.key]['ySteps'], self.sink.datasets[self.key]['ScanCounts'])
+            
+            except KeyError: 
+                print(f'No Key {key}, try {self.sink.datasets.keys()} instead')
+                self.key = 'Avg'
+            except AttributeError:
+                print("no data!☻")
+        except TimeoutError: 
+
+            print("updated sink timed out")
+
+
+
+    def show_event(ev):
+        h = splitter.size().height()
+        splitter.setSizes([1, 0])
+        splitter.resize(h, h)    
+    def _stop(self):
+        """ """
+
+        self.update_dropdown.stop()
+        self.update_loop.stop()
+        self.teardown()
+
+
+
+
+    def _process_data(self):
+        """Update the color map triggered by set_data."""
+        try:
+            if self.image['z'] is None:
+                axes = {'x': 1, 'y': 0}
+            else:
+                axes = {'x': 1, 'y': 0, 't': 2}
+            z_index = self.image_view.currentIndex
+            xs, ys = self.image['x'], self.image['y']
+            x_mx, x_mn, y_mx, y_mn = max(xs), min(xs), max(ys), min(ys)
+            x_rng, y_rng = x_mx - x_mn, y_mx - y_mn
+            self.image_view.setImage(
+                self.image['data'],
+                pos=[x_mn, y_mn],
+                scale=[x_rng / len(xs), y_rng / len(ys)],
+                # scale=[(x_mx - x_mn), (y_mx - y_mn)],
+                autoRange=False,
+                autoLevels=True,
+                autoHistogramRange=False,
+                axes=axes,
+                levelMode='mono',
+                xvals=self.image['z'],
+            )
+
+            if z_index:
+                self.image_view.setCurrentIndex(z_index)
+        except Exception as exc:
+            raise exc
+        finally:
+            self.image['mutex'].unlock()
+
+    def set_data(self, xs, ys, data, zs=None):
+        with QMutexLocker(self.image['mutex']):
+            self.image['x'] = xs
+            self.image['y'] = ys
+            if zs is not None:
+                self.image['z'] = zs
+            self.image['data'] = data
+            self.new_data.emit()
+
+    def clear_plots(self): 
+        print("clearing!")
+
+    def set_title(self): 
+        print("setting title!")

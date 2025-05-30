@@ -49,7 +49,7 @@ class Attocube_Approach_Widget(QtWidgets.QWidget):
                 'display_text': 'Wait time between Stepping and PID read',
                 'widget': SpinBox(
                     value=0.1,
-                    bounds=(0.1, 0.5),
+                    bounds=(0.1, 15),
                     dec=True,
                 ),
             },
@@ -83,7 +83,7 @@ class Attocube_Approach_Widget(QtWidgets.QWidget):
             'threshold': {
             	'display_text': 'PID Setpoint Threshold',
             	'widget': SpinBox(
-            		value=0.8,
+            		value=0.995,
             		bounds=(0.5, 0.999),
             		dec=True,
             		)

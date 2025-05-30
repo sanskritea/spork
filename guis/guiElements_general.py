@@ -47,7 +47,7 @@ class AutoSaveWidget(QtWidgets.QWidget):
     
 
 # def flexSave(datasetName:str, expType:str, saveType:str, dirs:list = ['C:/Users/awschlab/Data/']):
-def flexSave(datasetName:str, expType:str, saveType:str, dirs:list = ['C:\\Users\\awschlab\\Desktop\\Data']): #TODO: Make it so this hangs up data acquisition. Will need to use ProcessRunner, multithread acq and saving, and then make them talk to each other nicely. Gross
+def flexSave(datasetName:str, expType:str, saveType:str, dirs:list = ['C:\\Users\\awschlab\\Desktop\\data\\']): #TODO: Make it so this hangs up data acquisition. Will need to use ProcessRunner, multithread acq and saving, and then make them talk to each other nicely. Gross
     '''Creates a save of the data a specified directory(ies) in a Dir\\DATE(YYMMDD)\\EXPERIMENT_TYPE\\EXP_TYPE TIME(HHMMSS) SAVE_TYPE.json structure
     Arguments:  *datasetName:str, name of data to be saved from dataserv
                 *expType:str, name of the experiment (or name of folder to save in under the date)
@@ -62,7 +62,7 @@ def flexSave(datasetName:str, expType:str, saveType:str, dirs:list = ['C:\\Users
     now = datetime.now()
     with DataSink(datasetName) as dataSink:
         try:
-            dataSink.pop(1)
+            dataSink.pop(100)
             for dir in dirs:
                 # datePath = datePath = dir + now.strftime('%y%m%d')+ '/'
                 datePath = datePath = dir + now.strftime('%y%m%d')+ '\\' #dir for the date

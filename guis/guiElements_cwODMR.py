@@ -47,7 +47,7 @@ class CW_ODMR_Widget(QtWidgets.QWidget):
             'maxIterations': {
                 'display_text': 'Iterations',
                 'widget': SpinBox(
-                    value=10,
+                    value=100,
                     dec=True,
                     int=True,
                 ),
@@ -55,7 +55,7 @@ class CW_ODMR_Widget(QtWidgets.QWidget):
             'startFreq': {
                 'display_text': 'Starting Freq',
                 'widget': SpinBox(
-                    value=2.8e9,
+                    value=2.82e9,
                     suffix='Hz',
                     siPrefix=True, 
                     bounds=(2e9, 4e9),
@@ -65,7 +65,7 @@ class CW_ODMR_Widget(QtWidgets.QWidget):
             'endFreq': {
                 'display_text': 'Ending Freq',
                 'widget': SpinBox(
-                    value=2.9e9,
+                    value=2.92e9,
                     suffix='Hz',
                     siPrefix=True,
                     bounds=(2e9, 4e9),
@@ -83,17 +83,17 @@ class CW_ODMR_Widget(QtWidgets.QWidget):
             'rfPower': {
                 'display_text': 'RF Power',
                 'widget': SpinBox(
-                    value=-17,
+                    value=0,
                     suffix='dBm',
                     siPrefix=False,
-                    bounds=(-42, 0),
+                    bounds=(-42, 6),
                     dec=True,
                 ),
             },
             'laser_power': {
                 'display_text': 'Laser power/ attenuator voltage',
                 'widget': SpinBox(
-                    value=2.5,
+                    value=2,
                     bounds=(0,5),
                     dec=True,
                 ),
@@ -169,7 +169,7 @@ class CW_ODMR_Widget(QtWidgets.QWidget):
             'probe_time': {
                 'display_text': 'Balanced MW ON/OFF duration',
                 'widget': SpinBox(
-                    value=2.5e-3,
+                    value=2e-3,
                     suffix='s',
                     siPrefix=True,
                     bounds=(0, 1),
@@ -307,7 +307,7 @@ class cwODMRplotWidget(LinePlotWidget):
 
     def __init__(self):
         title = 'CW ODMR'
-        super().__init__(title=title, xlabel='Freqs', ylabel='Counts') #TODO: Switch this over to contrast
+        super().__init__(title=title, xlabel='Freq (GHz)', ylabel='Counts') #TODO: Switch this over to contrast
 
 
     def setup(self):
@@ -327,7 +327,7 @@ class cwODMRplotWidget(LinePlotWidget):
         self.sink.pop() # wait for some data to be saved to sink
         # update the plot
         freq_list = np.sort(self.sink.datasets['freqs'])
-        self.set_data('cwODMR_MW_ON', freq_list, [np.mean(self.sink.datasets['mwCountsDict'][freq]) for freq in freq_list])
-        self.set_data('cwODMR_MW_OFF', freq_list, [np.mean(self.sink.datasets['noMwCountsDict'][freq]) for freq in freq_list])
+        self.set_data('cwODMR_MW_ON', freq_list / 1e9, [np.mean(self.sink.datasets['mwCountsDict'][freq]) for freq in freq_list])
+        self.set_data('cwODMR_MW_OFF', freq_list / 1e9, [np.mean(self.sink.datasets['noMwCountsDict'][freq]) for freq in freq_list])
 
 

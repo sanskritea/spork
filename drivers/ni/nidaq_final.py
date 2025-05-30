@@ -35,20 +35,26 @@ from nidaqmx.stream_writers import AnalogSingleChannelWriter
 class NIDAQ():
 
     def __init__(self):
+
+        self.read_task = None
+        self.clock_task = None
+        self.reader_stream = None
         
-        self.clk_channel = '/Dev4/PFI0'     # external clock from the Swabian
-        self.dev_channel = '/Dev4/PFI3'     # data TTL clicks from the APD
+        self.clk_channel = '/Dev4/PFI3'     # external clock from the Swabian
+        self.dev_channel = '/Dev4/PFI0'     # data TTL clicks from the APD
 
 
     def __enter__(self):
 
         self.read_task = None
+        self.clock_task = None
         self.reader_stream = None
 
         return self
 
 
-    def start_read_task(self, num_samples):     # create read task, set up counter, source clock and reader stream.
+    def start_external_read_task(self, sampling_rate, num_samples):
+    # def start_read_task(self, num_samples):     # create read task, set up counter, source clock and reader stream.
 
         # creating DAQ task  
         self.read_task = nidaqmx.Task()
@@ -61,21 +67,25 @@ class NIDAQ():
 
         # setting up timing clock (external)
         self.read_task.timing.cfg_samp_clk_timing(
-                                20e6,   # max DAQ sampling rate for convenience
+                                sampling_rate,   # max DAQ sampling rate for convenience
                                 source = self.clk_channel, # Swabian clock ticks
-                                active_edge = nidaqmx.constants.Edge.FALLING,
+                                active_edge = nidaqmx.constants.Edge.RISING,
                                 sample_mode = nidaqmx.constants.AcquisitionType.FINITE,
                                 samps_per_chan = num_samples # number of ticks to be collected
         )
 
-        # creating counter stream object for counting
-        self.reader_stream = CounterReader(self.read_task.in_stream)
+
 
         # starting counting task
         self.read_task.start()
 
+        return self.read_task
 
-    def read_samples(self, num_samples): 
+
+    def external_read_task(self, sampling_rate, num_samples):
+
+        # creating counter stream object for counting
+        self.reader_stream = CounterReader(self.read_task.in_stream)
 
         # reading out the counter
         raw_counts = np.zeros(num_samples, dtype=np.uint32) 
@@ -91,6 +101,67 @@ class NIDAQ():
         # close read task after each read
         self.read_task.close()
         self.read_task = None
+        self.reader_stream = None
+
+        # calculate difference in counts between consecutive clock ticks
+        counts = np.diff(raw_counts)
+        return counts
+
+
+    def internal_read_task(self, clock_rate, num_samples):
+
+        # setup fake internal clock task
+        self.clock_task = nidaqmx.Task()
+        self.clock_task.di_channels.add_di_chan(f'/Dev4/port0')
+        self.clock_task.timing.cfg_samp_clk_timing(
+                                clock_rate,   # max DAQ clock rate
+                                sample_mode = nidaqmx.constants.AcquisitionType.CONTINUOUS,
+        )
+        self.clock_task.control(TaskMode.TASK_COMMIT)
+
+        # creating DAQ reading task  
+        self.read_task = nidaqmx.Task()
+        self.read_task.ci_channels.add_ci_count_edges_chan(f'/Dev4/ctr1')
+        self.read_task.ci_channels.all.ci_count_edges_term = self.dev_channel
+        self.read_task.timing.cfg_samp_clk_timing(
+                                clock_rate,   # max DAQ sampling rate for convenience
+                                source = f'/Dev4/di/SampleClock', 
+                                active_edge = nidaqmx.constants.Edge.RISING,
+                                sample_mode = nidaqmx.constants.AcquisitionType.CONTINUOUS,
+        )
+        
+        # set buffer size (how much data you can fit): 
+        self.read_task.in_stream.input_buf_size = num_samples
+
+        # Triggers the read off of the sample clock: 
+        self.read_task.triggers.arm_start_trigger.trig_type = TriggerType.DIGITAL_EDGE
+        self.read_task.triggers.arm_start_trigger.dig_edge_edge = Edge.RISING
+        self.read_task.triggers.arm_start_trigger.dig_edge_src = f'/Dev4/di/SampleClock'
+
+        # setup reaser stream
+        self.reader_stream = CounterReader(self.read_task.in_stream)
+
+        # start tasks
+        self.clock_task.start()
+        self.read_task.start()
+
+        # reading out the counter
+        raw_counts = np.zeros(num_samples, dtype=np.uint32) 
+        self.reader_stream.read_many_sample_uint32(
+                                raw_counts,
+                                number_of_samples_per_channel = num_samples,
+                                timeout = nidaqmx.constants.WAIT_INFINITELY
+        )
+
+        # stop tasks after each read 
+        self.read_task.stop()
+        self.clock_task.stop()
+
+        # close tasks after each read
+        self.read_task.close()
+        self.clock_task.close()
+        self.read_task = None
+        self.clock_task = None
         self.reader_stream = None
 
         # calculate difference in counts between consecutive clock ticks
@@ -156,8 +227,7 @@ class NIDAQ():
 
         # close_task
         self.read_task.close()
-        self.read_task = None
-        self.reader_stream = None
+        
 
     
 

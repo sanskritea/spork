@@ -1,6 +1,6 @@
 '''
 
-Zurich Instruments MFLI Driver fro NSpyre v0.6.1
+Zurich Instruments MFLI Driver for NSpyre v0.6.1
 
 Sanskriti Chitransh, 2023-Oct-24
 

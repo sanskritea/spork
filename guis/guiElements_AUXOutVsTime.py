@@ -104,13 +104,12 @@ class AUXOutVsTimePlotWidget(LinePlotWidget):
 
     def __init__(self):
         title = 'AUX Out Vs Time'
-        super().__init__(title=title, xlabel='time (s)', ylabel='AUXOUT value (V)') #TODO: Switch this over to contrast
-
+        super().__init__(title=title, xlabel='time (s)', ylabel='AUXOUT value (V)') 
 
     def setup(self):
         self.sink = DataSink('AUXOutVsTime')
         self.sink.__enter__() 
-        self.add_plot('AUX Out Vs Time')
+        self.add_plot('Fork amplitude')
 
 
     def teardown(self):
@@ -121,7 +120,8 @@ class AUXOutVsTimePlotWidget(LinePlotWidget):
     def update(self):
         self.sink.pop() # wait for some data to be saved to sink
         # update the plot
-        self.set_data('AUX Out Vs Time', self.sink.datasets['time'], self.sink.datasets['AUX'])
+        self.set_data('Fork amplitude', self.sink.datasets['time'], self.sink.datasets['AUX'])
+
 
 
 

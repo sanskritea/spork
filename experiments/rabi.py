@@ -135,6 +135,7 @@ class Rabi_Measurement:
                         # print('counts ', raw_counts)
                         signal_counts = 1e9 * np.mean(raw_counts[2::4]) / probe_time
                         bg_counts = 1e9 * np.mean(raw_counts[0::4]) / probe_time
+                        print(raw_counts[2::4])
                         self.mwCountsDict[mw_time].append(signal_counts)
                         self.noMwCountsDict[mw_time].append(bg_counts)
 
