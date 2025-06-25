@@ -2,11 +2,14 @@ import numpy as np
 import scipy.linalg as la
 from scipy.interpolate import RectBivariateSpline
 from tqdm.auto import tqdm  # For progress bars
+import time
+import matplotlib.pyplot as plt
 
 
 # -----------------------------------------------------------------------------
 # Paraunitary Diagonalization
 # -----------------------------------------------------------------------------
+
 def para_unitary_diag(H):
     """
     Performs paraunitary diagonalization of a Hamiltonian matrix H.
@@ -185,7 +188,7 @@ def gamma1_from_h0(H0):
     # Step 2: Use tables to calculate DOS and Gamma
     # Parameters from original script
     eta_small = 0.003
-    NQ_integration = 2 * 100
+    NQ_integration = 2 * 200
     NPhi_integration = 2 * 360
 
     dos_l, dos_u, gamma_l, gamma_u = calculate_gamma_and_dos(
@@ -216,7 +219,7 @@ def F(q, n):
 
 
 def P(q, n, m):
-    term1 = q**2 / (q**2 + n**2 * np.pi**2) * (1 if n == m else 0)
+    term1 = (q**2 / (q**2 + n**2 * np.pi**2)) * (1 if n == m else 0)
     norm_factor = np.sqrt((1 + (1 if n == 0 else 0)) * (1 + (1 if m == 0 else 0)))
     f_term = F(q, n)
     parity_term = (1 + (-1) ** (n + m)) / 2
@@ -233,17 +236,17 @@ def Q(q, n, m):
     parity_term = (1 - (-1) ** (n + m)) / 2
     if parity_term == 0:
         return 0.0
-    denom = m**2 - n**2 + 1
+    denom = m**2 - n**2 + parity_term
     if abs(denom) < 1e-9:
         return 0.0
     norm_factor = np.sqrt((1 + (1 if n == 0 else 0)) * (1 + (1 if m == 0 else 0)))
     term1 = q**2 / (q**2 + m**2 * np.pi**2)
-    term2 = m**2 / denom * 2 / q - q**2 / (2 * (q**2 + n**2 * np.pi**2)) * F(q, n)
+    term2 = ((m**2 / denom) * (2 / q)) - ((q**2 / (2 * (q**2 + n**2 * np.pi**2))) * F(q, n))
     return term1 * term2 * (1 / norm_factor) * parity_term
 
 
 def Omega_func(omega_H, q, n):
-    return (omega_H + (gamma * DD) / L**2 * (q**2 + n**2 * np.pi**2)) / omega_M
+    return (omega_H + (((gamma * DD) / L**2) * (q**2 + n**2 * np.pi**2))) / omega_M
 
 
 def H_func(omega_H, q, phi_k, n, m):
@@ -319,28 +322,28 @@ def multi_para_diag(hNVarray, omega_H, qtable, phitable, Nmax):
 
             phi_k_plus_pi = phi_k + np.pi
             gamma_plus = (
-                (1 + np.sin(phi_k)) / 2 * (Tpp + Tnp + np.sin(phi_k) * (Tpp - Tnp))
+                ((1 + np.sin(phi_k)) / 2) * (Tpp + Tnp + np.sin(phi_k) * (Tpp - Tnp))
             )
             gamma_plus_mirror = (
-                (1 + np.sin(phi_k_plus_pi))
-                / 2
+                ((1 + np.sin(phi_k_plus_pi))
+                / 2)
                 * np.conj(Tnn + Tpn + np.sin(phi_k_plus_pi) * (Tnn - Tpn))
             )
             gamma_minus = (
-                (1 - np.sin(phi_k)) / 2 * (Tpp + Tnp + np.sin(phi_k) * (Tpp - Tnp))
+                ((1 - np.sin(phi_k)) / 2) * (Tpp + Tnp + np.sin(phi_k) * (Tpp - Tnp))
             )
             gamma_minus_mirror = (
-                (1 - np.sin(phi_k_plus_pi))
-                / 2
+                ((1 - np.sin(phi_k_plus_pi))
+                / 2)
                 * np.conj(Tnn + Tpn + np.sin(phi_k_plus_pi) * (Tnn - Tpn))
             )
             gamma_z = (
-                -1j * np.cos(phi_k) / 2 * (Tpp + Tnp + np.sin(phi_k) * (Tpp - Tnp))
+                -1j * (np.cos(phi_k) / 2) * (Tpp + Tnp + np.sin(phi_k) * (Tpp - Tnp))
             )
             gamma_z_mirror = (
                 -1j
-                * np.cos(phi_k_plus_pi)
-                / 2
+                * (np.cos(phi_k_plus_pi)
+                / 2)
                 * np.conj(Tnn + Tpn + np.sin(phi_k_plus_pi) * (Tnn - Tpn))
             )
 
@@ -431,8 +434,8 @@ if __name__ == "__main__":
     omega_M = gamma * MsSol
 
     # Calculation Grid Parameters
-    NumPhi_setup = 2
-    NumQ_setup = 3  # Reduced for faster example run
+    NumPhi_setup = 2 * 90
+    NumQ_setup = 2 * 100  # Reduced for faster example run
     del_phi = np.pi / NumPhi_setup
     phitable_setup = np.arange(0, np.pi, del_phi)
 
@@ -444,7 +447,7 @@ if __name__ == "__main__":
     qtable_setup = np.concatenate(([1e-6], log_space(L / 1000, Qmax, NumQ_setup)))
 
     Fmax = 5
-    Nmax = int(np.ceil(L / np.pi * np.sqrt(Fmax / (gamma * DD))))
+    Nmax = int(np.ceil((L / np.pi) * np.sqrt(Fmax / (gamma * DD))))
     print(f"Using Nmax = {Nmax}")
 
     # hNVarray = np.array([0.4, 0.5, 0.6, 0.7])  # pos of NV in um
@@ -454,7 +457,7 @@ if __name__ == "__main__":
     hPlank = 6.626e-34
     mu0 = 4 * np.pi * 1e-7
     kB = 1.381e-23
-    omega_d = (hPlank * mu0 * (gamma * 1e9) ** 2 / (L * 1e-6) ** 3) * 1e8  # Hz
+    omega_d = ((hPlank * mu0 * (gamma * 1e9) ** 2) / (L * 1e-6) ** 3) * 1e8  # Hz
     Temperature = 300  # K
 
     def NBose(omega_ghz):
@@ -462,5 +465,68 @@ if __name__ == "__main__":
         return (1e-9 * kB * Temperature / hPlank) / omega_ghz
 
     # --- Run the main calculation for a given H0 ---
-    H0_field = 82  # Oe
-    gamma1_from_h0(H0_field)
+
+    H0_field = np.array([81.5, 82, 82.5])  # Oe
+
+    # Storage arrays
+    DOS_L_array = np.zeros(len(H0_field))
+    DOS_U_array = np.zeros(len(H0_field))
+    gamma_L_Hz_array = np.zeros((len(H0_field)))
+    gamma_U_Hz_array = np.zeros((len(H0_field)))
+
+    for i, h in enumerate(H0_field):
+
+        DOS_L, DOS_U, gamma_L_Hz, gamma_U_Hz  = gamma1_from_h0(h)
+
+        DOS_L_array[i] = DOS_L
+        DOS_U_array[i] = DOS_U
+        gamma_L_Hz_array[i] = gamma_L_Hz
+        gamma_U_Hz_array[i] = gamma_U_Hz
+
+    # --- Plot the results ---
+    # Plotting results
+    fig, ((ax1, ax2)) = plt.subplots(1, 2)
+    
+    # Plot dissipation rates for first NV height
+    ax1.plot(H0_field, gamma_L_Hz_array, 'o-', label='Γ_L')
+    ax1.plot(H0_field, gamma_U_Hz_array * 1000, 's-', label='Γ_U × 1000')
+    ax1.set_xlabel('Field (G)')
+    ax1.set_ylabel('Γ_L, Γ_U × 1000 (Hz)')
+    ax1.legend()
+    ax1.grid(True)
+    
+    # Plot density of states
+    ax2.plot(H0_field, DOS_L_array / L, 'o-', label='DOS_L')
+    ax2.plot(H0_field, DOS_U_array / L, 's-', label='DOS_U')
+    ax2.set_xlabel('Field (G)')
+    ax2.set_ylabel('2π*DOS (1/GHz μm³)')
+    ax2.legend()
+    ax2.grid(True)
+    
+    # # Plot all NV heights for Gamma_L
+    # for i, h_NV in enumerate(hNVarray):
+    #     ax3.plot(H0_field, gamma_L_Hz_array[i], 'o-', label=f'h_NV = {h_NV} μm')
+    # ax3.set_xlabel('Field (G)')
+    # ax3.set_ylabel('Γ_L (Hz)')
+    # ax3.legend()
+    # ax3.grid(True)
+    
+    # # Calculate and plot ratio
+    # ratio = np.zeros_like(H0_field)
+    # for i in range(len(H0_field)):
+    #     if DOS_L_array[i] > 0:
+    #         ratio[i] = (1e-3 * gamma_L_Hz_array[show_h_NV_index, i] * calc.L * 
+    #                    1e-6 * DOS_L_array[i] * 2 * calc.N_bose(2.87 - calc.gamma * H0_field[i]))
+    
+    # ax4.plot(H0_field, ratio, 'o-')
+    # ax4.set_xlabel('Field (G)')
+    # ax4.set_ylabel('Ratio (kHz² μm³)')
+    # ax4.grid(True)
+    
+    timestr = time.strftime("%Y%m%d_%H%M%S")
+    basename = str(__file__) + '_' + timestr 
+    figname = basename + '.png'
+    plt.savefig(figname)
+
+    plt.tight_layout()
+    plt.show()
