@@ -81,16 +81,17 @@ class XZScan:
                     ## MOVE X
                     # print('moving to ', x_position_list[n])
                     gw.esp.espZ.move_to(z_position_list[n])
-                    # gw.esp.espX.wait()
                     time.sleep(step_wait)
                     start_linescan_time = time.time()
 
                     # compensate for X backlash
-                    gw.esp.espX.move_to(x_position_list[0] - 0.025)
+                    # gw.esp.espX.move_to(x_position_list[0] - 0.025)
+                    gw.esp.espY.move_to(x_position_list[0] - 0.025)
                     time.sleep(step_wait)
                     x_backlash = np.arange(x_position_list[0] - 0.025, x_position_list[0] - 0.001, 0.001)
                     for xx in x_backlash:
-                        gw.esp.espX.move_to(xx)
+                        # gw.esp.espX.move_to(xx)
+                        gw.esp.espY.move_to(xx)
                         time.sleep(step_wait)
 
 
@@ -98,8 +99,8 @@ class XZScan:
 
                         ## MOVE Y
                         # print('moving to ', z_position_list[nn])
-                        gw.esp.espX.move_to(x_position_list[nn])
-                        # gw.esp.espY.wait()
+                        # gw.esp.espX.move_to(x_position_list[nn])
+                        gw.esp.espY.move_to(x_position_list[nn])
                         time.sleep(step_wait)
 
                         ## COUNTING
@@ -139,14 +140,19 @@ class XZScan:
                             }
                         )
 
+            # Save data 
+            flexSave(datasetname, 'YZ', 'final')
+
             # go back to starting point
             print('Moving to start location')
             # compensate for X backlash
-            gw.esp.espX.move_to(x_init_position - 0.025)
+            # gw.esp.espX.move_to(x_init_position - 0.025)
+            gw.esp.espY.move_to(x_init_position - 0.025)
             time.sleep(step_wait)
             x_backlash = np.arange(x_init_position - 0.025, x_init_position + 0.001, 0.001)
             for xx in x_backlash:
-                gw.esp.espX.move_to(xx)
+                # gw.esp.espX.move_to(xx)
+                gw.esp.espY.move_to(xx)
                 time.sleep(step_wait)
             gw.esp.espZ.move_to(z_init_position)
 
