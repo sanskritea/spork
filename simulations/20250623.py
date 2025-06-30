@@ -1,19 +1,20 @@
 import numpy as np
 from scipy.linalg import cholesky, eig
-from scipy.interpolate import griddata
+
+# from scipy.interpolate import griddata
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
+from scipy.interpolate import LinearNDInterpolator
 import warnings
+import time as time
 
 warnings.filterwarnings("ignore")
 
 # Constants and initial calculations
 delta_h = 1
-# Solve for MsSol: ((2870/2.8) - XX/2)/2 == 82 + delta_h
-# Rearranging: XX = 2*((2870/2.8) - 2*(82 + delta_h))
 xx_solution = 2 * ((2870 / 2.8) - 2 * (82 + delta_h))
 ms_sol = xx_solution - 4 + 2
-print("ms_sol ", ms_sol)
+print("Ms_sol ", ms_sol)
 
 # Material & condition parameters
 M0 = ms_sol  # Oe
@@ -111,14 +112,11 @@ def paraunitary_diag(H):
     """Paraunitary diagonalization function"""
 
     K = scipy_cholesky_decomposition(H)
-    # print('K ', K)
     dim = H.shape[0]
 
     # Create sigma3 matrix
     sigma3 = np.diag([(-1) ** np.floor((2 * n - 1) / dim) for n in range(1, dim + 1)])
-    # print('sigma3 ', sigma3)
     W = K @ sigma3 @ K.conj().T
-    # print('W ', W)
 
     # Eigendecomposition
     eval_w, evec_w = mathematica_eigensystem(W)
@@ -129,24 +127,16 @@ def paraunitary_diag(H):
     preperm = np.concatenate(
         [np.arange(dim // 2, dim), np.arange(dim // 2 - 1, -1, -1)]
     )
-    # print('preperm ', preperm)
     ordering = np.argsort(eval_w)
-    # print('ordering ', ordering)
     permutation = ordering[preperm]
-    # print('normal permutation ', permutation)
 
     eval_w = eval_w[permutation]
     evec_w = evec_w[permutation]
-    # print('Post perm eval_w ', eval_w)
-    # print('Post perm evec_w ', evec_w)
 
     U = evec_w.T
-    # print('U ', U)
     H_diag = sigma3 * np.diag(eval_w)
-    # print('H_diag ', H_diag)
 
     T = np.linalg.inv(K) @ U @ np.sqrt(np.abs(H_diag))
-    # print('T ', T)
 
     # Phase correction
     dim_half = dim // 2
@@ -289,263 +279,191 @@ def f_func(q, n, h_over_L):
     )
 
 
-from quadinterp import QuadraticInterpolator2D
-
-N_max = 1
-
-
 def multi_para_diag(h_NV_array, omega_H, q_table, phi_table, N_max):
-    # 2. CHECK ALL INTERPOLATION FUNCTIONS THAT ARE CREATED
+    """Vectorized multi paraunitary diagonalization"""
 
-    """Multi paraunitary diagonalization"""
-    # print('In multi_para_diag')
-
-    # make everything a numpy array
-    print("q_table ", q_table)
-    print("phi_table ", phi_table / np.pi)
     q_table = np.array(q_table)
     phi_table = np.array(phi_table)
     h_NV_array = np.array(h_NV_array)
 
-    # Get dimensions
     num_q = len(q_table)
     num_phi = len(phi_table)
     num_h_NV = len(h_NV_array)
 
-    # Calculate measure
-    q_diff = np.mean(np.diff(q_table))
-    phi_diff = np.mean(np.diff(phi_table))
-    measure = q_diff * phi_diff / (2 * np.pi) ** 2
+    # Pre-compute f_bar arrays for all combinations
+    print("Pre-computing f_bar arrays...")
+    f_bar_all = np.zeros((num_h_NV, num_q, N_max), dtype=complex)
+    for tt in range(num_h_NV):
+        for q_idx, q in enumerate(q_table):
+            for nn in range(N_max):
+                f_bar_all[tt, q_idx, nn] = f_func(q, nn, h_NV_array[tt] / L)
 
-    # Initialize tables - size for phi is 2*num_phi since we get phi+pi results
-    Q_table = np.tile(
-        np.array(q_table[:, np.newaxis, np.newaxis]), (1, 2 * num_phi, N_max)
-    )
+    # Initialize result arrays - note: we'll store both original and mirror data
+    omega_BdG_all = np.zeros((num_q, 2 * num_phi, N_max))
+    coupling_plus_all = np.zeros((num_q, 2 * num_phi, num_h_NV, N_max), dtype=complex)
+    coupling_minus_all = np.zeros((num_q, 2 * num_phi, num_h_NV, N_max), dtype=complex)
+    coupling_z_all = np.zeros((num_q, 2 * num_phi, num_h_NV, N_max), dtype=complex)
 
-    # Create Phi table with phi and phi+pi values
-    Phi_table = np.zeros((num_q, 2 * num_phi, N_max))
-    for n in range(num_q):
-        for m in range(2 * num_phi):
-            phi_idx = (m) % num_phi
-            pi_factor = (m) // num_phi
-            Phi_table[n, m, :] = phi_table[phi_idx] + np.pi * pi_factor
+    print("Starting vectorized MultiParaDiag calculation...")
 
-    # Initialize result tables
-    omega_BdG_table = np.zeros((num_q, 2 * num_phi, N_max))
-    coupling_plus_table = np.zeros((num_q, 2 * num_phi, num_h_NV, N_max), dtype=complex)
-    coupling_minus_table = np.zeros(
-        (num_q, 2 * num_phi, num_h_NV, N_max), dtype=complex
-    )
-    coupling_z_table = np.zeros((num_q, 2 * num_phi, num_h_NV, N_max), dtype=complex)
-
-    # Main calculation loop with progress monitoring
-    print("Starting MultiParaDiag calculation...")
+    # Main calculation loop
     for count_q in range(num_q):
         progress = (count_q + 1) / num_q * 100
         print(f"Progress: {progress:.1f}% MultiParaDiag")
 
-        for count_phi in range(num_phi):
+        q_current = q_table[count_q]
 
-            q = Q_table[count_q, count_phi, 0]
-            phi_k = Phi_table[count_q, count_phi, 0]
-
-            # Generate HBdG (this function needs to be implemented separately)
-            # print('Generating HBdG')
-            H_BdG = generate_H_BdG(omega_H, q, phi_k, N_max)
+        for count_phi, phi_k in enumerate(phi_table):
+            # Generate H_BdG matrix
+            H_BdG = generate_H_BdG(omega_H, q_current, phi_k, N_max)
 
             # Para-diagonalization
-            # print('Para-unitary diagonalization')
             result = paraunitary_diag((H_BdG + H_BdG.conj().T) / 2)
 
-            # Extract results
-            omega_BdG_table[count_q, count_phi] = result[0]
-            omega_BdG_table[count_q, count_phi + num_phi] = omega_BdG_table[
-                count_q, count_phi
-            ]
+            # Store omega results for both phi and phi+pi
+            omega_BdG_all[count_q, count_phi] = result[0]
+            omega_BdG_all[count_q, count_phi + num_phi] = result[0]  # Same for mirror
 
-            T_pp = result[1]
-            T_np = result[2]
-            T_pn = result[3]
-            T_nn = result[4]
+            T_pp, T_np, T_pn, T_nn = result[1], result[2], result[3], result[4]
 
-            # Calculate gamma values
-            gamma_plus = (
-                (1 + np.sin(phi_k)) / 2 * (T_pp + T_np + np.sin(phi_k) * (T_pp - T_np))
-            )
+            # Calculate gamma values for phi
+            sin_phi = np.sin(phi_k)
+            cos_phi = np.cos(phi_k)
+
+            gamma_plus = (1 + sin_phi) / 2 * (T_pp + T_np + sin_phi * (T_pp - T_np))
+            gamma_minus = (1 - sin_phi) / 2 * (T_pp + T_np + sin_phi * (T_pp - T_np))
+            gamma_z = -1j * cos_phi / 2 * (T_pp + T_np + sin_phi * (T_pp - T_np))
+
+            # Calculate gamma values for phi+pi (mirror)
+            phi_k_mirror = phi_k + np.pi
+            sin_phi_mirror = np.sin(phi_k_mirror)
+            cos_phi_mirror = np.cos(phi_k_mirror)
+
             gamma_plus_mirror = (
-                (1 + np.sin(phi_k + np.pi))
+                (1 + sin_phi_mirror)
                 / 2
-                * np.conj(T_nn + T_pn + np.sin(phi_k + np.pi) * (T_nn - T_pn))
-            )
-
-            gamma_minus = (
-                (1 - np.sin(phi_k)) / 2 * (T_pp + T_np + np.sin(phi_k) * (T_pp - T_np))
+                * np.conj(T_nn + T_pn + sin_phi_mirror * (T_nn - T_pn))
             )
             gamma_minus_mirror = (
-                (1 - np.sin(phi_k + np.pi))
+                (1 - sin_phi_mirror)
                 / 2
-                * np.conj(T_nn + T_pn + np.sin(phi_k + np.pi) * (T_nn - T_pn))
-            )
-
-            gamma_z = (
-                -1j * np.cos(phi_k) / 2 * (T_pp + T_np + np.sin(phi_k) * (T_pp - T_np))
+                * np.conj(T_nn + T_pn + sin_phi_mirror * (T_nn - T_pn))
             )
             gamma_z_mirror = (
                 -1j
-                * np.cos(phi_k + np.pi)
+                * cos_phi_mirror
                 / 2
-                * np.conj(T_nn + T_pn + np.sin(phi_k + np.pi) * (T_nn - T_pn))
+                * np.conj(T_nn + T_pn + sin_phi_mirror * (T_nn - T_pn))
             )
 
-            # Calculate f_bar arrays
-            f_bar_array = np.zeros((num_h_NV, N_max), dtype=complex)
-            for tt in range(num_h_NV):
-                for nn in range(N_max):
-                    f_bar_array[tt, nn] = f_func(q, nn, h_NV_array[tt] / L)
+            # Vectorized coupling calculations using pre-computed f_bar
+            f_bar_current = f_bar_all[:, count_q, :]  # Shape: (num_h_NV, N_max)
 
-            # Calculate v arrays
-            v_plus_array = np.array(
-                [f_bar_array[tt] @ gamma_plus for tt in range(num_h_NV)]
-            )
-            v_plus_mirror_array = np.array(
-                [f_bar_array[tt] @ gamma_plus_mirror for tt in range(num_h_NV)]
-            )
-            v_minus_array = np.array(
-                [f_bar_array[tt] @ gamma_minus for tt in range(num_h_NV)]
-            )
-            v_minus_mirror_array = np.array(
-                [f_bar_array[tt] @ gamma_minus_mirror for tt in range(num_h_NV)]
-            )
-            v_z_array = np.array([f_bar_array[tt] @ gamma_z for tt in range(num_h_NV)])
-            v_z_mirror_array = np.array(
-                [f_bar_array[tt] @ gamma_z_mirror for tt in range(num_h_NV)]
-            )
+            # Calculate v arrays for original phi
+            v_plus_array = f_bar_current @ gamma_plus
+            v_minus_array = f_bar_current @ gamma_minus
+            v_z_array = f_bar_current @ gamma_z
 
-            # Store coupling values
-            coupling_plus_table[count_q, count_phi] = v_plus_array
-            coupling_plus_table[count_q, count_phi + num_phi] = v_plus_mirror_array
-            coupling_minus_table[count_q, count_phi] = v_minus_array
-            coupling_minus_table[count_q, count_phi + num_phi] = v_minus_mirror_array
-            coupling_z_table[count_q, count_phi] = v_z_array
-            coupling_z_table[count_q, count_phi + num_phi] = v_z_mirror_array
+            # Calculate v arrays for mirror phi+pi
+            v_plus_mirror_array = f_bar_current @ gamma_plus_mirror
+            v_minus_mirror_array = f_bar_current @ gamma_minus_mirror
+            v_z_mirror_array = f_bar_current @ gamma_z_mirror
 
-    # print("omega_BdG_table ", omega_BdG_table)
-    # print("np.shape(omega_BdG_table) ", np.shape(omega_BdG_table))
-    # print("coupling_plus_table ", coupling_plus_table)
-    # print("np.shape(coupling_plus_table) ", np.shape(coupling_plus_table))
-    # print("Q_table ", Q_table)
-    # print("np.shape(Q_table) ", np.shape(Q_table))
-    # print("Phi_table ", Phi_table/np.pi)
-    # print("np.shape(Phi_table) ", np.shape(Phi_table))
+            # Store results
+            coupling_plus_all[count_q, count_phi] = v_plus_array
+            coupling_plus_all[count_q, count_phi + num_phi] = v_plus_mirror_array
 
-    # Prepare extended tables for interpolation (append overlapping point)
-    Q_table_extend = np.zeros((num_q, 2 * num_phi + 1, N_max))
-    Phi_table_extend = np.zeros((num_q, 2 * num_phi + 1, N_max))
-    omega_BdG_table_extend = np.zeros((num_q, 2 * num_phi + 1, N_max))
-    coupling_plus_table_extend = np.zeros(
+            coupling_minus_all[count_q, count_phi] = v_minus_array
+            coupling_minus_all[count_q, count_phi + num_phi] = v_minus_mirror_array
+
+            coupling_z_all[count_q, count_phi] = v_z_array
+            coupling_z_all[count_q, count_phi + num_phi] = v_z_mirror_array
+
+    # Create extended tables with periodic boundaries
+    print("Creating extended tables...")
+
+    omega_BdG_extended = np.zeros((num_q, 2 * num_phi + 1, N_max))
+    coupling_plus_extended = np.zeros(
         (num_q, 2 * num_phi + 1, num_h_NV, N_max), dtype=complex
     )
-    coupling_minus_table_extend = np.zeros(
+    coupling_minus_extended = np.zeros(
         (num_q, 2 * num_phi + 1, num_h_NV, N_max), dtype=complex
     )
-    coupling_z_table_extend = np.zeros(
+    coupling_z_extended = np.zeros(
         (num_q, 2 * num_phi + 1, num_h_NV, N_max), dtype=complex
     )
 
-    # Copy existing data and add periodic boundary
-    for count_q in range(num_q):
-        # Copy existing data
-        Q_table_extend[count_q, : 2 * num_phi] = Q_table[count_q]
-        Phi_table_extend[count_q, : 2 * num_phi] = Phi_table[count_q]
-        omega_BdG_table_extend[count_q, : 2 * num_phi] = omega_BdG_table[count_q]
-        coupling_plus_table_extend[count_q, : 2 * num_phi] = coupling_plus_table[
-            count_q
-        ]
-        coupling_minus_table_extend[count_q, : 2 * num_phi] = coupling_minus_table[
-            count_q
-        ]
-        coupling_z_table_extend[count_q, : 2 * num_phi] = coupling_z_table[count_q]
+    # Copy data and add periodic boundary
+    omega_BdG_extended[:, : 2 * num_phi] = omega_BdG_all
+    omega_BdG_extended[:, 2 * num_phi] = omega_BdG_all[:, 0]  # Periodic
 
-        # Add periodic boundary (last point = first point)
-        Q_table_extend[count_q, 2 * num_phi] = Q_table[count_q, 0]
-        Phi_table_extend[count_q, 2 * num_phi] = Phi_table[count_q, 0]
-        omega_BdG_table_extend[count_q, 2 * num_phi] = omega_BdG_table[count_q, 0]
-        coupling_plus_table_extend[count_q, 2 * num_phi] = coupling_plus_table[
-            count_q, 0
-        ]
-        coupling_minus_table_extend[count_q, 2 * num_phi] = coupling_minus_table[
-            count_q, 0
-        ]
-        coupling_z_table_extend[count_q, 2 * num_phi] = coupling_z_table[count_q, 0]
+    coupling_plus_extended[:, : 2 * num_phi] = coupling_plus_all
+    coupling_plus_extended[:, 2 * num_phi] = coupling_plus_all[:, 0]
 
-    # print("Q_table_extend ", Q_table_extend)
-    # print("np.shape(Q_table_extend) ", np.shape(Q_table_extend))
-    # print("Phi_table_extend ", Phi_table_extend/np.pi)
-    # print("np.shape(Phi_table_extend) ", np.shape(Phi_table_extend))
-    # print("omega_BdG_table_extend ", omega_BdG_table_extend)
-    # print("np.shape(omega_BdG_table_extend) ", np.shape(omega_BdG_table_extend))
-    # print('coupling_plus_table_extend ', coupling_plus_table_extend)
-    # print('np.shape(coupling_plus_table_extend) ', np.shape(coupling_plus_table_extend))
+    coupling_minus_extended[:, : 2 * num_phi] = coupling_minus_all
+    coupling_minus_extended[:, 2 * num_phi] = coupling_minus_all[:, 0]
 
-    # Create interpolation functions
+    coupling_z_extended[:, : 2 * num_phi] = coupling_z_all
+    coupling_z_extended[:, 2 * num_phi] = coupling_z_all[:, 0]
+
+    # Create coordinate grids for interpolation
     print("Creating interpolation functions...")
 
-    # Prepare coordinate arrays for interpolation
-    def create_interpolation_function(data_table):
-        """Create interpolation function for given data table"""
+    # Create Q coordinates (same for all phi)
+    Q_extended = np.tile(
+        q_table[:, np.newaxis, np.newaxis], (1, 2 * num_phi + 1, N_max)
+    )
+
+    # Create Phi coordinates properly
+    Phi_extended = np.zeros((num_q, 2 * num_phi + 1, N_max))
+    for n in range(num_q):
+        for m in range(2 * num_phi + 1):
+            if m < num_phi:
+                # Original phi values
+                Phi_extended[n, m, :] = phi_table[m]
+            elif m < 2 * num_phi:
+                # Mirror phi values (phi + pi)
+                phi_idx = m - num_phi
+                Phi_extended[n, m, :] = phi_table[phi_idx] + np.pi
+            else:
+                # Periodic boundary (same as first point)
+                Phi_extended[n, m, :] = phi_table[0]
+
+    def create_interpolation_function_vectorized(data_table):
+        """Vectorized interpolation function creation"""
         interpolation_functions = []
 
         for s in range(N_max):
-            # Extract coordinates and values for this s index
-            q_coords = Q_table_extend[:, :, s].flatten()
-            phi_coords = Phi_table_extend[:, :, s].flatten()
+            xcoords = Q_extended[:, :, s].flatten()
+            ycoords = Phi_extended[:, :, s].flatten()
 
-            if len(np.array(data_table).shape) == 3:  # omega table
-                values = data_table[:, :, s].flatten()
-
-                # points = np.column_stack([q_coords, phi_coords])
-                # IntOmegaBdGtable = np.column_stack([points, values])
-                # print('IntOmegaBdGtable ', IntOmegaBdGtable)
-                # print('np.shape(IntOmegaBdGtable) ', np.shape(IntOmegaBdGtable))
-
-                # Use griddata for irregular grid interpolation
-                def interp_func(
-                    q_new, phi_new, q_c=q_coords, phi_c=phi_coords, v=values
-                ):
-                    points = np.column_stack([q_c, phi_c])
-                    return griddata(points, v, (q_new, phi_new), method="cubic")
-
-            else:  # coupling tables (4D)
-                interp_funcs_tt = []
+            if len(data_table.shape) == 3:  # omega table
+                zcoords = data_table[:, :, s].flatten()
+                func = LinearNDInterpolator(
+                    np.column_stack([xcoords, ycoords]), zcoords
+                )
+                interpolation_functions.append(func)
+            else:  # coupling tables
+                interp_functions_tt = []
                 for tt in range(num_h_NV):
-                    values = data_table[:, :, tt, s].flatten()
-
-                    # points = np.column_stack([q_coords, phi_coords])
-                    # IntCouplingPlusTable = np.column_stack([points, values])
-                    # print('IntCouplingPlusTable ', IntCouplingPlusTable)
-                    # print('np.shape(IntCouplingPlusTable) ', np.shape(IntCouplingPlusTable))
-
-                    def interp_func(
-                        q_new, phi_new, q_c=q_coords, phi_c=phi_coords, v=values
-                    ):
-                        points = np.column_stack([q_c, phi_c])
-                        return griddata(points, v, (q_new, phi_new), method="cubic")
-
-                    interp_funcs_tt.append(interp_func)
-                interpolation_functions.append(interp_funcs_tt)
-                continue
-
-            interpolation_functions.append(interp_func)
+                    zcoords = data_table[:, :, tt, s].flatten()
+                    func = LinearNDInterpolator(
+                        np.column_stack([xcoords, ycoords]), zcoords
+                    )
+                    interp_functions_tt.append(func)
+                interpolation_functions.append(interp_functions_tt)
 
         return interpolation_functions
 
-    # Create interpolation tables
-    Int_omega_BdG_table = create_interpolation_function(omega_BdG_table_extend)
-    Int_coupling_plus_table = create_interpolation_function(coupling_plus_table_extend)
-    Int_coupling_minus_table = create_interpolation_function(
-        coupling_minus_table_extend
+    # Create all interpolation functions
+    Int_omega_BdG_table = create_interpolation_function_vectorized(omega_BdG_extended)
+    Int_coupling_plus_table = create_interpolation_function_vectorized(
+        coupling_plus_extended
     )
-    Int_coupling_z_table = create_interpolation_function(coupling_z_table_extend)
+    Int_coupling_minus_table = create_interpolation_function_vectorized(
+        coupling_minus_extended
+    )
+    Int_coupling_z_table = create_interpolation_function_vectorized(coupling_z_extended)
 
     return (
         Int_omega_BdG_table,
@@ -614,8 +532,6 @@ def gamma_values_UL(
     if additional_points:
         Q_table = np.concatenate([Q_table, additional_points])
 
-    print('Q_table ', Q_table)
-
     delta_q = np.diff(Q_table)
     NQ = len(delta_q)
     delta_phi = 2 * np.pi / N_phi
@@ -632,7 +548,6 @@ def gamma_values_UL(
         print(f"performing s={s+1} calculation: {progress:.1f}% Gamma1Calc")
 
         # Create flat tables
-        # flat_Q_table = np.repeat(Q_table[:-1], N_phi)  # Exclude last element to match delta_Q length
         flat_Q_table = []
         for ii1 in range(NQ):
             for ii2 in range(N_phi):
@@ -649,89 +564,60 @@ def gamma_values_UL(
             (num_h_NV, length_flat_table), dtype=complex
         )
 
-        print('flat_Q_table ', flat_Q_table)
-        print('np.shape(flat_Q_table) ', np.shape(flat_Q_table))
-        print('flat_delta_Q_table ', flat_delta_Q_table)
-        print('np.shapeflat_delta_Q_table ', np.shape(flat_delta_Q_table))
-        print('flat_phi_table ', flat_phi_table/np.pi)
-        print('np.shapeflat_phi_table ', np.shape(flat_phi_table/np.pi))
+        # Vectorize all at once
+        flat_omega_BdG_table[:] = Int_omega_BdG_table[s](flat_Q_table, flat_phi_table)
 
+        for tt in range(num_h_NV):
+            flat_coupling_plus_table_array[tt, :] = Int_coupling_plus_table[s][tt](
+                flat_Q_table, flat_phi_table
+            )
+            flat_coupling_minus_table_array[tt, :] = Int_coupling_minus_table[s][tt](
+                flat_Q_table, flat_phi_table
+            )
 
-        # # Fill the flat tables using interpolation functions
-        # for ii in range(length_flat_table):
-        #     flat_omega_BdG_table[ii] = Int_omega_BdG_table[s](
-        #         flat_Q_table[ii], flat_phi_table[ii]
-        #     )
+        # Calculate DOS contributions
+        prefactor_DOS = (1 / L**2) * (delta_phi / (2 * np.pi) ** 2)
 
-        #     for tt in range(num_h_NV):
-        #         flat_coupling_plus_table_array[tt, ii] = Int_coupling_plus_table[s][tt](
-        #             flat_Q_table[ii], flat_phi_table[ii]
-        #         )
-        #         flat_coupling_minus_table_array[tt, ii] = Int_coupling_minus_table[s][
-        #             tt
-        #         ](flat_Q_table[ii], flat_phi_table[ii])
+        # Vectorized version:
+        lorentzian_L_array = (eta_small / np.pi) / (
+            eta_small**2 + (omega_M * flat_omega_BdG_table - omega_target_L) ** 2
+        )
+        lorentzian_U_array = (eta_small / np.pi) / (
+            eta_small**2 + (omega_M * flat_omega_BdG_table - omega_target_U) ** 2
+        )
 
-        # # Calculate DOS contributions
-        # prefactor_DOS = (1 / L**2) * (delta_phi / (2 * np.pi) ** 2)
-
-        # for jj in range(length_flat_table):
-        #     # Match Mathematica's Lorentzian exactly
-        #     lorentzian_L = (eta_small / np.pi) / (
-        #         eta_small**2
-        #         + (omega_M * flat_omega_BdG_table[jj] - omega_target_L) ** 2
-        #     )
-        #     lorentzian_U = (eta_small / np.pi) / (
-        #         eta_small**2
-        #         + (omega_M * flat_omega_BdG_table[jj] - omega_target_U) ** 2
-        #     )
-
-        #     DOS_L += (
-        #         prefactor_DOS * flat_delta_Q_table[jj] * flat_Q_table[jj] * lorentzian_L
-        #     )
-        #     DOS_U += (
-        #         prefactor_DOS * flat_delta_Q_table[jj] * flat_Q_table[jj] * lorentzian_U
-        #     )
+        DOS_L += np.sum(
+            prefactor_DOS * flat_delta_Q_table * flat_Q_table * lorentzian_L_array
+        )
+        DOS_U += np.sum(
+            prefactor_DOS * flat_delta_Q_table * flat_Q_table * lorentzian_U_array
+        )
 
         # Calculate Gamma contributions
         omega_d = (h_plank * mu_0 * (gamma * 1e9) ** 2 / (L * 1e-6) ** 3) * 1e8
         prefactor_gamma = (
             (2 * np.pi) ** 2 * omega_M * omega_d * (delta_phi / (2 * np.pi) ** 2)
         )
+        bose_factor = 2 * n_bose(omega_M * flat_omega_BdG_table) + 1
 
-        for jj in range(length_flat_table):
-            # Bose factor - ensure this matches Mathematica exactly
-            bose_factor = 2 * n_bose(omega_M * flat_omega_BdG_table[jj]) + 1
+        # Calculate all contributions at once
+        prefactor_common = (
+            prefactor_gamma * bose_factor * flat_delta_Q_table * flat_Q_table
+        )
 
-            lorentzian_L = (eta_small / np.pi) / (
-                eta_small**2
-                + (omega_M * flat_omega_BdG_table[jj] - omega_target_L) ** 2
-            )
-            lorentzian_U = (eta_small / np.pi) / (
-                eta_small**2
-                + (omega_M * flat_omega_BdG_table[jj] - omega_target_U) ** 2
-            )
+        # Gamma L: shape (num_h_NV, length_flat_table) -> sum over length_flat_table
+        coupling_plus_squared = np.abs(flat_coupling_plus_table_array) ** 2
+        gamma_L_contributions = coupling_plus_squared * (
+            prefactor_common * lorentzian_L_array
+        )
+        gamma_L_Hz_array += np.sum(gamma_L_contributions, axis=1)
 
-            # Gamma L contributions (uses coupling_plus)
-            coupling_plus_squared = np.abs(flat_coupling_plus_table_array[:, jj]) ** 2
-            gamma_L_Hz_array += (
-                prefactor_gamma
-                * bose_factor
-                * flat_delta_Q_table[jj]
-                * flat_Q_table[jj]
-                * coupling_plus_squared
-                * lorentzian_L
-            )
-
-            # Gamma U contributions (uses coupling_minus)
-            coupling_minus_squared = np.abs(flat_coupling_minus_table_array[:, jj]) ** 2
-            gamma_U_Hz_array += (
-                prefactor_gamma
-                * bose_factor
-                * flat_delta_Q_table[jj]
-                * flat_Q_table[jj]
-                * coupling_minus_squared
-                * lorentzian_U
-            )
+        # Same for gamma U
+        coupling_minus_squared = np.abs(flat_coupling_minus_table_array) ** 2
+        gamma_U_contributions = coupling_minus_squared * (
+            prefactor_common * lorentzian_U_array
+        )
+        gamma_U_Hz_array += np.sum(gamma_U_contributions, axis=1)
 
     return DOS_L, DOS_U, gamma_L_Hz_array, gamma_U_Hz_array
 
@@ -742,8 +628,8 @@ def gamma_1_from_H0(H0):
     omega_H = gamma * H0
 
     # Setup calculation parameters
-    num_phi = 2 * 2
-    num_q = 2 * 2
+    num_phi = 2 * 180
+    num_q = 2 * 200
     del_phi = np.pi / num_phi
     phi_table = np.arange(0, np.pi, del_phi)
 
@@ -757,17 +643,12 @@ def gamma_1_from_H0(H0):
 
     q_table = np.concatenate([[1e-6], f_space(L / 1000, q_max, num_q)])
 
-    # print("Pre multi_para_diag q_table ", q_table)
-    # print("Pre multi_para_diag phi_table ", phi_table / np.pi)
-
     F_max = 5
     # N_max = int(np.ceil(L / np.pi * np.sqrt(F_max / (gamma * DD))))
-    # print(f"N_max is {N_max}")
+    N_max = 1
+    print(f"N_max is {N_max}")
 
     h_NV_array = np.array([0.4])  # , 0.5, 0.6, 0.7])  # positions in μm
-
-    # # Test multi-paraunitary diagonalization
-    # multi_para_diag(h_NV_array, omega_H, q_table, phi_table, N_max)
 
     # Perform multi-paraunitary diagonalization
     result = multi_para_diag(h_NV_array, omega_H, q_table, phi_table, N_max)
@@ -780,8 +661,11 @@ def gamma_1_from_H0(H0):
 
     # Calculate Gamma values
     eta_small = 0.003
-    NQ_calc = 2 * 2
-    N_phi_calc = 2 * 2
+    NQ_calc = 2 * 200
+    N_phi_calc = 2 * 360
+
+    print("Int_omega_BdG_table ", Int_omega_BdG_table)
+    print("np.shape(Int_omega_BdG_table) ", np.shape(Int_omega_BdG_table))
 
     DOS_L, DOS_U, gamma_L_Hz_array, gamma_U_Hz_array = gamma_values_UL(
         eta_small,
@@ -797,7 +681,7 @@ def gamma_1_from_H0(H0):
     # print(f"Γ(ω=ωL)={gamma_L_Hz_array} Hz")
     # print(f"Γ(ω=ωU)={gamma_U_Hz_array} Hz")
 
-    # return DOS_L, DOS_U, gamma_L_Hz_array, gamma_U_Hz_array
+    return DOS_L, DOS_U, gamma_L_Hz_array, gamma_U_Hz_array
 
 
 ########################################################################################
@@ -807,35 +691,36 @@ def gamma_1_from_H0(H0):
 # Example usage
 if __name__ == "__main__":
 
-    # Compare Python results with MMA results for a single mode and angle
+    start_time = time.time()
 
-    # # H_BdG_test = generate_H_BdG(gamma * 82, 1e-6, np.pi, 3)
-    # print('Checked Hamiltonian generation (generate_H_BdG), matches MMA')
-    # # H_hermitian_test = (H_BdG_test + H_BdG_test.conj().T) / 2
-    # # H = H_hermitian_test
-    # # test_result = paraunitary_diag(H)
-    # print('Checked Para-unitary diagonalization (paraunitary_diag), matches MMA')
-    # # test_result = multi_para_diag([0.4], gamma * 82, [1e-6], [np.pi], 2)
-    # print('Checked Multi-parameter Para-unitary diagonalization (multi_para_diag), matches MMA')
+    #  For plotting multiple H0 values (uncomment to use)
+    H0_array = np.array([82])
+    # H0_array = np.array([75, 78, 80, 81, 81.5, 82, 82.5, 83, 84, 86, 90, 95])
+    DOSL_list = np.zeros(len(H0_array))
+    DOSU_list = np.zeros(len(H0_array))
+    GammaL_list = np.zeros(len(H0_array))
+    GammaU_list = np.zeros(len(H0_array))
 
-    # print('Checking Gamma calculation (gamma_values_UL)')
-    # omega, cplus, cminus, cz = multi_para_diag([0.4], gamma * 82, [1e-6], [np.pi], 4)
-    # gamma_test_result = gamma_values_UL(0.003, 4, 2, 82, np.array(omega), np.array(cplus), np.array(cminus), 1)
-    # print('gamma_test_result ', gamma_test_result)
+    for h in range(len(H0_array)):
 
-    # Test with a single H0 value
-    H0_test = 82
-    print(f"Calculating for H0 = {H0_test} Oe")
-    gamma_1_from_H0(H0_test)
-    # try:
-    #     DOS_L, DOS_U, gamma_L, gamma_U = gamma_1_from_H0(H0_test)
-    #     print(f"DOS_L: {DOS_L}")
-    #     print(f"DOS_U: {DOS_U}")
-    #     print(f"gamma_L: {gamma_L}")
-    #     print(f"gamma_U: {gamma_U}")
-    # except Exception as e:
-    #     print(f"Error in calculation: {e}")
+        H0_test = H0_array[h]
+        print(f"Calculating for H0 = {H0_test} Oe")
+        DOSL_list[h], DOSU_list[h], GammaL_list[h], GammaU_list[h] = gamma_1_from_H0(
+            H0_test
+        )
 
-#  For plotting multiple H0 values (uncomment to use)
-#  H0_array = np.array([76, 77, 78, 79, 80, 81, 81.5, 82, 82.5, 83, 84, 85])
-#  results would be stored and plotted here
+    print("GammaL ", GammaL_list)
+    print("GammaU ", GammaU_list)
+    print("Total time taken after vectorization ", time.time() - start_time, "s")
+
+    plt.plot(H0_array, GammaL_list, label="GammaL")
+    plt.plot(H0_array, GammaU_list, label="GammaU")
+    plt.xlabel("B field (G)")
+    plt.ylabel("Gamma (Hz)")
+    plt.legend()
+    plt.show()
+
+
+########################################################################################
+"""
+"""
