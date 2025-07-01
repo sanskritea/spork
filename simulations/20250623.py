@@ -1,11 +1,13 @@
 import numpy as np
-from scipy.linalg import cholesky, eig
+from scipy.linalg import cholesky, eig, eigh
 
 # from scipy.interpolate import griddata
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 from scipy.interpolate import LinearNDInterpolator
 import warnings
+import cProfile
+import pstats
 import time as time
 
 warnings.filterwarnings("ignore")
@@ -66,11 +68,11 @@ def mathematica_eigensystem(matrix, tolerance=1e-10):
     # Get eigenvalues and eigenvectors from scipy
     eigenvals, eigenvecs = eig(matrix)
 
-    # Convert to real if they're essentially real
-    if np.allclose(eigenvals.imag, 0, atol=tolerance):
-        eigenvals = eigenvals.real
-    if np.allclose(eigenvecs.imag, 0, atol=tolerance):
-        eigenvecs = eigenvecs.real
+    # # Convert to real if they're essentially real
+    # if np.allclose(eigenvals.imag, 0, atol=tolerance): # CHANGE THIS TO SPEEDUP
+    #     eigenvals = eigenvals.real
+    # if np.allclose(eigenvecs.imag, 0, atol=tolerance): # CHANGE THIS TO SPEEDUP
+    #     eigenvecs = eigenvecs.real
 
     # Normalize eigenvectors (scipy usually returns normalized, but let's be sure)
     for i in range(eigenvecs.shape[1]):
@@ -768,8 +770,8 @@ def batch_gamma_calculation(H0_array):
     h_NV_array = np.array([0.4])
 
     F_max = 5
-    N_max = int(np.ceil(L / np.pi * np.sqrt(F_max / (gamma * DD))))
-    # N_max = 1
+    # N_max = int(np.ceil(L / np.pi * np.sqrt(F_max / (gamma * DD))))
+    N_max = 1
     print(f"N_max is {N_max}")
 
     for h, H0_test in enumerate(H0_array):
@@ -849,13 +851,14 @@ def optimize_grid_creation(NQ, N_phi, L):
 ########################################################################################
 
 if __name__ == "__main__":
+
+    # Profile the main execution
+    profiler = cProfile.Profile()
+    profiler.enable()
+
+    # Your existing code
     start_time = time.time()
-
-    # For plotting multiple H0 values
     H0_array = np.array([82])
-    # H0_array = np.array([75, 78, 80, 81, 81.5, 82, 82.5, 83, 84, 86, 90, 95])
-
-    # Use vectorized batch calculation
     DOSL_list, DOSU_list, GammaL_list, GammaU_list = batch_gamma_calculation(H0_array)
 
     print("GammaL ", GammaL_list)
@@ -871,7 +874,18 @@ if __name__ == "__main__":
     plt.legend(fontsize=12)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+
+    # disable profiler
+    profiler.disable()
+
+    # Save and display results
+    stats = pstats.Stats(profiler)
+    stats.sort_stats("cumulative")
+    stats.print_stats(20)  # Show top 20 functions
+
+    # Or save to file
+    stats.dump_stats("profile_results3.prof")
 
 
 ########################################################################################
