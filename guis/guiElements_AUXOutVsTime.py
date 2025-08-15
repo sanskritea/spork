@@ -40,15 +40,6 @@ class AUXOutVsTime_Widget(QtWidgets.QWidget):
                     dec=True,
                 ),
             },
-
-            'aux_chan': {
-                'display_chan': 'AUX Output Channel',
-                'widget': SpinBox(
-                    value=0,
-                    dec=True,
-                    int=True,
-                )
-            }
         })
 
         # Setup run and stop buttons
@@ -89,7 +80,6 @@ class AUXOutVsTime_Widget(QtWidgets.QWidget):
 	        AUXOutVsTimeMeas.auxoutvstime,
 	        self.params_widget.datasetname, 
 	        self.params_widget.time_per_point, 
-	        self.params_widget.aux_chan,
 	    )
 
 

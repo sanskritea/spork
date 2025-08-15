@@ -27,8 +27,6 @@ class Attocube_Approach_Measurement:
 	def attocubeapproach(
 		self, 
 		datasetname: str, 
-		device: str, 
-		AOchannel: str, 
 		step_wait: float, 
 		stage_min_voltage: float, 	# min AO voltage to output to scanner Z from DAQ
 		stage_max_voltage: float, 	# max AO voltage to output to scanner Z from DAQ
@@ -47,14 +45,8 @@ class Attocube_Approach_Measurement:
 
 				# CREATING ANALOG DAQ TASKS
 				self.ao_task = mynidaq.create_task()
-				self.ao_task.ao_channels.add_ao_voltage_chan(device + '/' + AOchannel)
+				self.ao_task.ao_channels.add_ao_voltage_chan('DEV4/AO1')
 				self.ao_task.write(0)
-
-				# GET PID VALUE AND ENGAGE MODULATION
-				self.pid_setpoint = gw.mfli.get_PID_setpoint
-				print('self.pid_setpoint : ', self.pid_setpoint)
-				self.engaged = False
-				time.sleep(5)
 
 				# DATATSETS
 				self.voltages = np.zeros(0)
@@ -62,7 +54,7 @@ class Attocube_Approach_Measurement:
 
 				# COARSE APPROACH: MOVE TO LOWEST VOLTAGE FROM 0 
 				# step up to lowest position from zero before scanning to help hysteresis
-				if stage_min_voltage != 0.0:
+				if stage_min_voltage != -0.1:
 					print('Coarse stepping')
 					coarse_approach_voltage_list = np.linspace(0, stage_min_voltage, 11)
 					for cav in coarse_approach_voltage_list:
@@ -78,6 +70,7 @@ class Attocube_Approach_Measurement:
 				for voltage in np.linspace(stage_min_voltage, stage_max_voltage, stage_voltage_steps):
 
 					print(self.engaged)
+
 					if ((not self.engaged) and (voltage >= stage_min_voltage) and (voltage <= stage_max_voltage)):
 
 						print('DAQ analog output voltage : ', voltage)
@@ -87,7 +80,7 @@ class Attocube_Approach_Measurement:
 						for i in range(av_num):
 							amplitude_read = gw.mfli.AUXOUT_read(0)     
 							amplitude_array = amplitude_array + amplitude_read
-							time.sleep(.1)
+							time.sleep(.15)
 						print('summed amplitude_array:',amplitude_array)
 						amplitude = amplitude_array / av_num
 						print('Fork amplitude : ', amplitude)
@@ -96,7 +89,17 @@ class Attocube_Approach_Measurement:
 						self.amplitudes = np.append(self.amplitudes, amplitude)		
 
 				        # SAVE CURRENT DATA TO DATA SERVER     
-						AttocubeApproach.push({'params':{'datasetname': datasetname, 'device': device, 'AOchannel': AOchannel, 'step_wait': step_wait, 'stage_min_voltage': stage_min_voltage, 'stage_max_voltage': stage_max_voltage, 'stage_voltage_steps': stage_voltage_steps, 'threshhold': threshhold, 'A_init': A_init},
+						AttocubeApproach.push(
+							{'params':{
+								'datasetname': datasetname, 
+								'step_wait': step_wait, 
+								'stage_min_voltage': stage_min_voltage, 
+								'stage_max_voltage': stage_max_voltage, 
+								'stage_voltage_steps': stage_voltage_steps, 
+								'threshhold': threshhold, 
+								'A_init': A_init
+							},
+							
 							'title': 'Attocube Approach',
 							'xlabel': 'Scanner Voltage (V)',
 							'ylabel': 'Fork Amplitude (V)',
@@ -107,13 +110,16 @@ class Attocube_Approach_Measurement:
 
 						if ((amplitude / A_init < threshhold) or (amplitude / A_init > (2 - threshhold))): #must decide how to threshhold
 							self.engaged = True
-							print('engaged')
+							self.ao_task.write(-0.1)
+							print('engaged, activating PID pullback')
+							# gw.mfli.set_PID_state(True)
+
 
 					else:
 						print('either engaged or voltage out of range')
 
-				# Bring scanner to 0 for safety
-				self.ao_task.write(0)
+				# Bring scanner to 0 for safety, turn off PID, return offset to 0
+				# self.ao_task.write(-0.1)
 
 				# CLOSE DAQ TASKS
 				self.ao_task.stop()

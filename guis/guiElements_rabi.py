@@ -27,22 +27,41 @@ class Rabi_Widget(QtWidgets.QWidget):
                 'widget': QtWidgets.QLineEdit('RabiData'),
             },
 
-            'samplingFreq': {
-                'display_text': 'Sampling Freq',
+            'num_samples': {
+                'display_text': 'Samples per tau',
                 'widget': SpinBox(
-                    value=20e6,
-                    suffix='Hz',
-                    siPrefix=True,
+                    value=10000,
                     dec=True,
+                    int=True
                 ),
             },
 
             'maxIterations': {
                 'display_text': 'Iterations',
                 'widget': SpinBox(
-                    value=100,
+                    value=20,
                     dec=True,
                     int=True,
+                ),
+            },
+
+            'rf_power': {
+                'display_text': 'RF Power',
+                'widget': SpinBox(
+                    value=0,
+                    suffix='dBm',
+                    siPrefix=False,
+                    bounds=(-42, 6),
+                    dec=True,
+                ),
+            },
+
+            'laser_power': {
+                'display_text': 'Laser Power',
+                'widget': SpinBox(
+                    value=2,
+                    bounds=(0,5),
+                    dec=True,
                 ),
             },
 
@@ -57,7 +76,7 @@ class Rabi_Widget(QtWidgets.QWidget):
             },
 
             'min_MW_time': {
-                'display_text': 'Min MW pulse duration',
+                'display_text': 'Min MW duration',
                 'widget': SpinBox(
                     value=10e-9,
                     suffix='s',
@@ -68,7 +87,7 @@ class Rabi_Widget(QtWidgets.QWidget):
             },
 
             'max_MW_time': {
-                'display_text': 'Max MW pulse duration',
+                'display_text': 'Max MW duration',
                 'widget': SpinBox(
                     value=1e-6,
                     suffix='s',
@@ -90,132 +109,7 @@ class Rabi_Widget(QtWidgets.QWidget):
                 ),
             },
 
-            'rf_power': {
-                'display_text': 'RF Power',
-                'widget': SpinBox(
-                    value=6,
-                    suffix='dBm',
-                    siPrefix=False,
-                    bounds=(-42, 6),
-                    dec=True,
-                ),
-            },
-
-            'laser_power': {
-                'display_text': 'Laser Power',
-                'widget': SpinBox(
-                    value=2,
-                    bounds=(0,5),
-                    dec=True,
-                ),
-            },
-
-            'num_samples': {
-                'display_text': 'Samples per MW tau',
-                'widget': SpinBox(
-                    value=10000,
-                    dec=True,
-                    int=True
-                ),
-            },
-
-            'clock_time': {
-                'display_text': 'Clock pulse duration',
-                'widget': SpinBox(
-                    value=11e-9,
-                    suffix='s',
-                    siPrefix=True,
-                    bounds=(1e-9, 1),
-                    dec=True,
-                ),
-            },
-
-            'init_time': {
-                'display_text': 'NV Init Pulse',
-                'widget': SpinBox(
-                    value=2e-6,
-                    suffix='s',
-                    siPrefix=True, #kiloseconds are cursed
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'laser_lag': {
-                'display_text': 'Laser Stabilization Lag',
-                'widget': SpinBox(
-                    value=300e-9,
-                    suffix='s',
-                    siPrefix=True, #kiloseconds are cursed
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'probe_time': {
-                'display_text': 'Readout Duration',
-                'widget': SpinBox(
-                    value=300e-9,
-                    suffix='s',
-                    siPrefix=True, 
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'singlet_decay': {
-                'display_text': 'NV Singlet Decay',
-                'widget': SpinBox(
-                    value=1e-6,
-                    suffix='s',
-                    siPrefix=True, 
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            # 'initial_counts': {
-            #     'display_text': 'Starting PL from CountVSTime',
-            #     'widget': SpinBox(
-            #         value=270000,
-            #         dec=True,
-            #     ),
-            # },
-
-            'x_init_position': {
-                'display_text': 'X Init Pos mm',
-                'widget': SpinBox(
-                    value=0,
-                    dec=True,
-                ),
-            },
-
-            'y_init_position': {
-                'display_text': 'Y Init Pos mm',
-                'widget': SpinBox(
-                    value=0 ,
-                    dec=True,
-                ),
-            },
-
-            'z_init_position': {
-                'display_text': 'Z Init Pos mm',
-                'widget': SpinBox(
-                    value=0 ,
-                    dec=True,
-                ),
-            },
-
-            # 'threshold': {
-            #     'display_text': 'Feedback threshold',
-            #     'widget': SpinBox(
-            #         value=1,
-            #         dec=True,
-            #     ),
-            # },
-
-        
-            })
+        })
 
         #Set-up check boxes for each channel
         
@@ -259,25 +153,14 @@ class Rabi_Widget(QtWidgets.QWidget):
         self.sweepProc.run(
             rabiMeas.Rabi,
             self.params_widget.datasetName,
-            self.params_widget.samplingFreq,
+            self.params_widget.num_samples,
             self.params_widget.maxIterations,
+            self.params_widget.rf_power,
+            self.params_widget.laser_power,
             self.params_widget.freq,
             int(1e9*self.params_widget.min_MW_time),
             int(1e9*self.params_widget.max_MW_time),
-            self.params_widget.num_MW_times,
-            self.params_widget.rf_power,
-            self.params_widget.laser_power,
-            self.params_widget.num_samples,
-            int(1e9*self.params_widget.clock_time),
-            int(1e9*self.params_widget.init_time),
-            int(1e9*self.params_widget.laser_lag),
-            int(1e9*self.params_widget.probe_time),
-            int(1e9*self.params_widget.singlet_decay),
-            # self.params_widget.initial_counts,
-            self.params_widget.x_init_position,
-            self.params_widget.y_init_position,
-            self.params_widget.z_init_position,
-            # self.params_widget.threshold,
+            self.params_widget.num_MW_times,    
         )
 
 

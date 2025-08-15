@@ -27,8 +27,6 @@ class XZScan:
     def scanning(
         self,
         datasetname: str,
-        trigger_rate: float,
-        device: str,
         x_init_position: float,
         z_init_position: float,
         position_steps: int,
@@ -73,7 +71,7 @@ class XZScan:
             with NIDAQ() as mynidaq:
 
                 # turn on laser
-                # trigger_rate = 20e3
+                trigger_rate = 20e3
                 gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
 
                 for n in range(pos_len):
@@ -85,13 +83,17 @@ class XZScan:
                     start_linescan_time = time.time()
 
                     # compensate for X backlash
-                    # gw.esp.espX.move_to(x_position_list[0] - 0.025)
-                    gw.esp.espY.move_to(x_position_list[0] - 0.025)
+
+                    gw.esp.espX.move_to(x_position_list[0] - 0.025)
+                    # gw.esp.espY.move_to(x_position_list[0] - 0.025)
+
                     time.sleep(step_wait)
                     x_backlash = np.arange(x_position_list[0] - 0.025, x_position_list[0] - 0.001, 0.001)
                     for xx in x_backlash:
-                        # gw.esp.espX.move_to(xx)
-                        gw.esp.espY.move_to(xx)
+
+                        gw.esp.espX.move_to(xx)
+                        # gw.esp.espY.move_to(xx)
+                        
                         time.sleep(step_wait)
 
 
@@ -99,8 +101,10 @@ class XZScan:
 
                         ## MOVE Y
                         # print('moving to ', z_position_list[nn])
-                        # gw.esp.espX.move_to(x_position_list[nn])
-                        gw.esp.espY.move_to(x_position_list[nn])
+
+                        gw.esp.espX.move_to(x_position_list[nn])
+                        # gw.esp.espY.move_to(x_position_list[nn])
+
                         time.sleep(step_wait)
 
                         ## COUNTING
@@ -121,8 +125,6 @@ class XZScan:
                             {
                                 "params": {
                                     "datasetname": datasetname,
-                                    "trigger_rate": trigger_rate,
-                                    "device": device,
                                     "x_init_position": x_init_position,
                                     "z_init_position": z_init_position,
                                     "position_steps": position_steps,
@@ -141,18 +143,22 @@ class XZScan:
                         )
 
             # Save data 
-            flexSave(datasetname, 'YZ', 'final')
+            flexSave(datasetname, 'YZ')
 
             # go back to starting point
             print('Moving to start location')
             # compensate for X backlash
-            # gw.esp.espX.move_to(x_init_position - 0.025)
-            gw.esp.espY.move_to(x_init_position - 0.025)
+
+            gw.esp.espX.move_to(x_init_position - 0.025)
+            # gw.esp.espY.move_to(x_init_position - 0.025)
+
             time.sleep(step_wait)
             x_backlash = np.arange(x_init_position - 0.025, x_init_position + 0.001, 0.001)
             for xx in x_backlash:
-                # gw.esp.espX.move_to(xx)
-                gw.esp.espY.move_to(xx)
+
+                gw.esp.espX.move_to(xx)
+                # gw.esp.espY.move_to(xx)
+
                 time.sleep(step_wait)
             gw.esp.espZ.move_to(z_init_position)
 

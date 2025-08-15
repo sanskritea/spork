@@ -20,6 +20,14 @@ class Pulses():
     '''
     ALL UNITS: [ns]
     '''
+
+    clock_time = 10
+    init_time = 2000
+    readout_time = 500
+    laser_lag = 300
+    singlet_decay = 1000
+
+
     def __init__(self, gateway):
 
         self.channel_dict = {"DAQ_CLOCK": 0, "AOM": 1, "SWITCH": 4,"FAKE_DAQ_INPUT": 7}  
@@ -186,16 +194,16 @@ class Pulses():
         return seq
 
 
-    def CW_ODMR(self, clock_time, probe_time):
+    def CW_ODMR(self, cw_odmr_probe_time):
     
         # create sequence object
         seq = self.Pulser.createSequence()
 
         # daq counting pulses
-        daq_clock_seq = [(clock_time, 1), (probe_time - clock_time, 0), (clock_time, 1), (probe_time - clock_time, 0)]
+        daq_clock_seq = [(clock_time, 1), (cw_odmr_probe_time - clock_time, 0), (clock_time, 1), (cw_odmr_probe_time - clock_time, 0)]
 
         # microwave switch 
-        switch_ttl_seq = [(probe_time, 1), (probe_time, 0)]
+        switch_ttl_seq = [(cw_odmr_probe_time, 1), (cw_odmr_probe_time, 0)]
         # I_seq = [(probe_time, 0.5), (probe_time, -0.007)]
         # Q_seq = [(probe_time, 0), (probe_time, -0.007)]
 
@@ -213,7 +221,7 @@ class Pulses():
         return seq
 
 
-    def RABI(self, mw_time, clock_time, init_time, laser_lag, probe_time, singlet_decay, max_MW_time):
+    def RABI(self, mw_time, max_MW_time):
         '''
         Rabi sequence
         '''
@@ -260,7 +268,7 @@ class Pulses():
         return seq
 
 
-    def PULSED_ODMR(self, clock_time, init_time, laser_lag, probe_time, singlet_decay, pi_time):
+    def PULSED_ODMR(self, pi_time):
 
         # create sequence object
         seq = self.Pulser.createSequence()
@@ -390,10 +398,15 @@ class Pulses():
         ## Initialize with green, then measure the signal
         ## counts from NV after variable tau delay
 
+        print('Checking wait time from Bayesian T1 experiment ', tau_time)
+
         # create sequence object
         seq = self.Pulser.createSequence()
         tau_time = int(tau_time)
-        padding_time = 5000 + tau_max - tau_time   # sequence padding
+        if tau_max > 0:
+            padding_time = 1000 + tau_max - tau_time    # sequence padding, extra laser off time of 1us to prevent first point jumps, for normal T1
+        else:
+            padding_time = 1000   # for Bayesian T1
 
         # Laser
         laser_off_1 = padding_time 
@@ -588,7 +601,7 @@ class Pulses():
 
 
 
-    def BAYESIAN_T1(self, tau_time, clock_time, init_time, probe_time, laser_lag, singlet_decay, pi_time):
+    def BAYESIAN_T1(self, tau_time, pi_time):
         '''
         MW (differential) T1 sequence for the two longitudinal relaxation rates measured with different wait times
         '''

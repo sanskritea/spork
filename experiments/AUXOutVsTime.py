@@ -22,7 +22,12 @@ from drivers.zurich.mfli import MFLI
 
 class AUXOutVsTime_Measurement:
 
-	def auxoutvstime(self, datasetname: str, time_per_point: float, aux_chan: int):
+	def auxoutvstime(
+		self, 
+		datasetname: str, 
+		time_per_point: float
+		): 
+
 
 		with InstrumentGateway() as gw, DataSource(datasetname) as AUXOutVsTime:
 			self.start_time = time.time()
@@ -32,15 +37,14 @@ class AUXOutVsTime_Measurement:
 			self.auxop = np.zeros(0)
 
 			for i in iterator:
-				self.auxop = np.append(self.auxop, gw.mfli.AUXOUT_read(aux_chan))
+				self.auxop = np.append(self.auxop, gw.mfli.AUXOUT_read(1))
 				self.times = np.append(self.times, time.time() - self.start_time)
 
 				AUXOutVsTime.push({
-			    						'params': {
-			    									'datasetname': datasetname, 
-			    									'time_per_point': time_per_point, 
-			    									'aux_chan':aux_chan
-			    								},
+					'params': {
+						'datasetname': datasetname, 
+						'time_per_point': time_per_point, 
+					},
 			    	'title': 'AOUX Out VS Time',
 			    	'xlabel': 'time (s)',
 			    	'ylabel': 'AUX OP (V)',

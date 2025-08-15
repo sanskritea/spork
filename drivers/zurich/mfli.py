@@ -78,6 +78,9 @@ class MFLI:
     	return float(self.mfli.getDouble("/%s/AUXOUTS/%d/value" % (self.dev, channel)))
     
 
+    def zero_OFFSET(self):
+        self.mfli.set("/%s/AUXOUTS/2/offset" % (self.dev), 0)
+
     # @Feat(values=AUXOUT_TYPE)
     # def AUXOUT_select(self,channel):
     #     """

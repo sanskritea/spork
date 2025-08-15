@@ -1,0 +1,4 @@
+2025-08-14 22:37:37.893 [   DEBUG] (              app.py:  92) Leaked 2 Qt widgets:
+<PyQt6.QtWidgets.QCheckBox object at 0x0000023BE84B8B80>
+<PyQt6.QtWidgets.QWidget object at 0x0000023BE76E29E0>
+

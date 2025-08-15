@@ -32,40 +32,12 @@ class CustomCountVsTimeWidget(QtWidgets.QWidget):
         self.setWindowTitle('CountVsTime')
 
         self.params_widget = ParamsWidget({
-            'samplingFreq': {
-                'display_text': 'Sampling Freq',
-                'widget': SpinBox(
-                    value=20e6,
-                    suffix='Hz',
-                    siPrefix=True,
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-            'trigger_rate': {
-                'display_text': 'trigger_rate',
-                'widget': SpinBox(
-                    value=2e4,
-                    suffix='Hz',
-                    siPrefix=True,
-                    bounds=(1, 10e6),
-                    dec=True,
-                ),
-            },
-            'maxTimeout': {
-                'display_text': 'Timeout',
-                'widget': SpinBox(
-                    value=3600,
-                    suffix='s',
-                    siPrefix=False, #kiloseconds are cursed
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
+            
             'datasetName': {
                 'display_text': 'Dataset Name',
                 'widget': QtWidgets.QLineEdit('CountVsTime'),
             },
+
             'laser_power': {
                 'display_text': 'Laser power',
                 'widget': SpinBox(
@@ -74,6 +46,7 @@ class CustomCountVsTimeWidget(QtWidgets.QWidget):
                     dec=True,
                 ),
             },
+
             'time_per_point': {
                 'display_text': 'Counting time',
                 'widget': SpinBox(
@@ -83,7 +56,7 @@ class CustomCountVsTimeWidget(QtWidgets.QWidget):
                 ),
             },
 
-             'x_init_position': {
+             'objective_x_init_position': {
                 'display_text': 'X Init Pos mm',
                 'widget': SpinBox(
                     value=0,
@@ -91,7 +64,7 @@ class CustomCountVsTimeWidget(QtWidgets.QWidget):
                 ),
             },
 
-            'y_init_position': {
+            'objective_y_init_position': {
                 'display_text': 'Y Init Pos mm',
                 'widget': SpinBox(
                     value=0 ,
@@ -99,30 +72,6 @@ class CustomCountVsTimeWidget(QtWidgets.QWidget):
                 ),
             },
 
-            'z_init_position': {
-                'display_text': 'Z Init Pos mm',
-                'widget': SpinBox(
-                    value=0 ,
-                    dec=True,
-                ),
-            },
-
-            # 'threshold': {
-            #     'display_text': 'Feedback threshold',
-            #     'widget': SpinBox(
-            #         value=1,
-            #         dec=True,
-            #     ),
-            # },
-
-            # 'maxIterations': {
-            #     'display_text': 'some iterator',
-            #     'widget': SpinBox(
-            #         value=1,
-            #         int=True,
-            #         dec=True,
-            #     ),
-            # },
         })
 
         #Setup run and stop buttons
@@ -173,19 +122,10 @@ class CustomCountVsTimeWidget(QtWidgets.QWidget):
         self.sweepProc.run(
             cvt_meas.CountVsTime,
             self.params_widget.datasetName,
-            self.params_widget.samplingFreq,
-            self.params_widget.trigger_rate,
             self.params_widget.laser_power,
-            # self.params_widget.maxIterations,
             self.params_widget.time_per_point,
-            # int(self.params_widget.maxTimeout/self.params_widget.samplingFreq),
-            # ctrChanNums,
-            # [self.autosaveWidget.shouldAutosave(), self.autosaveWidget.getAutosaveInterval()], #or None #Autosave params
-            #True #runs debug mode. True => TimeVsTime
             self.params_widget.x_init_position,
             self.params_widget.y_init_position,
-            self.params_widget.z_init_position,
-            # self.params_widget.threshold,
         )
 
 

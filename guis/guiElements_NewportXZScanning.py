@@ -37,22 +37,6 @@ class NewportXZScanning_Widget(QtWidgets.QWidget):
                 'widget': QtWidgets.QLineEdit('NewportXZScanningData'),
             },
 
-            'trigger_rate': {
-                'display_text': 'trigger_rate',
-                'widget': SpinBox(
-                    value=20e3,
-                    suffix='Hz',
-                    siPrefix=True,
-                    bounds=(20e3, 10e6),
-                    dec=True,
-                ),
-            },
-
-            'device': {
-                'display_text': 'DAQ Device Name',
-                'widget': QtWidgets.QLineEdit('Dev4'),
-            },
-
             'x_init_position': {
                 'display_text': 'X Init Pos mm',
                 'widget': SpinBox(
@@ -87,7 +71,7 @@ class NewportXZScanning_Widget(QtWidgets.QWidget):
             },
 
             'time_per_pixel': {
-                'display_text': 'Time per pixel s',
+                'display_text': 'Time per pixel',
                 'widget': SpinBox(
                     value=0.005,
                     dec=True,
@@ -95,7 +79,7 @@ class NewportXZScanning_Widget(QtWidgets.QWidget):
             },
 
             'step_wait': {
-                'display_text': 'Wait after move s',
+                'display_text': 'Wait after move',
                 'widget': SpinBox(
                     value=0.03,
                     dec=True,
@@ -146,8 +130,6 @@ class NewportXZScanning_Widget(QtWidgets.QWidget):
         self.sweepProc.run(
             NewportXZScanningMeas.scanning,
             self.params_widget.datasetName, 
-            self.params_widget.trigger_rate,
-            self.params_widget.device,
             self.params_widget.x_init_position,
             self.params_widget.z_init_position, 
             self.params_widget.position_steps,

@@ -8,6 +8,7 @@ from nspyre import DataSource
 from nspyre import InstrumentGateway
 
 from rpyc.utils.classic import obtain
+from guis.guiElements_general import flexSave
 
 from experiments.NewPulses import Pulses
 from experiments.NewportSpatialFeedback import SpatialFeedback
@@ -19,25 +20,14 @@ class Rabi_Measurement:
     def Rabi(
         self,
         datasetName: str,
-        samplingFreq: float,
+        num_samples: int,
         maxIterations: int,
+        rf_power: float,
+        laser_power: float,
         freq: float,
         min_MW_time: int,
         max_MW_time: int,
         num_MW_times: int,
-        rf_power: float,
-        laser_power: float,
-        num_samples: int,
-        clock_time: int,    # DAQ counting trigger pulse (from Swabian) duration, usually 10ns
-        init_time: int,     # NV initialization laser ON duration
-        laser_lag: int,     # laser stabilizing time, usually ~100ns
-        probe_time: int,    # readout laser ON time
-        singlet_decay: int, # NV singlet state emptying duration
-        # initial_counts: float,
-        x_init_position: float, 
-        y_init_position: float,
-        z_init_position: float,   
-        # threshold: float, 
     ):
         """Run a Rabi experiment
         Arguments:  *
@@ -48,13 +38,6 @@ class Rabi_Measurement:
         # existing one with the same name if it was created earlier.
 
         with InstrumentGateway() as gw, DataSource(datasetName) as RabiData:
-
-            print('RABI PARAMETERS')
-            print('clock_time ', clock_time)
-            print('init_time ', init_time)
-            print('laser_lag ', laser_lag)
-            print('probe_time ', probe_time)
-            print('singlet_decay ', singlet_decay)
 
             # set up MW duration list to sweep over
             self.mw_times = np.linspace(min_MW_time, max_MW_time, num_MW_times, endpoint=True)
@@ -73,7 +56,7 @@ class Rabi_Measurement:
             # make sequences beforehand
             seqs = []
             for mw_time in self.mw_times:
-                seqs.append(Pulses(gw).RABI(int(mw_time), clock_time, init_time, laser_lag, probe_time, singlet_decay, max_MW_time))
+                seqs.append(Pulses(gw).RABI(int(mw_time), max_MW_time))
 
             # SRS actions
             gw.sg.set_rf_amplitude(rf_power)  # set ouput power
@@ -92,37 +75,13 @@ class Rabi_Measurement:
 
                 for i in iters:
 
-                    # # SPATIAL FEEDBACK (almost) EVERY 2 HOURS
-                    # if (int(time.time() - self.start_time) >= 2):
-                    
-                    #     # Measure counts after 2 hours
-                    #     # turn on laser
-                    #     trigger_rate = int(20e3)
-                    #     time_per_point = 0.01
-                    #     num_samples = int(trigger_rate * time_per_point)
-                    #     print('Measuring counts')
-                    #     gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
-                    #     current_counts = np.mean(obtain(mynidaq.internal_read_task(int(trigger_rate), num_samples))) / (1 / trigger_rate)
-                    #     gw.swabian.reset()
-
-                    #     # If counts dropped, do spatial feedback
-                    #     # if (np.abs(initial_counts - current_counts) / initial_counts)  > threshold:
-                    #     print('Feedback')
-                    #     x_final_position, y_final_position, z_final_position = SpatialFeedback.Feedback(x_init_position, y_init_position, z_init_position, initial_counts, current_counts, 10)
-                    #     print('New locations')
-                    #     print('X ', x_final_position, 'mm')
-                    #     print('Y ', y_final_position, 'mm')
-                    #     print('Z ', z_final_position, 'mm')
-
-                    #     self.start_time = time.time()
-
                     for j in np.arange(num_MW_times):
 
                         # START TASK
                         mw_time = self.mw_times[j]
                         # print('MW duration ', mw_time, ' ns')
                         # time.sleep(10)
-                        mynidaq.start_external_read_task(samplingFreq, ((4 * num_samples) + 1))
+                        mynidaq.start_external_read_task(20e6, ((4 * num_samples) + 1))
 
                         # START PULSESTREAMER
                         gw.swabian.runSequenceInfinitely(seqs[j])
@@ -147,20 +106,14 @@ class Rabi_Measurement:
                             {
                                 "params": {
                                     "datasetName": datasetName,
-                                    "samplingFreq": samplingFreq,
+                                    "num_samples": num_samples,
                                     "maxIterations": maxIterations,
+                                    "rf_power": rf_power,
+                                    "laser_power": laser_power,
                                     "freq": freq,
                                     "min_MW_time": min_MW_time,
                                     "max_MW_time": max_MW_time,
                                     "num_MW_times": num_MW_times,
-                                    "rf_power": rf_power,
-                                    "laser_power": laser_power,
-                                    "num_samples": num_samples,
-                                    "clock_time": clock_time,
-                                    "init_time": init_time,
-                                    "laser_lag": laser_lag,
-                                    "probe_time": probe_time,
-                                    "singlet_decay": singlet_decay,
                                 },
                                 "title": "RABI DATA",
                                 "xlabel": "MW Times",
@@ -173,7 +126,9 @@ class Rabi_Measurement:
                             }
                         )
 
-                        
+                notes = ''
+                flexSave(datasetName, notes, 'Rabi')
+
             print("Experiment finished!")
 
            

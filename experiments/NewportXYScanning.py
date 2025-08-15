@@ -27,8 +27,6 @@ class XYScan:
     def scanning(
         self,
         datasetname: str,
-        trigger_rate: float,
-        device: str,
         x_init_position: float,
         y_init_position: float,
         position_steps: int,
@@ -81,11 +79,8 @@ class XYScan:
 
                 start_time = time.time()
 
-                # start DAQ counting tasks
-                num_samples = int(time_per_pixel * trigger_rate)
-                # mynidaq.start_external_read_task(trigger_rate, num_samples)
-
                 # start Swabian external trigger for counting
+                trigger_rate = 20e3                
                 gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
 
                 for n in range(pos_len):
@@ -112,6 +107,7 @@ class XYScan:
                         time.sleep(step_wait)
 
                         ## COUNTING
+                        num_samples = int(time_per_pixel * trigger_rate)
                         reading_period = 1 / trigger_rate
                         counts[n][nn] = np.mean(obtain(mynidaq.internal_read_task(trigger_rate, num_samples))) / (reading_period) #
 
@@ -121,13 +117,12 @@ class XYScan:
                             {
                                 "params": {
                                     "datasetname": datasetname,
-                                    "trigger_rate": trigger_rate,
-                                    "device": device,
                                     "x_init_position": x_init_position,
                                     "y_init_position": y_init_position,
                                     "position_steps": position_steps,
                                     "step_length": step_length,
                                     "time_per_pixel": time_per_pixel,
+                                    "step_wait": step_wait,
                                 },
                                 "title": "XYScanning",
                                 "xlabel": "X position",
@@ -141,7 +136,8 @@ class XYScan:
                         )
 
             # Save XY Scan data
-            flexSave(datasetname, 'XYScan', 'final')
+            notes = ''
+            flexSave(datasetname, notes, 'XYScan')
 
             # total time
             print('Snac time: ', time.time() - start_time)

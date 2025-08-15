@@ -1,0 +1,18 @@
+2025-08-14 23:17:23.355 [   DEBUG] (  selector_events.py:  54) Using selector: SelectSelector
+2025-08-14 23:17:23.357 [   DEBUG] (  _asyncio_worker.py:  81) Started DataSource event loop thread <Thread(Thread-1 (_event_loop_thread), started daemon 25496)>.
+2025-08-14 23:17:23.366 [   DEBUG] (      base_events.py: 847) Get address info localhost:30101, type=<SocketKind.SOCK_STREAM: 1>
+2025-08-14 23:17:23.371 [   DEBUG] (      base_events.py: 857) Getting address info localhost:30101, type=<SocketKind.SOCK_STREAM: 1> took 0.000ms: [(<AddressFamily.AF_INET6: 23>, <SocketKind.SOCK_STREAM: 1>, 0, '', ('::1', 30101, 0, 0)), (<AddressFamily.AF_INET: 2>, <SocketKind.SOCK_STREAM: 1>, 0, '', ('127.0.0.1', 30101))]
+2025-08-14 23:17:25.400 [   DEBUG] (      base_events.py:1120) <asyncio.TransportSocket fd=4040, family=2, type=1, proto=0, laddr=('127.0.0.1', 59346), raddr=('127.0.0.1', 30101)> connected to localhost:30101: (<_SelectorSocketTransport fd=4040 read=polling write=<idle, bufsize=0>>, <asyncio.streams.StreamReaderProtocol object at 0x000001B936799A50>)
+2025-08-14 23:17:25.402 [    INFO] (             sink.py: 137) Sink connected to data server [('127.0.0.1', 30101)].
+2025-08-14 23:17:25.403 [   DEBUG] (           server.py: 113) Sent [1] bytes to ('127.0.0.1', 30101).
+2025-08-14 23:17:25.405 [   DEBUG] (           server.py: 113) Sent [11] bytes to ('127.0.0.1', 30101).
+2025-08-14 23:17:25.406 [   DEBUG] (             sink.py: 168) Sink finished negotiation with data server [('127.0.0.1', 30101)].
+2025-08-14 23:17:25.424 [   DEBUG] (           server.py:  98) Received [446] bytes from [('127.0.0.1', 30101)].
+2025-08-14 23:17:25.425 [   DEBUG] (             sink.py: 198) Sink received pickle of [446] bytes from data server [('127.0.0.1', 30101)].
+2025-08-14 23:17:25.425 [   DEBUG] (             sink.py: 226) Sink queued pickle of [446] bytes.
+2025-08-14 23:17:25.428 [   DEBUG] (             sink.py: 343) pop returning new data
+2025-08-14 23:17:25.451 [   DEBUG] (             sink.py: 234) Sink stopped, closing connection with data server [('127.0.0.1', 30101)].
+2025-08-14 23:17:25.453 [   DEBUG] (           server.py: 119) Closed socket [('127.0.0.1', 30101)].
+2025-08-14 23:17:25.454 [   DEBUG] (      base_events.py: 676) Close <_WindowsSelectorEventLoop running=False closed=False debug=True>
+2025-08-14 23:17:25.455 [    INFO] (  _asyncio_worker.py:  89) Source [('localhost', 30101)] closed.
+2025-08-14 23:19:26.327 [   DEBUG] (              app.py:  94) No Qt widgets leaked.

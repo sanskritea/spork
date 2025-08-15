@@ -26,8 +26,6 @@ class LineScan:
     def scanning(
         self,
         datasetname: str,
-        trigger_rate: float,
-        device: str,
         x_init_position: float,
         y_init_position: float,
         z_init_position: float,
@@ -58,7 +56,7 @@ class LineScan:
             with NIDAQ() as mynidaq:
 
                 # COUNTING
-                # start DAQ counting tasks
+                trigger_rate = 20e3
                 num_samples = int(time_per_pixel * trigger_rate)
                 reading_period = 1 / trigger_rate
 

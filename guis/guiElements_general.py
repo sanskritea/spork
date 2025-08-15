@@ -47,7 +47,8 @@ class AutoSaveWidget(QtWidgets.QWidget):
     
 
 # def flexSave(datasetName:str, expType:str, saveType:str, dirs:list = ['C:/Users/awschlab/Data/']):
-def flexSave(datasetName:str, expType:str, saveType:str, dirs:list = ['C:\\Users\\awschlab\\Desktop\\data\\']): #TODO: Make it so this hangs up data acquisition. Will need to use ProcessRunner, multithread acq and saving, and then make them talk to each other nicely. Gross
+def flexSave(datasetName:str, notes:str, expType:str, dirs:list = ['C:\\Users\\awschlab\\Box\\ScanProbeData\\']):
+# def flexSave(datasetName:str, expType:str, saveType:str, dirs:list = ['C:\\Users\\awschlab\\Box\\ScanProbeData\\']): #TODO: Make it so this hangs up data acquisition. Will need to use ProcessRunner, multithread acq and saving, and then make them talk to each other nicely. Gross
     '''Creates a save of the data a specified directory(ies) in a Dir\\DATE(YYMMDD)\\EXPERIMENT_TYPE\\EXP_TYPE TIME(HHMMSS) SAVE_TYPE.json structure
     Arguments:  *datasetName:str, name of data to be saved from dataserv
                 *expType:str, name of the experiment (or name of folder to save in under the date)
@@ -69,7 +70,8 @@ def flexSave(datasetName:str, expType:str, saveType:str, dirs:list = ['C:\\Users
                 # expPath = datePath + expType + '/'
                 expPath = datePath + expType + '\\' #dir for the exp on date
                 # print('expPath : ', expPath)
-                filePath = expPath + expType + now.strftime('%H%M%S') + saveType + '.json' #filename for the json, assumes autosaving is at <1Hz to avoid name collisions
+                filePath = expPath + notes + '_' + now.strftime('%H%M%S') +  '.json' #
+                # filePath = expPath + expType + now.strftime('%H%M%S') + saveType + '.json' #filename for the json, assumes autosaving is at <1Hz to avoid name collisions
                 # print('filePath : ', filePath)
                 if not path.isdir(datePath): #create the date dir if it doesn't already exist
                     mkdir(datePath)

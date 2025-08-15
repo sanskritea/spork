@@ -31,21 +31,14 @@ class CW_ODMR_Measurement:
     def cwODMR(
         self,
         datasetName: str,
-        samplingFreq: float,
+        num_samples: int,
         maxIterations: int,
+        rfPower: float,
+        laser_power: float,
         startFreq: float,
         endFreq: float,
         numFreqs: int,
-        rfPower: float,
-        laser_power: float,
-        num_samples: int,
-        clock_time: int,
         probe_time: int,
-        wait_time: int,
-        # laser_lag: int,
-        # init_time: int,
-        # singlet_decay: int,
-
     ):
         """Run a CW ODMR experiment
         Arguments:  *
@@ -98,11 +91,11 @@ class CW_ODMR_Measurement:
 
                         # START TASK
                         # num_samples = int(readout_time  * 1e-9 * 20e6)
-                        mynidaq.start_external_read_task(samplingFreq, ((2 * num_samples) + 1))
+                        mynidaq.start_external_read_task(20e6, ((2 * num_samples) + 1))
 
                         # START PULSESTREAMER
                         gw.swabian.runSequenceInfinitely(
-                            Pulses(gw).CW_ODMR(clock_time, probe_time)
+                            Pulses(gw).CW_ODMR(probe_time)
                         )
 
                         # COUNTING WITH EXTERNAL TRIGGER
@@ -121,16 +114,13 @@ class CW_ODMR_Measurement:
                             {
                                 "params": {
                                     "datasetName": datasetName,
-                                    "samplingFreq": samplingFreq,
+                                    "num_samples": num_samples,
                                     "maxIterations": maxIterations,
+                                    "rf_power": rf_power,
+                                    "laser_power": laser_power,
                                     "startFreq": startFreq,
                                     "endFreq": endFreq,
                                     "numFreqs": numFreqs,
-                                    "rfPower": rfPower,
-                                    # 'preReadoutLaserAndMwTime': preReadoutLaserAndMwTime, 'laserAndMwReadOutTime': laserAndMwReadOutTime,
-                                    # 'extraLaserInitTime': extraLaserInitTime, 'waitTime': waitTime,
-                                    "num_samples": num_samples,
-                                    "clock_time": clock_time,
                                     "probe_time": probe_time,
                                 },
                                 "title": "CW ODMR",

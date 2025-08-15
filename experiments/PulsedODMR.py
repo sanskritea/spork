@@ -17,6 +17,7 @@ import numpy as np
 
 from nspyre import DataSource
 from nspyre import InstrumentGateway
+from guis.guiElements_general import flexSave
 
 from rpyc.utils.classic import obtain
 
@@ -31,19 +32,13 @@ class Pulsed_ODMR_Measurement:
     def PulsedODMR(
         self,
         datasetName: str,
-        samplingFreq: float,
+        num_samples: int,
         maxIterations: int,
+        rfPower: float,
+        laser_power: float,
         startFreq: float,
         endFreq: float,
         numFreqs: int,
-        rfPower: float,
-        laser_power: float,
-        num_samples: int,
-        clock_time: int,
-        init_time: int,
-        laser_lag: int,
-        probe_time: int,
-        singlet_decay: int,
         pi_time: int
 
     ):
@@ -95,11 +90,11 @@ class Pulsed_ODMR_Measurement:
 
                         # START TASK
                         # num_samples = int(readout_time  * 1e-9 * 20e6)
-                        mynidaq.start_external_read_task(samplingFreq, ((4 * num_samples) + 1))
+                        mynidaq.start_external_read_task(20e6, ((4 * num_samples) + 1))
 
                         # START PULSESTREAMER
                         gw.swabian.runSequenceInfinitely(
-                            Pulses(gw).PULSED_ODMR(clock_time, init_time, laser_lag, probe_time, singlet_decay, pi_time)
+                            Pulses(gw).PULSED_ODMR(pi_time)
                         )
 
                         # COUNTING WITH EXTERNAL TRIGGER
@@ -118,18 +113,13 @@ class Pulsed_ODMR_Measurement:
                             {
                                 "params": {
                                     "datasetName": datasetName,
-                                    "samplingFreq": samplingFreq,
+                                    "num_samples": num_samples,
                                     "maxIterations": maxIterations,
+                                    "rf_power": rf_power,
+                                    "laser_power": laser_power,
                                     "startFreq": startFreq,
                                     "endFreq": endFreq,
                                     "numFreqs": numFreqs,
-                                    "rfPower": rfPower,
-                                    "num_samples": num_samples,
-                                    "clock_time": clock_time,
-                                    "init_time": init_time,
-                                    "laser_lag": laser_lag,
-                                    "probe_time": probe_time, 
-                                    "singlet_decay": singlet_decay,
                                     "pi_time": pi_time
                                 },
                                 "title": "Pulsed ODMR",
@@ -145,6 +135,9 @@ class Pulsed_ODMR_Measurement:
 
                         # RESET SWABIAN OUTPUTS
                         gw.swabian.reset()
+
+                notes = ''
+                flexSave(datasetName, notes, 'Pulsed ODMR')
 
             print("Experiment finished!")
 

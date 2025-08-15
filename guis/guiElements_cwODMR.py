@@ -35,15 +35,16 @@ class CW_ODMR_Widget(QtWidgets.QWidget):
                 'display_text': 'Dataset Name',
                 'widget': QtWidgets.QLineEdit('CW_ODMR'),
             },
-            'samplingFreq': {
-                'display_text': 'Sampling Freq',
+
+            'num_samples': {
+                'display_text': 'Samples per frequency',
                 'widget': SpinBox(
-                    value=2e7,
-                    suffix='Hz',
-                    siPrefix=True,
+                    value=10,
                     dec=True,
+                    int=True
                 ),
             },
+            
             'maxIterations': {
                 'display_text': 'Iterations',
                 'widget': SpinBox(
@@ -52,34 +53,7 @@ class CW_ODMR_Widget(QtWidgets.QWidget):
                     int=True,
                 ),
             },
-            'startFreq': {
-                'display_text': 'Starting Freq',
-                'widget': SpinBox(
-                    value=2.82e9,
-                    suffix='Hz',
-                    siPrefix=True, 
-                    bounds=(2e9, 4e9),
-                    dec=True,
-                ),
-            },
-            'endFreq': {
-                'display_text': 'Ending Freq',
-                'widget': SpinBox(
-                    value=2.92e9,
-                    suffix='Hz',
-                    siPrefix=True,
-                    bounds=(2e9, 4e9),
-                    dec=True,
-                ),
-            },
-            'numFreqs': {
-                'display_text': 'Number of Freqs',
-                'widget': SpinBox(
-                    value=11,
-                    dec=True,
-                    int=True
-                ),
-            },
+
             'rfPower': {
                 'display_text': 'RF Power',
                 'widget': SpinBox(
@@ -90,84 +64,49 @@ class CW_ODMR_Widget(QtWidgets.QWidget):
                     dec=True,
                 ),
             },
+
             'laser_power': {
-                'display_text': 'Laser power/ attenuator voltage',
+                'display_text': 'Laser Power',
                 'widget': SpinBox(
                     value=2,
                     bounds=(0,5),
                     dec=True,
                 ),
             },
-            # 'preReadoutLaserAndMwTime': {
-            #     'display_text': 'Pre-Meas MW+Laser Time',
-            #     'widget': SpinBox(
-            #         value=20e-6,
-            #         suffix='s',
-            #         siPrefix=True,
-            #         bounds=(1e-9, 1),
-            #         dec=True,
-            #     ),
-            # },
-            # 'laserAndMwReadOutTime': {
-            #     'display_text': 'Readout Time',
-            #     'widget': SpinBox(
-            #         value=50e-6,
-            #         suffix='s',
-            #         siPrefix=True,
-            #         bounds=(1e-9, 1),
-            #         dec=True,
-            #     ),
-            # },
-            # 'extraLaserInitTime': {
-            #     'display_text': 'Laser Re-init Time',
-            #     'widget': SpinBox(
-            #         value=20e-6,
-            #         suffix='s',
-            #         siPrefix=True,
-            #         bounds=(1e-9, 1),
-            #         dec=True,
-            #     ),
-            # },
-            # 'waitTime': {
-            #     'display_text': 'Buffer b/w Meas',
-            #     'widget': SpinBox(
-            #         value=10e-6,
-            #         suffix='s',
-            #         siPrefix=True,
-            #         bounds=(1e-9, 1),
-            #         dec=True,
-            #     ),
-            # },
-            'num_samples': {
-                'display_text': 'Samples per frequency point',
+
+            'startFreq': {
+                'display_text': 'Start Freq',
                 'widget': SpinBox(
-                    value=10,
+                    value=2.82e9,
+                    suffix='Hz',
+                    siPrefix=True, 
+                    bounds=(2e9, 4e9),
+                    dec=True,
+                ),
+            },
+
+            'endFreq': {
+                'display_text': 'End Freq',
+                'widget': SpinBox(
+                    value=2.92e9,
+                    suffix='Hz',
+                    siPrefix=True,
+                    bounds=(2e9, 4e9),
+                    dec=True,
+                ),
+            },
+
+            'numFreqs': {
+                'display_text': 'Number of Freqs',
+                'widget': SpinBox(
+                    value=11,
                     dec=True,
                     int=True
                 ),
             },
-            'clock_time': {
-                'display_text': 'Clock pulse duration',
-                'widget': SpinBox(
-                    value=11e-9,
-                    suffix='s',
-                    siPrefix=True,
-                    bounds=(1e-9, 1),
-                    dec=True,
-                ),
-            },
-            # 'Singlet_Decay_Time': {
-            #     'display_text': 'Clock pulse duration',
-            #     'widget': SpinBox(
-            #         value=300e-9,
-            #         suffix='s',
-            #         siPrefix=True,
-            #         bounds=(1e-9, 1),
-            #         dec=True,
-            #     ),
-            # },
+
             'probe_time': {
-                'display_text': 'Balanced MW ON/OFF duration',
+                'display_text': 'MW ON/OFF duration',
                 'widget': SpinBox(
                     value=2e-3,
                     suffix='s',
@@ -176,52 +115,6 @@ class CW_ODMR_Widget(QtWidgets.QWidget):
                     dec=True,
                 ),
             },
-
-            'wait_time': {
-                'display_text': 'Wait time before exp',
-                'widget': SpinBox(
-                    value=100e-6,
-                    suffix='s',
-                    siPrefix=True,
-                    bounds=(1e-9, 1),
-                    dec=True,
-                ),
-            },
-            # 'ivalon': {
-            #     'display_text': 'IQ I ON voltage',
-            #     'widget': SpinBox(
-            #         value=0.5,
-            #         dec=True,
-            #     ),
-            # },
-            # 'ivaloff': {
-            #     'display_text': 'IQ I OFF voltage',
-            #     'widget': SpinBox(
-            #         value=0.5,
-            #         dec=True,
-            #     ),
-            # },
-            # 'qvalon': {
-            #     'display_text': 'IQ Q ON voltage',
-            #     'widget': SpinBox(
-            #         value=0.5,
-            #         dec=True,
-            #     ),
-            # },
-            # 'qvaloff': {
-            #     'display_text': 'IQ Q OFF voltage',
-            #     'widget': SpinBox(
-            #         value=0.5,
-            #         dec=True,
-            #     ),
-            # },
-            # 'frequency': {
-            #     'display_text': 'test_freq',
-            #     'widget': SpinBox(
-            #         value=2.9e9,
-            #         dec=True,
-            #     ),
-            # }
 
         })
 
@@ -267,29 +160,15 @@ class CW_ODMR_Widget(QtWidgets.QWidget):
         self.sweepProc.run(
             cwODMRmeas.cwODMR,
             self.params_widget.datasetName, 
-            self.params_widget.samplingFreq, 
+            self.params_widget.num_samples,
             self.params_widget.maxIterations,
+            self.params_widget.rfPower,
+            self.params_widget.laser_power,
             self.params_widget.startFreq,
             self.params_widget.endFreq,
             self.params_widget.numFreqs,
-            self.params_widget.rfPower,
-            self.params_widget.laser_power,
-            # self.params_widget.acq_rate,
-            self.params_widget.num_samples,
-            # int(1e9*self.params_widget.preReadoutLaserAndMwTime), #s to ns
-            # int(1e9*self.params_widget.laserAndMwReadOutTime),
-            # int(1e9*self.params_widget.extraLaserInitTime),
-            # int(1e9*self.params_widget.waitTime),
-            int(1e9*self.params_widget.clock_time),
             int(1e9*self.params_widget.probe_time),
-            int(1e9*self.params_widget.wait_time),
-            # self.params_widget.ivalon,
-            # self.params_widget.ivaloff,
-            # self.params_widget.qvalon,
-            # self.params_widget.qvaloff,
-            # self.params_widget.frequency,
-            # 1e3*self.params_widget.laserPower, #turn W to mW
-            # self.turnLaserOffAtEndButton.isChecked(),
+            
         )
 
 

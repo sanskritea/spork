@@ -35,18 +35,8 @@ class Attocube_Approach_Widget(QtWidgets.QWidget):
                 'widget': QtWidgets.QLineEdit('AttocubeApproach'),
             },
 
-            'device': { # use the 6343 (Dev4)
-                'display_text': 'DAQ Device Name',
-                'widget': QtWidgets.QLineEdit('Dev4'),
-            },
-
-            'AOchannel': {
-                'display_text': 'DAQ Analog Output Channel Number',
-                'widget': QtWidgets.QLineEdit('AO1'),
-            },
-
             'step_wait': {
-                'display_text': 'Wait time between Stepping and PID read',
+                'display_text': 'Step-Read Wait',
                 'widget': SpinBox(
                     value=0.1,
                     bounds=(0.1, 15),
@@ -55,15 +45,15 @@ class Attocube_Approach_Widget(QtWidgets.QWidget):
             },
 
             'stage_min': {
-                'display_text': 'Min DAQ AO Voltage to Scanner Z',
+                'display_text': 'Min DAQ AO1 ',
                 'widget': SpinBox(
-                    value=-0.0069,
+                    value=-0.1,
                     dec=True,
                 ),
             },
 
             'stage_max': {
-                'display_text': 'Max DAQ AO Voltage to Scanner Z',
+                'display_text': 'Max DAQ AO1 ',
                 'widget': SpinBox(
                     value=0,
                     bounds=(-0.0069, 3.9515),
@@ -72,7 +62,7 @@ class Attocube_Approach_Widget(QtWidgets.QWidget):
             },
 
             'stage_voltage': {
-                'display_text': 'Number of Voltage Steps',
+                'display_text': 'Number of AO1 Steps',
                 'widget': SpinBox(
                     value=1001,
                     dec=True,
@@ -81,16 +71,16 @@ class Attocube_Approach_Widget(QtWidgets.QWidget):
             },
 
             'threshold': {
-            	'display_text': 'PID Setpoint Threshold',
+            	'display_text': 'Engagement Threshold',
             	'widget': SpinBox(
-            		value=0.995,
+            		value=0.99,
             		bounds=(0.5, 0.999),
             		dec=True,
             		)
             },
 
             'A_init': {
-            	'display_text': 'Initial AO Voltage',
+            	'display_text': 'Initial Amplitude',
             	'widget': SpinBox(
             		value=0.001,
             		dec=True,
@@ -135,9 +125,7 @@ class Attocube_Approach_Widget(QtWidgets.QWidget):
 	    self.sweepProc.run(
 	        AttocubeApproachMeas.attocubeapproach,
 	        self.params_widget.datasetName, 
-	        self.params_widget.device, 
-	        self.params_widget.AOchannel,
-	        self.params_widget.step_wait, # TIME VALUE CHECK AGAIN
+	        self.params_widget.step_wait, 
 	        self.params_widget.stage_min,
 	        self.params_widget.stage_max,
 	        self.params_widget.stage_voltage,

@@ -170,6 +170,34 @@ class NIDAQ():
         return counts
 
 
+    def analog_read_task(self, sampling_rate = 1000, num_samples = 1000):
+
+        # creating analog read task
+        self.AO2_read_task = nidaqmx.Task() # for Attocube X
+        self.AO3_read_task = nidaqmx.Task() # for Attocube Y
+
+        # adding analog read channel
+        self.AO2_read_task.ai_channels.add_ai_voltage_chan("Dev4/ai0", terminal_config=nidaqmx.constants.TerminalConfiguration.RSE)
+        self.AO3_read_task.ai_channels.add_ai_voltage_chan("Dev4/ai1", terminal_config=nidaqmx.constants.TerminalConfiguration.RSE)
+
+        # read task timing
+        self.AO2_read_task.timing.cfg_samp_clk_timing(rate=1000, sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS)
+        self.AO3_read_task.timing.cfg_samp_clk_timing(rate=1000, sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS)
+
+
+        # read current voltage input to AI0 from AO2
+        AO2_val = self.AO2_read_task.read(number_of_samples_per_channel=5)
+        self.AO2_read_task.close()
+        self.AO2_read_task = None
+
+        # read current voltage input to AI0 from AO2
+        AO3_val = self.AO3_read_task.read(number_of_samples_per_channel=5)
+        self.AO3_read_task.close()
+        self.AO3_read_task = None
+
+        return (np.mean(AO2_val), np.mean(AO3_val))
+
+
     def __exit__(self, *args):  # execute when the DAQ object gets killed unexpectedly, for example, when the STOP button is clicked.
 
         print('in exit')

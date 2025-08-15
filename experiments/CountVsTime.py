@@ -27,20 +27,14 @@ from drivers.ni.nidaq_final import NIDAQ
 
 class CountVsTimeMeasurement:
 
-    def CountVsTime(self, datasetName: str, samplingFreq: float, trigger_rate: float, laser_power: float, time_per_point: float, x_init_position: float, 
-        y_init_position: float,
-        z_init_position: float): #,   
-        # threshold: float):
-        # , autosaveParams=None, debug=False):
-        """Run a CountVsTime2 experiment
-
-        Args:
-            datasetName: name of the dataset to push data to
-            sampleFreq (float): how quickly to read data (in Hz)
-            ctrChanNums: Which PFI channels to read. Default is [11,1,4,8]
-            autosaveParams: Default: None, but will take a list of [shouldAutosave, autosaveInterval] 
-            debug: optional (default False), will run TimeVsTime if true
-        """
+    def CountVsTime(
+        self, 
+        datasetName: str,
+        laser_power: float, 
+        time_per_point: float, 
+        objective_x_init_position: float, 
+        objective_y_init_position: float,
+        ): 
 
         # connect to the instrument server
         # connect to the data server and create a data set, or connect to an
@@ -66,6 +60,7 @@ class CountVsTimeMeasurement:
                 while True:
 
                     # start DAQ counting
+                    trigger_rate = 20e3
                     num_samples = int(trigger_rate * time_per_point)
                     raw_counts = obtain(mynidaq.internal_read_task(int(trigger_rate), num_samples))
 
@@ -73,7 +68,8 @@ class CountVsTimeMeasurement:
                     elapsed_time = time.time() - self.start_time
                     self.times = np.append(self.times, elapsed_time)
                     trigger_period = 1 / trigger_rate
-                    self.counts = [np.append(self.counts, (np.mean(raw_counts / trigger_period)))]
+                    raw_counts = np.mean(raw_counts / trigger_period)
+                    self.counts = [np.append(self.counts, raw_counts)]
                     # print('counts std ', np.std(raw_counts / trigger_period))
 
                     # save the current data to the data server.
@@ -89,32 +85,30 @@ class CountVsTimeMeasurement:
                     # FORGET THE THRESHOLD, JUST SCAN EVERY FEW MINUTES/SECONDS/HOURS AND COME TO MAX LOCATION 
                     feedback_time = int(time.time() - self.outer_start_time)
                     # print('feedback_time ', feedback_time)
-                    # if (feedback_time >= 300):
+                    if (feedback_time >= 600):
                     
-                    #     # Parameters
-                    #     print('elapsed_time ', elapsed_time)
-                    #     begin_feedback = time.time()
-                    #     # mean_initial_counts = np.mean(self.counts[0][0:100])
-                    #     # std_initial_counts = np.std(self.counts[0][0:100])
-                    #     # threshold = 100 * std_initial_counts / mean_initial_counts
+                        # Parameters
+                        print('elapsed_time ', elapsed_time)
+                        begin_feedback = time.time()
 
-                    #     # Perform feedback
-                    #     # print('Feedback')
-                    #     SpatialFeedback.Feedback(x_init_position, y_init_position, z_init_position)
+                        objective_x_init_position, objective_y_init_position, current_max_counts = SpatialFeedback.Feedback(objective_x_init_position, objective_y_init_position)
+                        print('Current x_position ',objective_x_init_position)
+                        print('Current y_position ', objective_y_init_position)
+                        print('Returned max counts ', current_max_counts)
 
-                    #     # Measure counts right after feedback
-                    #     gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
-                    #     num_samples = int(trigger_rate * time_per_point)
-                    #     post_feedback_counts = np.mean(obtain(mynidaq.internal_read_task(int(trigger_rate), num_samples))) / (1 / trigger_rate)
-                    #     print('Post feedback counts ', post_feedback_counts)
-                    #     gw.swabian.reset()
+                        # Measure counts right after feedback
+                        gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
+                        num_samples = int(trigger_rate * time_per_point)
+                        post_feedback_counts = np.mean(obtain(mynidaq.internal_read_task(int(trigger_rate), num_samples))) / (1 / trigger_rate)
+                        print('Post feedback counts ', post_feedback_counts)
+                        gw.swabian.reset()
 
-                    #     # Feedback closeout
-                    #     self.outer_start_time = time.time()
-                    #     gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
-                    #     feedback_duration = time.time() - begin_feedback
-                    #     # print('Feedback duration: ', feedback_duration)
-                    #     self.start_time = self.start_time + feedback_duration
+                        # Feedback closeout
+                        self.outer_start_time = time.time()
+                        gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
+                        feedback_duration = time.time() - begin_feedback
+                        # print('Feedback duration: ', feedback_duration)
+                        self.start_time = self.start_time + feedback_duration
 
             #         if shouldAutosave and (i+1)%autosaveInterval == 0: # Autosave logic, +1 so it doesn't autosave first data point
             #             flexSave(datasetName, 'CountVsTime', 'autosave')

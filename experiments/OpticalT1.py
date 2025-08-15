@@ -17,6 +17,7 @@ from rpyc.utils.classic import obtain
 
 from experiments.NewPulses import Pulses
 from drivers.ni.nidaq_final import NIDAQ
+from experiments.NewportSpatialFeedback import SpatialFeedback
 
 
 class Optical_T1_Meas:
@@ -57,25 +58,46 @@ class Optical_T1_Meas:
             # storing experiment data
             self.PLcounts = dict([[tau, []] for tau in self.tau_list])
 
+            # Feedback parameters
+            # feedback_trigger_rate = int(20e3)
+            # feedback_time_per_point = 0.05
+            # feedback_num_samples = int(feedback_trigger_rate * feedback_time_per_point)
+            x_init_position = 5.8124
+            y_init_position = 18.8962
+            z_init_position = -5.47199
+            feedback_timer = time.time()
+            feedback_counter = 0
+
             # readout time in ns
             readout_time = 300
 
             # generate pulse sequences
-            seqs = []
-            for tau in self.tau_list:
-                seqs.append(Pulses(gw).OPTICAL_T1(tau, clock_time, init_time, readout_time, laser_lag, singlet_decay, tau_max))
+            # seqs = []
+            # for tau in self.tau_list:
+            #     seqs.append(Pulses(gw).OPTICAL_T1(tau, clock_time, init_time, readout_time, laser_lag, singlet_decay, tau_max))
 
 
             # MAIN EXPERIMENT LOOP
-            with NIDAQ() as mynidaq:
+            for i in iters:
 
-                # set laser power
-                mynidaq.laser_power_atten(laser_power)
+                print('Doing ', i, 'th iteration')
 
-                for i in iters:
+                # SPATIAL FEEDBACK EVERY 5 minutes
+                if ((time.time() - feedback_timer) > 300):
+                    feedback_counter = feedback_counter + 1
+                    print('Feedback')
+                    begin_feedback = time.time()
+                    SpatialFeedback.Feedback(x_init_position, y_init_position, z_init_position)
+                    feedback_duration = time.time() - begin_feedback
+                    print('Feedback duration: ', feedback_duration)
+                    print('Feedback counter ', feedback_counter)
+                    feedback_timer = time.time()
+            
+                with NIDAQ() as mynidaq:
 
-                    print('Doing ', i, 'th iteration')
-
+                    # set laser power
+                    mynidaq.laser_power_atten(laser_power)
+                        
                     # for tau in self.tau_list:  # measure NV with delay = tau
                     for j in range(int(tau_num)):
 

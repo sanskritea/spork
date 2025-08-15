@@ -37,13 +37,8 @@ class AttocubeXYScanning_Widget(QtWidgets.QWidget):
                 'widget': QtWidgets.QLineEdit('AttocubeXYScanningData'),
             },
 
-            'device': {
-                'display_text': 'DAQ Device Name',
-                'widget': QtWidgets.QLineEdit('Dev4'),
-            },
-
             'x_init_voltage': {
-                'display_text': 'DAQ Initial Voltage X axis',
+                'display_text': 'Initial DAQ AO2',
                 'widget': SpinBox(
                     value=-0.1,
                     dec=True,
@@ -51,23 +46,7 @@ class AttocubeXYScanning_Widget(QtWidgets.QWidget):
             },
 
             'x_final_voltage': {
-                'display_text': 'DAQ Final Voltage X axis',
-                'widget': SpinBox(
-                    value=8,
-                    dec=True,
-                ),
-            },
-
-            'y_init_voltage': {
-                'display_text': 'DAQ Initial Voltage Y axis',
-                'widget': SpinBox(
-                    value=-0.1,
-                    dec=True,
-                ),
-            },
-
-            'y_final_voltage': {
-                'display_text': 'DAQ Final Voltage Y axis',
+                'display_text': 'Final DAQ AO2',
                 'widget': SpinBox(
                     value=8,
                     dec=True,
@@ -75,7 +54,7 @@ class AttocubeXYScanning_Widget(QtWidgets.QWidget):
             },
 
             'x_voltage_steps': {
-                'display_text': 'Number of X Steps',
+                'display_text': 'Number of AO2 Steps',
                 'widget': SpinBox(
                     value=1001,
                     dec=True,
@@ -83,8 +62,24 @@ class AttocubeXYScanning_Widget(QtWidgets.QWidget):
                 ),
             },
 
+            'y_init_voltage': {
+                'display_text': 'Initial DAQ AO3',
+                'widget': SpinBox(
+                    value=-0.1,
+                    dec=True,
+                ),
+            },
+
+            'y_final_voltage': {
+                'display_text': 'Final DAQ AO3',
+                'widget': SpinBox(
+                    value=8,
+                    dec=True,
+                ),
+            },
+
             'y_voltage_steps': {
-                'display_text': 'Number of Y Steps',
+                'display_text': 'Number of AO3 Steps',
                 'widget': SpinBox(
                     value=1001,
                     dec=True,
@@ -144,12 +139,11 @@ class AttocubeXYScanning_Widget(QtWidgets.QWidget):
         self.sweepProc.run(
             AttocubeXYScanningMeas.scanning,
             self.params_widget.datasetName, 
-            self.params_widget.device,
             self.params_widget.x_init_voltage, 
             self.params_widget.x_final_voltage,
+            self.params_widget.x_voltage_steps,
             self.params_widget.y_init_voltage, 
             self.params_widget.y_final_voltage,
-            self.params_widget.x_voltage_steps,
             self.params_widget.y_voltage_steps, 
             self.params_widget.time_per_pixel, 
         )

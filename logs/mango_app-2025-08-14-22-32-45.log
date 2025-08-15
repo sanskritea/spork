@@ -1,0 +1,5 @@
+2025-08-14 22:32:45.681 [CRITICAL] (          logging.py:  32) Traceback (most recent call last):
+2025-08-14 22:32:45.681 [CRITICAL] (          logging.py:  32)   File "C:\Users\awschlab\desktop\spork\app.py", line 162, in <module>
+2025-08-14 22:32:45.682 [CRITICAL] (          logging.py:  32)     guiElements_Ramsey,
+2025-08-14 22:32:45.682 [CRITICAL] (          logging.py:  32)     ^^^^^^^^^^^^^^^^^^
+2025-08-14 22:32:45.683 [CRITICAL] (          logging.py:  32) NameError: name 'guiElements_Ramsey' is not defined. Did you mean: 'guiElements_Rabi'?

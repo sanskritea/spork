@@ -31,55 +31,30 @@ class Pulsed_ODMR_Widget(QtWidgets.QWidget):
         self.setWindowTitle('Pulsed ODMR')
 
         self.params_widget = ParamsWidget({
+            
             'datasetName': {
                 'display_text': 'Dataset Name',
                 'widget': QtWidgets.QLineEdit('Pulsed_ODMR'),
             },
-            'samplingFreq': {
-                'display_text': 'Sampling Freq',
+
+            'num_samples': {
+                'display_text': 'Samples per frequency',
                 'widget': SpinBox(
-                    value=2e7,
-                    suffix='Hz',
-                    siPrefix=True,
-                    dec=True,
-                ),
-            },
-            'maxIterations': {
-                'display_text': 'Iterations',
-                'widget': SpinBox(
-                    value=10,
-                    dec=True,
-                    int=True,
-                ),
-            },
-            'startFreq': {
-                'display_text': 'Starting Freq',
-                'widget': SpinBox(
-                    value=2.82e9,
-                    suffix='Hz',
-                    siPrefix=True, 
-                    bounds=(2e9, 4e9),
-                    dec=True,
-                ),
-            },
-            'endFreq': {
-                'display_text': 'Ending Freq',
-                'widget': SpinBox(
-                    value=2.92e9,
-                    suffix='Hz',
-                    siPrefix=True,
-                    bounds=(2e9, 4e9),
-                    dec=True,
-                ),
-            },
-            'numFreqs': {
-                'display_text': 'Number of Freqs',
-                'widget': SpinBox(
-                    value=11,
+                    value=10000,
                     dec=True,
                     int=True
                 ),
             },
+
+            'maxIterations': {
+                'display_text': 'Iterations',
+                'widget': SpinBox(
+                    value=20,
+                    dec=True,
+                    int=True,
+                ),
+            },
+
             'rfPower': {
                 'display_text': 'RF Power',
                 'widget': SpinBox(
@@ -90,120 +65,49 @@ class Pulsed_ODMR_Widget(QtWidgets.QWidget):
                     dec=True,
                 ),
             },
+
             'laser_power': {
-                'display_text': 'Laser power/ attenuator voltage',
+                'display_text': 'Laser power',
                 'widget': SpinBox(
                     value=2,
                     bounds=(0,5),
                     dec=True,
                 ),
             },
-            # 'preReadoutLaserAndMwTime': {
-            #     'display_text': 'Pre-Meas MW+Laser Time',
-            #     'widget': SpinBox(
-            #         value=20e-6,
-            #         suffix='s',
-            #         siPrefix=True,
-            #         bounds=(1e-9, 1),
-            #         dec=True,
-            #     ),
-            # },
-            # 'laserAndMwReadOutTime': {
-            #     'display_text': 'Readout Time',
-            #     'widget': SpinBox(
-            #         value=50e-6,
-            #         suffix='s',
-            #         siPrefix=True,
-            #         bounds=(1e-9, 1),
-            #         dec=True,
-            #     ),
-            # },
-            # 'extraLaserInitTime': {
-            #     'display_text': 'Laser Re-init Time',
-            #     'widget': SpinBox(
-            #         value=20e-6,
-            #         suffix='s',
-            #         siPrefix=True,
-            #         bounds=(1e-9, 1),
-            #         dec=True,
-            #     ),
-            # },
-            # 'waitTime': {
-            #     'display_text': 'Buffer b/w Meas',
-            #     'widget': SpinBox(
-            #         value=10e-6,
-            #         suffix='s',
-            #         siPrefix=True,
-            #         bounds=(1e-9, 1),
-            #         dec=True,
-            #     ),
-            # },
-            'num_samples': {
-                'display_text': 'Samples per frequency point',
+
+            'startFreq': {
+                'display_text': 'Start Freq',
                 'widget': SpinBox(
-                    value=10000,
+                    value=2.82e9,
+                    suffix='Hz',
+                    siPrefix=True, 
+                    bounds=(2e9, 4e9),
+                    dec=True,
+                ),
+            },
+
+            'endFreq': {
+                'display_text': 'End Freq',
+                'widget': SpinBox(
+                    value=2.92e9,
+                    suffix='Hz',
+                    siPrefix=True,
+                    bounds=(2e9, 4e9),
+                    dec=True,
+                ),
+            },
+
+            'numFreqs': {
+                'display_text': 'Number of Freqs',
+                'widget': SpinBox(
+                    value=11,
                     dec=True,
                     int=True
                 ),
             },
 
-            'clock_time': {
-                'display_text': 'Clock pulse duration',
-                'widget': SpinBox(
-                    value=11e-9,
-                    suffix='s',
-                    siPrefix=True,
-                    bounds=(1e-9, 1),
-                    dec=True,
-                ),
-            },
-
-            'init_time': {
-                'display_text': 'NV Init Pulse',
-                'widget': SpinBox(
-                    value=2e-6,
-                    suffix='s',
-                    siPrefix=True, #kiloseconds are cursed
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'laser_lag': {
-                'display_text': 'Laser Stabilization Lag',
-                'widget': SpinBox(
-                    value=300e-9,
-                    suffix='s',
-                    siPrefix=True, #kiloseconds are cursed
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'probe_time': {
-                'display_text': 'Readout Duration',
-                'widget': SpinBox(
-                    value=300e-9,
-                    suffix='s',
-                    siPrefix=True, 
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
-            'singlet_decay': {
-                'display_text': 'NV Singlet Decay',
-                'widget': SpinBox(
-                    value=1e-6,
-                    suffix='s',
-                    siPrefix=True, 
-                    #bounds=(100e3, 10e9),
-                    dec=True,
-                ),
-            },
-
             'pi_time': {
-                'display_text': 'Pi pulse duration',
+                'display_text': 'Pi pulse',
                 'widget': SpinBox(
                     value=100e-9,
                     suffix='s',
@@ -255,20 +159,14 @@ class Pulsed_ODMR_Widget(QtWidgets.QWidget):
         # run the sweep function in a new thread
         self.sweepProc.run(
             PulsedODMRmeas.PulsedODMR,
-            self.params_widget.datasetName, 
-            self.params_widget.samplingFreq, 
+            self.params_widget.datasetName,
+            self.params_widget.num_samples, 
             self.params_widget.maxIterations,
+            self.params_widget.rfPower,
+            self.params_widget.laser_power,
             self.params_widget.startFreq,
             self.params_widget.endFreq,
             self.params_widget.numFreqs,
-            self.params_widget.rfPower,
-            self.params_widget.laser_power,
-            self.params_widget.num_samples,
-            int(1e9*self.params_widget.clock_time),
-            int(1e9*self.params_widget.init_time),
-            int(1e9*self.params_widget.laser_lag),
-            int(1e9*self.params_widget.probe_time),
-            int(1e9*self.params_widget.singlet_decay),
             int(1e9*self.params_widget.pi_time),
         )
 

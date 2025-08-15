@@ -1,0 +1,53 @@
+2025-08-13 11:57:47.044 [    INFO] (             misc.py: 208) Running process function [<bound method CountVsTimeMeasurement.CountVsTime of <experiments.CountVsTime.CountVsTimeMeasurement object at 0x000001EC48019AD0>>] with args: [('CountVsTime', 20000000.0, 20000.0, 2.0, 0.01, 0.0, 0.0, 0.0)] kwargs: [{}].
+2025-08-13 11:58:01.955 [    INFO] (             misc.py: 221) Killing process.
+2025-08-13 11:58:02.016 [   DEBUG] (  selector_events.py:  54) Using selector: SelectSelector
+2025-08-13 11:58:02.018 [   DEBUG] (  _asyncio_worker.py:  81) Started DataSource event loop thread <Thread(Thread-1 (_event_loop_thread), started daemon 32428)>.
+2025-08-13 11:58:02.028 [   DEBUG] (      base_events.py: 847) Get address info localhost:30101, type=<SocketKind.SOCK_STREAM: 1>
+2025-08-13 11:58:02.034 [   DEBUG] (      base_events.py: 857) Getting address info localhost:30101, type=<SocketKind.SOCK_STREAM: 1> took 0.000ms: [(<AddressFamily.AF_INET6: 23>, <SocketKind.SOCK_STREAM: 1>, 0, '', ('::1', 30101, 0, 0)), (<AddressFamily.AF_INET: 2>, <SocketKind.SOCK_STREAM: 1>, 0, '', ('127.0.0.1', 30101))]
+2025-08-13 11:58:04.070 [   DEBUG] (      base_events.py:1120) <asyncio.TransportSocket fd=4052, family=2, type=1, proto=0, laddr=('127.0.0.1', 61444), raddr=('127.0.0.1', 30101)> connected to localhost:30101: (<_SelectorSocketTransport fd=4052 read=polling write=<idle, bufsize=0>>, <asyncio.streams.StreamReaderProtocol object at 0x000001EC55003BD0>)
+2025-08-13 11:58:04.071 [    INFO] (             sink.py: 137) Sink connected to data server [('127.0.0.1', 30101)].
+2025-08-13 11:58:04.074 [   DEBUG] (           server.py: 113) Sent [1] bytes to ('127.0.0.1', 30101).
+2025-08-13 11:58:04.078 [   DEBUG] (           server.py: 113) Sent [11] bytes to ('127.0.0.1', 30101).
+2025-08-13 11:58:04.078 [   DEBUG] (             sink.py: 168) Sink finished negotiation with data server [('127.0.0.1', 30101)].
+2025-08-13 11:58:04.089 [   DEBUG] (           server.py:  98) Received [446] bytes from [('127.0.0.1', 30101)].
+2025-08-13 11:58:04.090 [   DEBUG] (             sink.py: 198) Sink received pickle of [446] bytes from data server [('127.0.0.1', 30101)].
+2025-08-13 11:58:04.090 [   DEBUG] (             sink.py: 226) Sink queued pickle of [446] bytes.
+2025-08-13 11:58:04.092 [   DEBUG] (             sink.py: 343) pop returning new data
+2025-08-13 11:58:04.119 [   DEBUG] (             sink.py: 234) Sink stopped, closing connection with data server [('127.0.0.1', 30101)].
+2025-08-13 11:58:04.120 [   DEBUG] (           server.py: 119) Closed socket [('127.0.0.1', 30101)].
+2025-08-13 11:58:04.121 [   DEBUG] (      base_events.py: 676) Close <_WindowsSelectorEventLoop running=False closed=False debug=True>
+2025-08-13 11:58:04.122 [    INFO] (  _asyncio_worker.py:  89) Source [('localhost', 30101)] closed.
+2025-08-14 20:56:14.480 [   DEBUG] (  selector_events.py:  54) Using selector: SelectSelector
+2025-08-14 20:56:14.489 [   DEBUG] (  _asyncio_worker.py:  81) Started DataSource event loop thread <Thread(Thread-2 (_event_loop_thread), started daemon 29560)>.
+2025-08-14 20:56:14.500 [   DEBUG] (      base_events.py: 847) Get address info localhost:30101, type=<SocketKind.SOCK_STREAM: 1>
+2025-08-14 20:56:14.502 [   DEBUG] (      base_events.py: 857) Getting address info localhost:30101, type=<SocketKind.SOCK_STREAM: 1> took 0.000ms: [(<AddressFamily.AF_INET6: 23>, <SocketKind.SOCK_STREAM: 1>, 0, '', ('::1', 30101, 0, 0)), (<AddressFamily.AF_INET: 2>, <SocketKind.SOCK_STREAM: 1>, 0, '', ('127.0.0.1', 30101))]
+2025-08-14 20:56:16.538 [   DEBUG] (      base_events.py:1120) <asyncio.TransportSocket fd=4264, family=2, type=1, proto=0, laddr=('127.0.0.1', 53900), raddr=('127.0.0.1', 30101)> connected to localhost:30101: (<_SelectorSocketTransport fd=4264 read=polling write=<idle, bufsize=0>>, <asyncio.streams.StreamReaderProtocol object at 0x000001EC550AF990>)
+2025-08-14 20:56:16.540 [    INFO] (             sink.py: 137) Sink connected to data server [('127.0.0.1', 30101)].
+2025-08-14 20:56:16.542 [   DEBUG] (           server.py: 113) Sent [1] bytes to ('127.0.0.1', 30101).
+2025-08-14 20:56:16.544 [   DEBUG] (           server.py: 113) Sent [11] bytes to ('127.0.0.1', 30101).
+2025-08-14 20:56:16.545 [   DEBUG] (             sink.py: 168) Sink finished negotiation with data server [('127.0.0.1', 30101)].
+2025-08-14 20:56:16.648 [   DEBUG] (           server.py:  98) Received [446] bytes from [('127.0.0.1', 30101)].
+2025-08-14 20:56:16.649 [   DEBUG] (             sink.py: 198) Sink received pickle of [446] bytes from data server [('127.0.0.1', 30101)].
+2025-08-14 20:56:16.650 [   DEBUG] (             sink.py: 226) Sink queued pickle of [446] bytes.
+2025-08-14 20:56:16.652 [   DEBUG] (             sink.py: 343) pop returning new data
+2025-08-14 20:56:16.682 [CRITICAL] (          logging.py:  32) OSError: [Errno 28] No space left on device
+2025-08-14 20:56:16.683 [CRITICAL] (          logging.py:  32) 
+2025-08-14 20:56:16.684 [CRITICAL] (          logging.py:  32) During handling of the above exception, another exception occurred:
+2025-08-14 20:56:16.685 [CRITICAL] (          logging.py:  32) 
+2025-08-14 20:56:16.685 [CRITICAL] (          logging.py:  32) Traceback (most recent call last):
+2025-08-14 20:56:16.686 [CRITICAL] (          logging.py:  32)   File "C:\Users\awschlab\desktop\spork\guis\guiElements_CountVsTime.py", line 200, in stop
+2025-08-14 20:56:16.686 [   DEBUG] (             sink.py: 234) Sink stopped, closing connection with data server [('127.0.0.1', 30101)].
+2025-08-14 20:56:16.687 [CRITICAL] (          logging.py:  32)     flexSave(self.params_widget.datasetName, 'CountVsTime', 'closeout') #if process is closed
+2025-08-14 20:56:16.688 [CRITICAL] (          logging.py:  32)     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-08-14 20:56:16.689 [   DEBUG] (           server.py: 119) Closed socket [('127.0.0.1', 30101)].
+2025-08-14 20:56:16.688 [CRITICAL] (          logging.py:  32)   File "C:\Users\awschlab\desktop\spork\guis\guiElements_general.py", line 78, in flexSave
+2025-08-14 20:56:16.690 [CRITICAL] (          logging.py:  32)     save_json(filePath, dataSink.data) #actually save the data as a json there
+2025-08-14 20:56:16.690 [CRITICAL] (          logging.py:  32)     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-08-14 20:56:16.690 [   DEBUG] (      base_events.py: 676) Close <_WindowsSelectorEventLoop running=False closed=False debug=True>
+2025-08-14 20:56:16.691 [CRITICAL] (          logging.py:  32)   File "C:\Users\awschlab\miniconda3\envs\scanprobe\Lib\site-packages\nspyre\data\save.py", line 28, in save_json
+2025-08-14 20:56:16.691 [    INFO] (  _asyncio_worker.py:  89) Source [('localhost', 30101)] closed.
+2025-08-14 20:56:16.692 [CRITICAL] (          logging.py:  32)     with open(filename, 'w') as f:
+2025-08-14 20:56:16.692 [CRITICAL] (          logging.py:  32) OSError: [Errno 28] No space left on device
+2025-08-14 22:26:33.158 [   DEBUG] (              app.py:  92) Leaked 1 Qt widgets:
+<PyQt6.QtWidgets.QCheckBox object at 0x000001EC5508DFC0>
+
