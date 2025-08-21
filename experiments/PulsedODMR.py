@@ -22,6 +22,7 @@ from guis.guiElements_general import flexSave
 from rpyc.utils.classic import obtain
 
 from experiments.NewPulses import Pulses
+from experiments.fitter import pulsed_odmr
 from drivers.ni.nidaq_final import NIDAQ
 
 # from PulsePatterns import Pulses
@@ -135,6 +136,12 @@ class Pulsed_ODMR_Measurement:
 
                         # RESET SWABIAN OUTPUTS
                         gw.swabian.reset()
+
+                        # Run fitter to find peaks
+                        data = self.freqs, self.mwCountsDict, self.noMwCountsDict
+                        fL, fU = pulsed_odmr(data)
+                        print('Fitted Nuclear splitting peaks ', f1, ', ', f2, 'GHz')
+
 
                 notes = ''
                 flexSave(datasetName, notes, 'Pulsed ODMR')

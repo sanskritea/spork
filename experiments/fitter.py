@@ -72,7 +72,7 @@ def podmr_format_fit_results(fit_params, fit_errors, constrain_separation = True
     return '\n'.join(lines)
 
 
-def pulsed_odmr(constrain_separation=True): #, filename):
+def pulsed_odmr(constrain_separation=True, data): #, filename):
     """
     Initialize NV-ODMR fitter
     
@@ -86,15 +86,24 @@ def pulsed_odmr(constrain_separation=True): #, filename):
     fit_errors = None
     fit_function = None
 
-    # extract data from the json file
-    data = pd.read_json('C://Users/awschlab/Desktop/data/250803/Pulsed ODMR/82G_300nm_Pulsed ODMR231406final.json')
-    frequency = np.array(data['datasets']['freqs'])
+    frequency = []
     MW_ON = []
     MW_OFF = []
 
-    for f in frequency:
-    	MW_ON.append(np.mean(data['datasets']['mwCountsDict'][str(f)]))
-    	MW_OFF.append(np.mean(data['datasets']['noMwCountsDict'][str(f)]))
+    # extract data from the json file if not passed
+    if data != False:
+        data = pd.read_json('C://Users/awschlab/Desktop/data/250803/Pulsed ODMR/82G_300nm_Pulsed ODMR231406final.json')
+        frequency = np.array(data['datasets']['freqs'])
+
+        for f in frequency:
+        	MW_ON.append(np.mean(data['datasets']['mwCountsDict'][str(f)]))
+        	MW_OFF.append(np.mean(data['datasets']['noMwCountsDict'][str(f)]))
+
+    else:
+        frequency, MW_ON_raw, MW_OFF_raw = data
+        for f in frequency:
+        MW_ON.append(np.mean(MW_ON_raw[str(f)]))
+        MW_OFF.append(np.mean(MW_OFF_raw[str(f)]))
 
     counts = np.array(MW_ON) - np.array(MW_OFF)
 
@@ -163,31 +172,39 @@ def pulsed_odmr(constrain_separation=True): #, filename):
         print("No fit available. Run fit() first.")
         return
     
-    # Generate fitted curve
-    f_fine = np.linspace(np.min(frequency), np.max(frequency), 1000)
-    if constrain_separation:
-        fitted_counts = constrained_double_lorentzian(f_fine, *list(fit_params.values()))
+    if data != False:
+        # Generate fitted curve
+        f_fine = np.linspace(np.min(frequency), np.max(frequency), 1000)
+        if constrain_separation:
+            fitted_counts = constrained_double_lorentzian(f_fine, *list(fit_params.values()))
+        else:
+            fitted_counts = double_lorentzian(f_fine, *list(fit_params.values()))
+
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(frequency/1e6, counts, 'bo', label='Data', alpha=0.7)
+        plt.plot(f_fine/1e6, fitted_counts, 'r-', label='Double Lorentzian Fit', linewidth=2)
+        
+        plt.xlabel('Frequency (MHz)')
+        plt.ylabel('Normalized Fluorescence')
+        plt.title('Fitted Pulsed ODMR')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        
+        # Add fit parameters as text
+        textstr = podmr_format_fit_results(fit_params, fit_errors)
+        plt.text(0.02, 0.98, textstr, transform=plt.gca().transAxes, 
+                verticalalignment='bottom', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+        
+        plt.tight_layout()
+        plt.show()
+
     else:
-        fitted_counts = double_lorentzian(f_fine, *list(fit_params.values()))
-
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(frequency/1e6, counts, 'bo', label='Data', alpha=0.7)
-    plt.plot(f_fine/1e6, fitted_counts, 'r-', label='Double Lorentzian Fit', linewidth=2)
-    
-    plt.xlabel('Frequency (MHz)')
-    plt.ylabel('Normalized Fluorescence')
-    plt.title('Fitted Pulsed ODMR')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    
-    # Add fit parameters as text
-    textstr = podmr_format_fit_results(fit_params, fit_errors)
-    plt.text(0.02, 0.98, textstr, transform=plt.gca().transAxes, 
-            verticalalignment='bottom', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-    
-    plt.tight_layout()
-    plt.show()
+        f_center = fit_params['f_center']
+        f_L = (f_center - 1.5e6) / 1e9
+        f_U = (f_center + 1.5e6) / 1e9
+        
+        return f_L, f_U 
 
 
 ##############################################################################################
@@ -238,9 +255,9 @@ def rabi():
 ##############################################################################################
 
 
-# Example usage and test data generation
-if __name__ == "__main__":
+# # Example usage and test data generation
+# if __name__ == "__main__":
 
-	# pulsed_odmr()
-	rabi()
+# 	# pulsed_odmr()
+# 	rabi()
     
