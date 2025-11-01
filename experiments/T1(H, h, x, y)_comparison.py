@@ -233,13 +233,13 @@ def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=T
                     H_YY = 0.0
             
             n, m = p1, p2
-            
-            # ✅ CRITICAL FIX: Normalize ALL terms by omega_M!
-            result_11 = (H_XX + H_YY) / (2)
-            result_12 = (H_XX - H_YY) / (2)
-            
+
+            # ✅ CORRECTED: Dipolar terms must be normalized by omega_M!
+            result_11 = (H_XX + H_YY) / (2 * omega_M)  # <-- DIVIDE BY omega_M!
+            result_12 = (H_XX - H_YY) / (2 * omega_M)  # <-- DIVIDE BY omega_M!
+
             if p1 == p2:
-                # Also normalize the external field and exchange
+                # External field and exchange are also normalized
                 exchange = gamma * DD * (p1 * np.pi / l_bar)**2 / omega_M
                 result_11 += omega_H / omega_M + exchange
 
