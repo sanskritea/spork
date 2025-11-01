@@ -572,11 +572,8 @@ def calculate_T1_finite_bar_at_position(h_NV, H0, N_max, position='center',
         bose = 2 * n_bose_vectorized(omega_mode) + 1
         
         # ✅ CORRECTED coupling strength formula (matches Mathematica exactly)
-        # From PDF page 12: g_kHz = |coupling| * sqrt(ωdwl * 1e-3 * ωM * 1e6)
-        # Note: ωM is in GHz, so 1e6 converts to MHz, then 1e-3 gives final Hz scaling
-        g_coupling_kHz = np.abs(coupling_all_modes[mode_idx]) * np.sqrt(omega_dwl * 1e-3 * omega_M * 1e9)
-        g_coupling_Hz = g_coupling_kHz * 1e3 
-        # ☝️ This is in Hz now (removed the extra 1e-3 factor)
+        g_coupling_kHz = np.abs(coupling) * np.sqrt(omega_dwl * 1e-3 * omega_M * 1e6)
+        g_coupling_Hz = g_coupling_kHz * 1e3  # Convert to Hz for T1 calculation
         
         # Fermi's Golden Rule contribution
         contrib_L = g_coupling_Hz**2 * bose * lorentzian_L
