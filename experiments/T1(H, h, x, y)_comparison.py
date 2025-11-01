@@ -1053,6 +1053,26 @@ def diagnose_coupling_calculation(h_NV, H0, N_max, d_bar, w_bar, l_bar):
 
 if __name__ == "__main__":
 
+    # FORCE DELETE OLD CACHE FILES
+    import glob
+    for cache_file in glob.glob('H_BdG_cache_*.npz'):
+        try:
+            os.remove(cache_file)
+            print(f"Deleted old cache: {cache_file}")
+        except:
+            pass
+    
+    for cache_file in glob.glob('Demag_cache_*.npz'):
+        try:
+            os.remove(cache_file)
+            print(f"Deleted old cache: {cache_file}")
+        except:
+            pass
+    
+    print("\n" + "#"*70)
+    print("# DIAGNOSTIC TEST")
+    print("#"*70 + "\n")
+
     # Run the diagnostic FIRST
     print("\n" + "#"*70)
     print("# DIAGNOSTIC TEST")
