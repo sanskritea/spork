@@ -186,7 +186,7 @@ def Integrand2(xdif, zdif, p1, p2, w_norm, d_norm):
 
 def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=True):
     """
-    Generate discrete bar BdG Hamiltonian - CORRECTED normalization
+    Generate discrete bar BdG Hamiltonian - FULLY CORRECTED normalization
     """
     cache_file = f'H_BdG_cache_N{N_max}_H{omega_H:.3f}.npz'
     
@@ -233,13 +233,15 @@ def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=T
                     H_YY = 0.0
             
             n, m = p1, p2
-            result_11 = (H_XX + H_YY) / 2
-            result_12 = (H_XX - H_YY) / 2
+            
+            # ✅ CRITICAL FIX: Normalize ALL terms by omega_M!
+            result_11 = (H_XX + H_YY) / (2 * omega_M)  # <-- DIVIDE BY omega_M!
+            result_12 = (H_XX - H_YY) / (2 * omega_M)  # <-- DIVIDE BY omega_M!
             
             if p1 == p2:
-                # CRITICAL FIX: Normalize by omega_M!
+                # Also normalize the external field and exchange
                 exchange = gamma * DD * (p1 * np.pi / l_bar)**2 / omega_M
-                result_11 += omega_H / omega_M + exchange  # <-- DIVIDE BY omega_M!
+                result_11 += omega_H / omega_M + exchange
             
             H_BdG[n, m] = result_11
             H_BdG[n, m + N_max] = result_12
