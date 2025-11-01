@@ -1068,10 +1068,6 @@ if __name__ == "__main__":
             print(f"Deleted old cache: {cache_file}")
         except:
             pass
-    
-    print("\n" + "#"*70)
-    print("# DIAGNOSTIC TEST")
-    print("#"*70 + "\n")
 
     # Run the diagnostic FIRST
     print("\n" + "#"*70)
