@@ -119,7 +119,7 @@ class Attocube_Approach_Measurement:
 						print('either engaged or voltage out of range')
 
 				# Bring scanner to 0 for safety, turn off PID, return offset to 0
-				# self.ao_task.write(-0.1)
+				self.ao_task.write(-0.1)
 
 				# CLOSE DAQ TASKS
 				self.ao_task.stop()

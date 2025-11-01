@@ -143,7 +143,8 @@ class XZScan:
                         )
 
             # Save data 
-            flexSave(datasetname, 'YZ')
+            notes = ''
+            flexSave(datasetname, notes,'YZ')
 
             # go back to starting point
             print('Moving to start location')

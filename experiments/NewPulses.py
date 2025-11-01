@@ -16,17 +16,19 @@ from rpyc.utils.classic import obtain
 from pulsestreamer import Sequence
 from drivers.ni.nidaq_final import NIDAQ
 
+clock_time = 10
+init_time = 5000
+readout_time = 500
+laser_lag = 300
+singlet_decay = 1000
+
+
 class Pulses():
     '''
     ALL UNITS: [ns]
     '''
 
-    clock_time = 10
-    init_time = 2000
-    readout_time = 500
-    laser_lag = 300
-    singlet_decay = 1000
-
+    
 
     def __init__(self, gateway):
 
@@ -170,6 +172,9 @@ class Pulses():
         # create sequence object
         seq = self.Pulser.createSequence()
         tau_time = int(tau_time)
+        clock_time = 10
+        init_time = 500
+        readout_time = 50
 
         # Laser
         laser_off_1 = rise_laser_off
@@ -241,13 +246,13 @@ class Pulses():
         # define DAQ counting sequence triggers
         daq_off_0 = laser_lag 
         daq_on_1 = clock_time 
-        daq_off_1 = probe_time
+        daq_off_1 = readout_time
         daq_on_2 = clock_time
-        daq_off_2 = init_time - (2 * clock_time) - probe_time - laser_lag + singlet_decay + max_MW_time + laser_lag
+        daq_off_2 = init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + max_MW_time + laser_lag
         daq_on_3 = clock_time
-        daq_off_3 = probe_time
+        daq_off_3 = readout_time
         daq_on_4 = clock_time
-        daq_off_4 = init_time - (2 * clock_time) - probe_time - laser_lag + singlet_decay + max_MW_time 
+        daq_off_4 = init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + max_MW_time 
         daq_clock_seq = [(daq_off_0, 0), (daq_on_1, 1), (daq_off_1, 0), (daq_on_2, 1), (daq_off_2, 0), (daq_on_3, 1), (daq_off_3, 0), (daq_on_4, 1), (daq_off_4, 0)]
 
         # define sequence for MW (switch)
@@ -283,13 +288,13 @@ class Pulses():
         # define DAQ counting sequence triggers
         daq_off_0 = laser_lag 
         daq_on_1 = clock_time 
-        daq_off_1 = probe_time
+        daq_off_1 = readout_time
         daq_on_2 = clock_time
-        daq_off_2 = init_time - (2 * clock_time) - probe_time - laser_lag + singlet_decay + pi_time + laser_lag
+        daq_off_2 = init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + pi_time + laser_lag
         daq_on_3 = clock_time
-        daq_off_3 = probe_time
+        daq_off_3 = readout_time
         daq_on_4 = clock_time
-        daq_off_4 = init_time - (2 * clock_time) - probe_time - laser_lag + singlet_decay + pi_time 
+        daq_off_4 = init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + pi_time 
         daq_clock_seq = [(daq_off_0, 0), (daq_on_1, 1), (daq_off_1, 0), (daq_on_2, 1), (daq_off_2, 0), (daq_on_3, 1), (daq_off_3, 0), (daq_on_4, 1), (daq_off_4, 0)]
 
         # define sequence for MW (switch)
@@ -349,7 +354,7 @@ class Pulses():
         return seq
 
 
-    def RAMSEY(self, clock_time, init_time, laser_lag, probe_time, singlet_decay, pi_half_time, tau_time, max_tau_time):
+    def RAMSEY(self, clock_time, init_time, laser_lag, readout_time, singlet_decay, pi_half_time, tau_time, max_tau_time):
 
         # create sequence object
         seq = self.Pulser.createSequence()
@@ -374,13 +379,13 @@ class Pulses():
         # define DAQ counting sequence triggers
         daq_off_0 = padding + laser_lag 
         daq_on_1 = clock_time 
-        daq_off_1 = probe_time
+        daq_off_1 = readout_time
         daq_on_2 = clock_time
-        daq_off_2 = init_time - (2 * clock_time) - probe_time - laser_lag + singlet_decay + ( 2 * pi_half_time) + tau_time + laser_lag
+        daq_off_2 = init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + ( 2 * pi_half_time) + tau_time + laser_lag
         daq_on_3 = clock_time
-        daq_off_3 = probe_time
+        daq_off_3 = readout_time
         daq_on_4 = clock_time
-        daq_off_4 = init_time - (2 * clock_time) - probe_time - laser_lag
+        daq_off_4 = init_time - (2 * clock_time) - readout_time - laser_lag
         daq_clock_seq = [(daq_off_0, 0), (daq_on_1, 1), (daq_off_1, 0), (daq_on_2, 1), (daq_off_2, 0), (daq_on_3, 1), (daq_off_3, 0), (daq_on_4, 1), (daq_off_4, 0)]
 
         # assign sequences to respective channels
@@ -430,7 +435,7 @@ class Pulses():
         return seq
 
 
-    def MW_T1(self, tau_time, clock_time, init_time, probe_time, laser_lag, singlet_decay, tau_max, pi_time):
+    def MW_T1(self, tau_time, clock_time, init_time, readout_time, laser_lag, singlet_decay, tau_max, pi_time):
 
         # create sequence object
         seq = self.Pulser.createSequence()
@@ -449,13 +454,13 @@ class Pulses():
         # define DAQ counting sequence triggers
         daq_off_0 = 2000 + tau_max + init_time + singlet_decay + pi_time + laser_lag
         daq_on_1 = clock_time 
-        daq_off_1 = probe_time
+        daq_off_1 = readout_time
         daq_on_2 = clock_time
-        daq_off_2 = init_time - (2 * clock_time) - probe_time - laser_lag + 2000 + tau_max + init_time + singlet_decay + laser_lag
+        daq_off_2 = init_time - (2 * clock_time) - readout_time - laser_lag + 2000 + tau_max + init_time + singlet_decay + laser_lag
         daq_on_3 = clock_time
-        daq_off_3 = probe_time
+        daq_off_3 = readout_time
         daq_on_4 = clock_time
-        daq_off_4 = init_time - (2 * clock_time) - probe_time - laser_lag 
+        daq_off_4 = init_time - (2 * clock_time) - readout_time - laser_lag 
         daq_clock_seq = [(daq_off_0, 0), (daq_on_1, 1), (daq_off_1, 0), (daq_on_2, 1), (daq_off_2, 0), (daq_on_3, 1), (daq_off_3, 0), (daq_on_4, 1), (daq_off_4, 0)]
 
         # define sequence for MW (switch)
@@ -483,13 +488,13 @@ class Pulses():
         # # define DAQ counting sequence triggers
         # daq_off_0 = 2000 + init_time + singlet_decay + pi_time + tau_time + laser_lag
         # daq_on_1 = clock_time 
-        # daq_off_1 = probe_time
+        # daq_off_1 = readout_time
         # daq_on_2 = clock_time
-        # daq_off_2 = init_time - (2 * clock_time) - probe_time - laser_lag + 2000 + init_time + singlet_decay + pi_time + int(tau_max - tau_time) + laser_lag
+        # daq_off_2 = init_time - (2 * clock_time) - readout_time - laser_lag + 2000 + init_time + singlet_decay + pi_time + int(tau_max - tau_time) + laser_lag
         # daq_on_3 = clock_time
-        # daq_off_3 = probe_time
+        # daq_off_3 = readout_time
         # daq_on_4 = clock_time
-        # daq_off_4 = init_time - (2 * clock_time) - probe_time - laser_lag 
+        # daq_off_4 = init_time - (2 * clock_time) - readout_time - laser_lag 
         # daq_clock_seq = [(daq_off_0, 0), (daq_on_1, 1), (daq_off_1, 0), (daq_on_2, 1), (daq_off_2, 0), (daq_on_3, 1), (daq_off_3, 0), (daq_on_4, 1), (daq_off_4, 0)]
 
         # # define sequence for MW (switch)
@@ -506,7 +511,7 @@ class Pulses():
         return seq
 
 
-    def T2_STAR(self, tau_time, clock_time, init_time, probe_time, laser_lag, singlet_decay, pi_half_time, tau_max_time):
+    def T2_STAR(self, tau_time, clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_half_time, tau_max_time):
         '''
         MW (differential) T1 sequence for the two longitudinal relaxation rates measured with different wait times
         '''
@@ -524,17 +529,17 @@ class Pulses():
         # define sequence structure for DAQ counting triggers
         daq_clock_seq = [
             (padding_time + laser_lag, 0), 
-            (clock_time, 1), (probe_time, 0), (clock_time, 1),
-            (init_time - (2 * clock_time) - probe_time - laser_lag 
+            (clock_time, 1), (readout_time, 0), (clock_time, 1),
+            (init_time - (2 * clock_time) - readout_time - laser_lag 
                 + singlet_decay + pi_half_time + tau_time + pi_half_time + laser_lag, 0), 
-            (clock_time, 1), (probe_time, 0), (clock_time, 1), 
-            (init_time - (2 * clock_time) - probe_time - laser_lag 
+            (clock_time, 1), (readout_time, 0), (clock_time, 1), 
+            (init_time - (2 * clock_time) - readout_time - laser_lag 
                 + padding_time + laser_lag, 0), 
-            (clock_time, 1), (probe_time, 0), (clock_time, 1),
-            (init_time - (2 * clock_time) - probe_time - laser_lag 
+            (clock_time, 1), (readout_time, 0), (clock_time, 1),
+            (init_time - (2 * clock_time) - readout_time - laser_lag 
                 + singlet_decay + pi_half_time + tau_time + int(3 * pi_half_time) + laser_lag, 0), 
-            (clock_time, 1), (probe_time, 0), (clock_time, 1), 
-            (init_time - (2 * clock_time) - probe_time - laser_lag, 0)
+            (clock_time, 1), (readout_time, 0), (clock_time, 1), 
+            (init_time - (2 * clock_time) - readout_time - laser_lag, 0)
             ]
 
         # define sequence for MW (switch)
@@ -548,7 +553,7 @@ class Pulses():
         return seq
 
 
-    def HAHN(self, tau_time, clock_time, init_time, probe_time, laser_lag, singlet_decay, pi_half_time, tau_max_time):
+    def HAHN(self, tau_time, clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_half_time, tau_max_time):
         '''
         MW (differential) T1 sequence for the two longitudinal relaxation rates measured with different wait times
         '''
@@ -567,17 +572,17 @@ class Pulses():
         # define sequence structure for DAQ counting triggers
         daq_clock_seq = [
             (padding_time + laser_lag, 0), 
-            (clock_time, 1), (probe_time, 0), (clock_time, 1),
-            (init_time - (2 * clock_time) - probe_time - laser_lag 
+            (clock_time, 1), (readout_time, 0), (clock_time, 1),
+            (init_time - (2 * clock_time) - readout_time - laser_lag 
                 + singlet_decay + pi_half_time + tau_half_time + pi_time + tau_half_time + pi_half_time + laser_lag, 0), 
-            (clock_time, 1), (probe_time, 0), (clock_time, 1), 
-            (init_time - (2 * clock_time) - probe_time - laser_lag 
+            (clock_time, 1), (readout_time, 0), (clock_time, 1), 
+            (init_time - (2 * clock_time) - readout_time - laser_lag 
                 + padding_time + laser_lag, 0), 
-            (clock_time, 1), (probe_time, 0), (clock_time, 1),
-            (init_time - (2 * clock_time) - probe_time - laser_lag 
+            (clock_time, 1), (readout_time, 0), (clock_time, 1),
+            (init_time - (2 * clock_time) - readout_time - laser_lag 
                 + singlet_decay + pi_half_time + tau_half_time + pi_time + tau_half_time + int(3 * pi_half_time) + laser_lag, 0), 
-            (clock_time, 1), (probe_time, 0), (clock_time, 1), 
-            (init_time - (2 * clock_time) - probe_time - laser_lag, 0)
+            (clock_time, 1), (readout_time, 0), (clock_time, 1), 
+            (init_time - (2 * clock_time) - readout_time - laser_lag, 0)
             ]
 
         # define sequence for MW (switch)
@@ -622,14 +627,14 @@ class Pulses():
         # define sequence structure for DAQ counting triggers
         daq_clock_seq = [
             (init_time + singlet_decay + laser_lag, 0), 
-            (clock_time, 1), (probe_time, 0), (clock_time, 1), 
-            (init_time - (2 * clock_time) - probe_time - laser_lag + singlet_decay + tau_time + laser_lag, 0), 
-            (clock_time, 1), (probe_time, 0), (clock_time, 1), 
-            (init_time - (2 * clock_time) - probe_time - laser_lag + singlet_decay + pi_time + laser_lag, 0), 
-            (clock_time, 1), (probe_time, 0), (clock_time, 1), 
-            (init_time - (2 * clock_time) - probe_time - laser_lag + singlet_decay + pi_time + tau_time + laser_lag, 0),
-            (clock_time, 1), (probe_time, 0), (clock_time, 1), 
-            (init_time - (2 * clock_time) - probe_time - laser_lag, 0),
+            (clock_time, 1), (readout_time, 0), (clock_time, 1), 
+            (init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + tau_time + laser_lag, 0), 
+            (clock_time, 1), (readout_time, 0), (clock_time, 1), 
+            (init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + pi_time + laser_lag, 0), 
+            (clock_time, 1), (readout_time, 0), (clock_time, 1), 
+            (init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + pi_time + tau_time + laser_lag, 0),
+            (clock_time, 1), (readout_time, 0), (clock_time, 1), 
+            (init_time - (2 * clock_time) - readout_time - laser_lag, 0),
             (laser_buffer_time, 0)            
             ]
 

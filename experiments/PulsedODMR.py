@@ -56,7 +56,7 @@ class Pulsed_ODMR_Measurement:
             # SRS actions
             gw.sg.set_rf_amplitude(rfPower)  # set ouput power
             gw.sg.set_mod_state(False)
-            print('probe time ', probe_time)
+            probe_time = 500
 
             # set up frequencies to sweep over
             # self.freqs = np.random.permutation(np.linspace(startFreq, endFreq, numFreqs, endpoint=True)) # permute the order of freqs to minimize time effects
@@ -86,7 +86,7 @@ class Pulsed_ODMR_Measurement:
 
                         # SET SRS OUTPUT FREQUENCY
                         gw.sg.set_frequency(freq)
-                        print("freq : ", freq)
+                        # print("freq : ", freq)
                         gw.sg.set_rf_state("1")
 
                         # START TASK
@@ -99,7 +99,7 @@ class Pulsed_ODMR_Measurement:
                         )
 
                         # COUNTING WITH EXTERNAL TRIGGER
-                        print('counting')
+                        # print('counting')
                         raw_counts = (obtain(mynidaq.external_read_task(20e6, ((4 * num_samples) + 1))))
 
                         # SEPARATING COUNTS INTO MW ON / MW OFF
@@ -116,7 +116,7 @@ class Pulsed_ODMR_Measurement:
                                     "datasetName": datasetName,
                                     "num_samples": num_samples,
                                     "maxIterations": maxIterations,
-                                    "rf_power": rf_power,
+                                    "rfPower": rfPower,
                                     "laser_power": laser_power,
                                     "startFreq": startFreq,
                                     "endFreq": endFreq,
@@ -137,14 +137,13 @@ class Pulsed_ODMR_Measurement:
                         # RESET SWABIAN OUTPUTS
                         gw.swabian.reset()
 
-                        # Run fitter to find peaks
-                        data = self.freqs, self.mwCountsDict, self.noMwCountsDict
-                        fL, fU = pulsed_odmr(data)
-                        print('Fitted Nuclear splitting peaks ', f1, ', ', f2, 'GHz')
-
-
                 notes = ''
                 flexSave(datasetName, notes, 'Pulsed ODMR')
+
+                # # Run fitter to find peaks
+                # f_center = pulsed_odmr(self.freqs, self.mwCountsDict, self.noMwCountsDict)
+                # # print('Fitted P-ODMR peak ', f_center)
+                # return f_center
 
             print("Experiment finished!")
 

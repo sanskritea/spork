@@ -11,6 +11,7 @@ from rpyc.utils.classic import obtain
 from guis.guiElements_general import flexSave
 
 from experiments.NewPulses import Pulses
+from experiments.fitter import rabi
 from experiments.NewportSpatialFeedback import SpatialFeedback
 from drivers.ni.nidaq_final import NIDAQ
 
@@ -46,6 +47,7 @@ class Rabi_Measurement:
                 [[mw_time, []] for mw_time in self.mw_times]
             )
             self.noMwCountsDict = dict([[mw_time, []] for mw_time in self.mw_times])
+            probe_time = 500
 
             # setup a relevant iterator depending on maxIterations
             if maxIterations < 0:
@@ -94,7 +96,6 @@ class Rabi_Measurement:
                         # print('counts ', raw_counts)
                         signal_counts = 1e9 * np.mean(raw_counts[2::4]) / probe_time
                         bg_counts = 1e9 * np.mean(raw_counts[0::4]) / probe_time
-                        print(raw_counts[2::4])
                         self.mwCountsDict[mw_time].append(signal_counts)
                         self.noMwCountsDict[mw_time].append(bg_counts)
 
@@ -128,6 +129,11 @@ class Rabi_Measurement:
 
                 notes = ''
                 flexSave(datasetName, notes, 'Rabi')
+
+                # Run fitter to find peaks
+                pi_time = rabi(self.mw_times, self.mwCountsDict, self.noMwCountsDict)
+                # print('Fitted pi-time ', pi_time)
+                return pi_time
 
             print("Experiment finished!")
 

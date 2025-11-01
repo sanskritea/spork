@@ -53,7 +53,7 @@ class Optical_Attocube_Approach_Measurement:
 
 				# CREATING ANALOG DAQ TASKS
 				self.ao_task = mynidaq.create_task()
-				self.ao_task.ao_channels.add_ao_voltage_chan(device + '/' + AOchannel)
+				self.ao_task.ao_channels.add_ao_voltage_chan('Dev4/AO1')
 				self.ao_task.write(0)
 
 				# GET PID VALUE AND ENGAGE MODULATION
@@ -130,14 +130,15 @@ class Optical_Attocube_Approach_Measurement:
 						if ((amplitude / A_init < threshhold) or (amplitude / A_init > (2 - threshhold))): #must decide how to threshhold
 							self.engaged = True
 							print('engaged')
+							# Bring scanner to 0 for safety
+							self.ao_task.write(0)
 
-						else:
-							print('either engaged or voltage out of range')
+					else:
+						print('either engaged or voltage out of range')
 						
-					flexSave(datasetName, notes, 'OpticalAttocubeApproach') # after measurement finishes
+					flexSave(datasetname, notes, 'OpticalAttocubeApproach') # after measurement finishes
 
-				# Bring scanner to 0 for safety
-				self.ao_task.write(0)
+				
 
 				# CLOSE DAQ TASKS
 				self.ao_task.stop()

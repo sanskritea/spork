@@ -61,6 +61,7 @@ class AOM_Lag_Meas:
             seqs = []
             rise_laser_off = 500
             fall_laser_off = 10000000
+            print('Making tau list')
             for tau in self.tau_list:
                 seqs.append(Pulses(gw).AOM_Lag(tau, clock_time, init_time, readout_time, rise_laser_off, fall_laser_off))
 

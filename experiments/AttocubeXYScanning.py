@@ -51,7 +51,7 @@ class XYScan:
 			objective_y_init_position = 18.7688
 			objective_z_init_position = -0.1089
 
-			sleep_time = 0.2
+			sleep_time = 0.1
 
 			# start_time
 			self.start_time = time.time()
@@ -60,6 +60,9 @@ class XYScan:
 
 				# current AO2/AO3 voltages
 				current_AO2, current_AO3 = mynidaq.analog_read_task()
+				print('current_AO2 ', current_AO2)
+				print('current_AO3 ', current_AO3)
+
 
 				# ANALOG DAQ TASKS
 				# print('Creating DAQ tasks')
@@ -71,10 +74,10 @@ class XYScan:
 				# move slowly to initial position (assume scanner is at (-0.1, -0.1)
 				# print('x_init_voltage ', x_init_voltage)
 				# print('current_AO2 ', current_AO2)
-				# print('Moving to initial voltage')
+				print('Moving to initial voltage')
 				if x_init_voltage != current_AO2:
 					# print('Move x to initial voltage')
-					steps = int((current_AO2 - x_init_voltage) / 0.005)
+					steps = np.abs(int((current_AO2 - x_init_voltage) / 0.002))
 					x_list = np.linspace(current_AO2, x_init_voltage, steps)
 					# print('x_list ', x_list)
 					for x in x_list:
@@ -83,7 +86,7 @@ class XYScan:
 						time.sleep(sleep_time)
 
 				if y_init_voltage != current_AO3:
-					steps = int((current_AO3 - y_init_voltage) / 0.005)
+					steps = np.abs(int((current_AO3 - y_init_voltage) / 0.002))
 					y_list = np.linspace(current_AO3, y_init_voltage, steps)
 					for y in y_list:
 						self.ao_y_task.write(y)
@@ -141,9 +144,16 @@ class XYScan:
 						self.ao_y_task.write(y)
 						time.sleep(sleep_time)
 
-					# Save XY Scan data
-					notes = 'NA'
-					flexSave(datasetname, notes, 'AttocubeXYScan')
+				# Bring outer dimension to starting voltage
+				print('Reset outer dimension')
+				x_list = np.flip(np.arange(x_init_voltage, x_final_voltage + diff, diff))
+				for x in x_list:
+					self.ao_x_task.write(x)
+					time.sleep(sleep_time)
+
+				# Save XY Scan data
+				notes = ''
+				flexSave(datasetname, notes, 'AttocubeXYScan')
 
 				# CLOSE ALL TASKS
 				self.ao_x_task.stop()

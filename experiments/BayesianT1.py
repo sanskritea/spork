@@ -211,13 +211,13 @@ class Bayesian_T1_Meas:
         # connect to the instrument server
         # connect to the data server and create a data set, or connect to an
         # existing one with the same name if it was created earlier.
-        readout_time = probe_time
         with InstrumentGateway() as gw, DataSource(datasetName) as BayesianT1Data:
 
             # Constants
             freq_list = [Higher_Freq, Lower_Freq]
             pi_time_list = [Higher_Pi, Lower_Pi]
             start_time = time.time()
+            readout_time = 500
 
             # PLOTTING VARIABLES
             self.iteration_number = np.zeros(0)
@@ -239,8 +239,8 @@ class Bayesian_T1_Meas:
             self.S_level_0_tau_list = []
 
             # SETUP BAYESIAN VARIABLES
-            tau_lower = 0.001 # in ms (10us)
-            tau_upper = 1 # in ms
+            tau_lower = 0.01 # in ms (10us)
+            tau_upper = 10 # in ms
             n_tau = 1000
             repetitions = num_samples 
             control_tau_list = np.geomspace(tau_lower, tau_upper, bayesian_iterations)
@@ -275,7 +275,7 @@ class Bayesian_T1_Meas:
             gamma_samples_list = []
 
             # # CREATE GAMMA CLOUD DIRECTORY
-            dir_title = 'C://Users/awschlab/Desktop/data/gamma_clouds/YIG300nm_TAU_GUESS_70G_GammaBounds=' + str(gamma_bounds) + '_InitialGuess=' + str(init_guess) + '_Freqs=' + str(freq_list) + '_R=' + str(num_samples) + 'NoFeedback'
+            dir_title = 'C://Users/awschlab/Desktop/data/gamma_clouds/CONTROL_10ms_GammaBounds=' + str(gamma_bounds) + '_InitialGuess=' + str(init_guess) + '_Freqs=' + str(freq_list) + '_R=' + str(num_samples) + 'NoFeedback'
             mkdir(dir_title)
 
 
@@ -327,7 +327,7 @@ class Bayesian_T1_Meas:
                 ##############################################################################
 
 
-                ##############################################################################
+                #############################################################################
                 # #### CONTROL TAUS ####
                 # # Use geometrically spaced tau array
                 # print('Turned off tau optimization, using geometrically spaced taus')
@@ -500,9 +500,6 @@ class Bayesian_T1_Meas:
                     print('self.M_plus_err ', self.M_plus_err)
                     print('self.iteration_number ', self.iteration_number)
 
-                    
-
-
                     # SLICE DATA TO RUN SAMPLER WITH FIRST N SAMPLES
                     print('Slicing data')
                     tau_plus_slice = self.tau_plus_list[:num+1]     # x data
@@ -554,7 +551,6 @@ class Bayesian_T1_Meas:
                     print('gamma_plus ', mean_gamma_plus)
                     print('gamma_minus ', mean_gamma_minus)
 
-                    
                     self.elapsed_time = np.append(self.elapsed_time, time.time() - start_time)
 
                     # print('Push to GUI')

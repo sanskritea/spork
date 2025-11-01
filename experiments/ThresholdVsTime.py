@@ -40,6 +40,10 @@ class ThresholdVsTime_Measurement:
 				self.ao_y_task = mynidaq.create_task()
 				self.ao_y_task.ao_channels.add_ao_voltage_chan('Dev4/AO3')
 
+				current_AO2, current_AO3 = mynidaq.analog_read_task()
+				print('current_AO2 ', current_AO2)
+				print('current_AO3 ', current_AO3)
+
 				self.start_time = time.time()
 				iterator = count()
 
@@ -53,7 +57,7 @@ class ThresholdVsTime_Measurement:
 						# self.ao_x_task.write(-0.1)
 						# self.ao_y_task.write(-0.1)
 						print('RETRACTED!')
-						time.sleep(1)
+						time.sleep(2)
 
 					self.auxop = np.append(self.auxop, value)
 					self.times = np.append(self.times, time.time() - self.start_time)
@@ -70,7 +74,7 @@ class ThresholdVsTime_Measurement:
 				    	}
 				    })
 
-					time.sleep(time_per_point)
+					time.sleep(0.1)
 
 			flexSave(datasetName, 'ThresholdVsTime', 'final') # after measurement finishes
 

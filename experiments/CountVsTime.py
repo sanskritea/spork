@@ -42,6 +42,7 @@ class CountVsTimeMeasurement:
         with InstrumentGateway() as gw, DataSource(datasetName) as cvt_data:
 
             # turn on laser
+            trigger_rate = 20e3
             gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
 
             # for storing the experiment data
@@ -60,7 +61,6 @@ class CountVsTimeMeasurement:
                 while True:
 
                     # start DAQ counting
-                    trigger_rate = 20e3
                     num_samples = int(trigger_rate * time_per_point)
                     raw_counts = obtain(mynidaq.internal_read_task(int(trigger_rate), num_samples))
 
@@ -85,30 +85,30 @@ class CountVsTimeMeasurement:
                     # FORGET THE THRESHOLD, JUST SCAN EVERY FEW MINUTES/SECONDS/HOURS AND COME TO MAX LOCATION 
                     feedback_time = int(time.time() - self.outer_start_time)
                     # print('feedback_time ', feedback_time)
-                    if (feedback_time >= 600):
+                    # if (feedback_time >= 600):
                     
-                        # Parameters
-                        print('elapsed_time ', elapsed_time)
-                        begin_feedback = time.time()
+                    #     # Parameters
+                    #     print('elapsed_time ', elapsed_time)
+                    #     begin_feedback = time.time()
 
-                        objective_x_init_position, objective_y_init_position, current_max_counts = SpatialFeedback.Feedback(objective_x_init_position, objective_y_init_position)
-                        print('Current x_position ',objective_x_init_position)
-                        print('Current y_position ', objective_y_init_position)
-                        print('Returned max counts ', current_max_counts)
+                    #     objective_x_init_position, objective_y_init_position, current_max_counts = SpatialFeedback.Feedback(objective_x_init_position, objective_y_init_position)
+                    #     print('Current x_position ',objective_x_init_position)
+                    #     print('Current y_position ', objective_y_init_position)
+                    #     print('Returned max counts ', current_max_counts)
 
-                        # Measure counts right after feedback
-                        gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
-                        num_samples = int(trigger_rate * time_per_point)
-                        post_feedback_counts = np.mean(obtain(mynidaq.internal_read_task(int(trigger_rate), num_samples))) / (1 / trigger_rate)
-                        print('Post feedback counts ', post_feedback_counts)
-                        gw.swabian.reset()
+                    #     # Measure counts right after feedback
+                    #     gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
+                    #     num_samples = int(trigger_rate * time_per_point)
+                    #     post_feedback_counts = np.mean(obtain(mynidaq.internal_read_task(int(trigger_rate), num_samples))) / (1 / trigger_rate)
+                    #     print('Post feedback counts ', post_feedback_counts)
+                    #     gw.swabian.reset()
 
-                        # Feedback closeout
-                        self.outer_start_time = time.time()
-                        gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
-                        feedback_duration = time.time() - begin_feedback
-                        # print('Feedback duration: ', feedback_duration)
-                        self.start_time = self.start_time + feedback_duration
+                    #     # Feedback closeout
+                    #     self.outer_start_time = time.time()
+                    #     gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
+                    #     feedback_duration = time.time() - begin_feedback
+                    #     # print('Feedback duration: ', feedback_duration)
+                    #     self.start_time = self.start_time + feedback_duration
 
             #         if shouldAutosave and (i+1)%autosaveInterval == 0: # Autosave logic, +1 so it doesn't autosave first data point
             #             flexSave(datasetName, 'CountVsTime', 'autosave')

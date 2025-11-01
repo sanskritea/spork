@@ -116,7 +116,7 @@ class CW_ODMR_Measurement:
                                     "datasetName": datasetName,
                                     "num_samples": num_samples,
                                     "maxIterations": maxIterations,
-                                    "rf_power": rf_power,
+                                    "rfPower": rfPower,
                                     "laser_power": laser_power,
                                     "startFreq": startFreq,
                                     "endFreq": endFreq,
