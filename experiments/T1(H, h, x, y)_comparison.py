@@ -234,13 +234,13 @@ def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=T
             
             n, m = p1, p2
 
-            # ✅ CORRECTED: Dipolar terms must be normalized by omega_M!
-            result_11 = (H_XX + H_YY) / (2 * omega_M)  # <-- DIVIDE BY omega_M!
-            result_12 = (H_XX - H_YY) / (2 * omega_M)  # <-- DIVIDE BY omega_M!
+            # ✅ FINAL CORRECTION: Dipolar integrals are ALREADY dimensionless!
+            result_11 = (H_XX + H_YY) / 2  # NO omega_M division!
+            result_12 = (H_XX - H_YY) / 2  # NO omega_M division!
 
             if p1 == p2:
-                # External field and exchange are also normalized
-                exchange = gamma * DD * (p1 * np.pi / l_bar)**2 / omega_M
+                # Only the external terms need normalization
+                exchange = gamma * DD * (p1 * np.pi / l_bar)**2 / omega_M  
                 result_11 += omega_H / omega_M + exchange
 
             H_BdG[n, m] = result_11
