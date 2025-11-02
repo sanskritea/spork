@@ -914,7 +914,7 @@ def plot_mode_profiles(eigenfreqs_GHz, Tpp, Tnp, N_max, modes_to_plot=[0, 1, 2, 
     
     for idx, mode_n in enumerate(modes_to_plot):
         # Build mode profile: sum over basis functions
-        profile = np.zeros_like(z_array)
+        profile = np.zeros_like(z_array, dtype=complex)  # ✅ allows complex values
         for n1 in range(N_max):
             normalization = np.sqrt(2 / (1 + (n1 == 0)))
             basis = np.cos((n1) * np.pi * z_array / l_bar)
@@ -1038,7 +1038,7 @@ def run_full_analysis():
     gamma_L, gamma_U, eigenfreqs, coupling, Tpp, Tnp = calculate_T1_finite_bar_at_position(
         h_NV_test, H0_test, N_max_test, position='center',
         coupling_all_modes=None, eigenfreqs_GHz=eigenfreqs_GHz,
-        Tpp=Tpp, Tnp=Tnp, temperature_K=0.07
+        Tpp=Tpp, Tnp=Tnp, temperature_K=298
     )
     
     # Plot coupling vs frequency
