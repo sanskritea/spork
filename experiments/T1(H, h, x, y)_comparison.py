@@ -1006,6 +1006,15 @@ def run_full_analysis():
     verification_passed, eigenfreqs_GHz, Tpp, Tnp = verify_against_mathematica(
         H0_test, h_NV_test, N_max_test
     )
+
+    print("\nFirst 10 mode frequencies:")
+    for i in range(10):
+        print(f"Mode {i}: ω = {eigenfreqs_GHz[i]:.5f} GHz")
+
+    # Expected from Mathematica:
+    # Mode 0: ~2.471 GHz
+    # Mode 1: ~2.472 GHz
+    # Mode 5: ~2.776 GHz
     
     if not verification_passed:
         print("⚠ WARNING: Verification had some differences.")
@@ -1015,10 +1024,50 @@ def run_full_analysis():
             return
     
     print("\n✓ Step 1 Complete: Verification passed!\n")
+
+    # After verification:
+    # Plot Mode 5 profile with HIGH resolution
+    z_array = np.linspace(0, l_bar, 500)  # 500 points for smooth curve
+
+    # Reconstruct Mode 5
+    profile_5 = np.zeros_like(z_array, dtype=complex)
+    for n in range(N_max_test):
+        normalization = np.sqrt(2 / (1 + (n == 0)))
+        basis = np.cos(n * np.pi * z_array / l_bar)
+        weight = Tpp[n, 5] + Tnp[n, 5]
+        profile_5 += normalization * basis * weight
+
+    # Plot
+    plt.figure(figsize=(12, 4))
+    plt.plot(z_array * 1000, np.real(profile_5), 'b-', linewidth=2)
+    plt.axhline(0, color='k', linestyle='--', alpha=0.3)
+    plt.xlabel('z position (nm)')
+    plt.ylabel('Mode 5 amplitude (arb.)')
+    plt.title(f'Mode 5 spatial profile: f = {eigenfreqs_GHz[5]:.4f} GHz')
+    plt.grid(True, alpha=0.3)
+
+    # Mark nodes
+    nodes = []
+    for i in range(len(profile_5)-1):
+        if profile_5[i].real * profile_5[i+1].real < 0:  # Sign change
+            nodes.append(z_array[i] * 1000)
+
+    for node_pos in nodes:
+        plt.axvline(node_pos, color='r', linestyle=':', alpha=0.5)
+
+    plt.text(0.02, 0.95, f'Number of nodes: {len(nodes)}', 
+             transform=plt.gca().transAxes, fontsize=12, 
+             bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    plt.tight_layout()
+    plt.savefig('mode5_profile_detailed.png', dpi=300)
+    plt.show()
+
+    print(f"Mode 5 has {len(nodes)} nodes at positions: {nodes} nm")
     
     # =================================================================
     # STEP 2: Plot Mode Profiles
     # =================================================================
+
     print("\n" + "#"*70)
     print("# STEP 2: PLOTTING MODE PROFILES")
     print("#"*70 + "\n")
