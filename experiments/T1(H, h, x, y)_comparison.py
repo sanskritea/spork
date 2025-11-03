@@ -238,8 +238,8 @@ def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=T
             n, m = p1, p2
 
             # Dipolar contribution - convert to GHz by multiplying by omega_M
-            result_11 = (H_XX + H_YY) / 2 
-            result_12 = (H_XX - H_YY) / 2  
+            result_11 = (H_XX + H_YY) / (2 * omega_M)
+            result_12 = (H_XX - H_YY) / (2 * omega_M) 
 
             if p1 == 0 and p2 == 0:
                 print(f"H_XX = {H_XX}, H_YY = {H_YY}")
