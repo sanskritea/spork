@@ -237,9 +237,10 @@ def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=T
             
             n, m = p1, p2
 
-            # Dipolar contribution (already in correct units)
-            result_11 = (H_XX + H_YY) / 2
-            result_12 = (H_XX - H_YY) / 2
+            # Dipolar contribution (already in correct units)(H_XX + H_YY) / 2 
+            
+            result_11 = (H_XX + H_YY) / 2 * omega_M 
+            result_12 = (H_XX - H_YY) / 2 * omega_M 
 
             if p1 == p2:
                 # ✅ CRITICAL FIX: Exchange term should be MULTIPLIED by omega_M
@@ -610,6 +611,7 @@ def calculate_all_mode_coupling(h_NV, H0, N_max, d_bar, w_bar, l_bar, position='
         omega_H = gamma * H0
         H_BdG = generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar)
         H_BdG = add_demagnetization_corrections(H_BdG, N_max, d_bar, w_bar, l_bar)
+        print('H_Bdg ', H_BdG)
         
         eigenfreqs, Tpp, Tnp, Tpn, Tnn, T = paraunitary_diag((H_BdG + H_BdG.conj().T) / 2)
         eigenfreqs_GHz = eigenfreqs * omega_M # Already in GHz after fix!
