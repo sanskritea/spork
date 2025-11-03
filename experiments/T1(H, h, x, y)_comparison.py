@@ -161,28 +161,28 @@ def FF(p1, p2, zdif, zave):
         if p1 == 0:
             return zave
         else:
-            return (0.5 * zave * np.cos(p1 * np.pi * zdif) + 
-                    np.sin(2 * p1 * np.pi * zave) / (4 * p1 * np.pi))
+            return ((0.5 * zave * np.cos(p1 * np.pi * zdif)) + 
+                    (np.sin(2 * p1 * np.pi * zave) / (4 * p1 * np.pi)))
     else:
-        num1 = np.sin((p1 + p2) * np.pi * zave + 0.5 * (p1 - p2) * np.pi * zdif)
-        num2 = np.sin((p2 - p1) * np.pi * zave - 0.5 * (p1 + p2) * np.pi * zdif)
-        return (num1 / (p1 + p2) - num2 / (p2 - p1)) / (2 * np.pi)
+        num1 = (np.sin((p1 + p2) * np.pi * zave) + (0.5 * (p1 - p2) * np.pi * zdif))
+        num2 = (np.sin((p2 - p1) * np.pi * zave) - (0.5 * (p1 + p2) * np.pi * zdif))
+        return ((num1 / (p1 + p2)) - (num2 / (p1 - p2))) / (2 * np.pi) # changed p1 - p2 sign
 
 
 def Integrand1(ydif, zdif, p1, p2, w_norm, d_norm):
     """Dipolar integrand for HXX contribution"""
-    term1 = 1.0 / (w_norm**2 * ydif**2 + zdif**2 + 1e-12)
-    term2 = 1.0 / (d_norm**2 + w_norm**2 * ydif**2 + zdif**2 + 1e-12)
+    term1 = 1.0 / np.sqrt((w_norm**2 * ydif**2) + zdif**2) # fixed the misinterpreted root
+    term2 = 1.0 / np.sqrt(d_norm**2 + (w_norm**2 * ydif**2) + zdif**2) # fixed the misinterpreted root
     FF_term = FF(p1, p2, zdif, 1 - abs(zdif)/2) - FF(p1, p2, zdif, abs(zdif)/2)
-    return (term1 - term2) * FF_term * (1 - ydif)
+    return (term1 - term2) * FF_term # * (1 - ydif) is this needed? not present in mma
 
 
 def Integrand2(xdif, zdif, p1, p2, w_norm, d_norm):
     """Dipolar integrand for HYY contribution"""
-    term1 = 1.0 / (d_norm**2 * xdif**2 + zdif**2 + 1e-12)
-    term2 = 1.0 / (d_norm**2 * xdif**2 + w_norm**2 + zdif**2 + 1e-12)
+    term1 = 1.0 / np.sqrt((d_norm**2 * xdif**2) + zdif**2) # fixed the misinterpreted root
+    term2 = 1.0 / np.sqrt((d_norm**2 * xdif**2) + w_norm**2 + zdif**2) # fixed the misinterpreted root
     FF_term = FF(p1, p2, zdif, 1 - abs(zdif)/2) - FF(p1, p2, zdif, abs(zdif)/2)
-    return (term1 - term2) * FF_term * (1 - xdif)
+    return (term1 - term2) * FF_term # * (1 - xdif) is this needed? not present in mma
 
 
 def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=True):
