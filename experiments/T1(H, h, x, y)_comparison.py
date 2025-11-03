@@ -237,20 +237,18 @@ def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=T
             
             n, m = p1, p2
 
-            # Dipolar contribution (already in correct units)(H_XX + H_YY) / 2 
+            # Dipolar contribution - convert to GHz by multiplying by omega_M
             result_11 = omega_M * (H_XX + H_YY) / 2 
             result_12 = omega_M * (H_XX - H_YY) / 2  
 
             if p1 == 0 and p2 == 0:
                 print(f"H_XX = {H_XX}, H_YY = {H_YY}")
-                print(f"prefactor_XX = {prefactor_XX}, prefactor_YY = {prefactor_YY}")
-                print(f"result_XX = {result_XX}, result_YY = {result_YY}")
+                print(f"After omega_M scaling: result_11 = {result_11}")
 
             if p1 == p2:
-                # ✅ CRITICAL FIX: Exchange term should be MULTIPLIED by omega_M
-                # Mathematica line 268: + γ * DD * (p1 * π / l)^2 * ωM
+                # Exchange term already scaled by omega_M
                 exchange_term = gamma * DD * (p1 * np.pi / l_bar)**2 * omega_M
-                result_11 += omega_H + exchange_term  # Both in GHz now!
+                result_11 += omega_H + exchange_term  # All in GHz now!
 
             H_BdG[n, m] = result_11
             H_BdG[n, m + N_max] = result_12
