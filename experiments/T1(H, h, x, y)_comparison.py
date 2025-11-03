@@ -662,7 +662,7 @@ def n_bose_vectorized(omega_GHz, temperature_K):
 
 def calculate_T1_finite_bar_at_position(h_NV, H0, N_max, position='center', 
                                         coupling_all_modes=None, eigenfreqs_GHz=None,
-                                        Tpp=None, Tnp=None, temperature_K=0.07):
+                                        Tpp=None, Tnp=None, temperature_K=300):
     """
     Calculate T1 for finite bar at specific position
     
@@ -760,7 +760,7 @@ def calculate_T1_finite_bar_at_position(h_NV, H0, N_max, position='center',
 
 def calculate_T1_spatial_scan(h_NV, H0, N_max, y_positions, z_positions, 
                                Tpp=None, Tnp=None, eigenfreqs_GHz=None,
-                               temperature_K=0.07, save_every=1, checkpoint_file=None):
+                               temperature_K=300, save_every=1, checkpoint_file=None):
     """
     Scan T1 over Y-Z spatial grid with checkpointing
     
@@ -1038,7 +1038,7 @@ def run_full_analysis():
     gamma_L, gamma_U, eigenfreqs, coupling, Tpp, Tnp = calculate_T1_finite_bar_at_position(
         h_NV_test, H0_test, N_max_test, position='center',
         coupling_all_modes=None, eigenfreqs_GHz=eigenfreqs_GHz,
-        Tpp=Tpp, Tnp=Tnp, temperature_K=298
+        Tpp=Tpp, Tnp=Tnp, temperature_K=300
     )
     
     # Plot coupling vs frequency
@@ -1073,7 +1073,7 @@ def run_full_analysis():
                 h_NV_test, H0_test, N_max_test,
                 y_positions, z_positions,
                 Tpp=Tpp, Tnp=Tnp, eigenfreqs_GHz=eigenfreqs_GHz,
-                temperature_K=0.07, save_every=1
+                temperature_K=300, save_every=1
             )
             
             # Plot results
