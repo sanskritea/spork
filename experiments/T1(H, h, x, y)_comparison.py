@@ -381,7 +381,7 @@ def calculate_coupling_at_position(coord_x, coord_y, coord_z, N_max, d_bar, w_ba
             r_top = np.sqrt((d_norm * (coord_x - 1))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2)
             r_bot = np.sqrt((d_norm * (coord_x - 0))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2)
             
-            field = (coord_x - 1) / (r_top**3 + 1e-16) - (coord_x - 0) / (r_bot**3 + 1e-16)
+            field = (coord_x - 1) / (r_top**(3/2)) - (coord_x - 0) / (r_bot**(3/2))
             mode = np.cos(p * np.pi * z) * norm_factor
             
             return field * mode
@@ -394,7 +394,7 @@ def calculate_coupling_at_position(coord_x, coord_y, coord_z, N_max, d_bar, w_ba
             r_right = np.sqrt((d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 1))**2 + (coord_z - z)**2)
             r_left = np.sqrt((d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 0))**2 + (coord_z - z)**2)
             
-            field = (coord_x - x) / (r_right**3 + 1e-16) - (coord_x - x) / (r_left**3 + 1e-16)
+            field = (coord_x - x) / (r_right**(3/2)) - (coord_x - x) / (r_left**(3/2))
             mode = np.cos(p * np.pi * z) * norm_factor
             
             return field * mode
@@ -407,7 +407,7 @@ def calculate_coupling_at_position(coord_x, coord_y, coord_z, N_max, d_bar, w_ba
             r_top = np.sqrt((d_norm * (coord_x - 1))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2)
             r_bot = np.sqrt((d_norm * (coord_x - 0))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2)
             
-            field = (coord_y - y) / (r_top**3 + 1e-16) - (coord_y - y) / (r_bot**3 + 1e-16)
+            field = (coord_y - y) / (r_top**(3/2)) - (coord_y - y) / (r_bot**(3/2))
             mode = np.cos(p * np.pi * z) * norm_factor
             
             return field * mode
@@ -420,7 +420,7 @@ def calculate_coupling_at_position(coord_x, coord_y, coord_z, N_max, d_bar, w_ba
             r_right = np.sqrt((d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 1))**2 + (coord_z - z)**2)
             r_left = np.sqrt((d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 0))**2 + (coord_z - z)**2)
             
-            field = (coord_y - 1) / (r_right**3 + 1e-16) - (coord_y - 0) / (r_left**3 + 1e-16)
+            field = (coord_y - 1) / (r_right**(3/2)) - (coord_y - 0) / (r_left**(3/2))
             mode = np.cos(p * np.pi * z) * norm_factor
             
             return field * mode
