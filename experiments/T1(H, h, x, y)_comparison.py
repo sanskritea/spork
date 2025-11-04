@@ -293,11 +293,11 @@ def add_demagnetization_corrections(H_BdG, N_max, d_bar, w_bar, l_bar, use_cache
     w_norm = w_bar / l_bar
     
     def HdZMean_integrand(xdif, ydif, CoordZ):
-        r1_sq = d_norm**2 * xdif**2 + w_norm**2 * ydif**2 + (CoordZ - 1)**2
-        term1 = (CoordZ - 1) / (r1_sq**(3/2) + 1e-12)
+        r1_sq = (d_norm**2 * xdif**2) + (w_norm**2 * ydif**2) + (CoordZ - 1)**2
+        term1 = (CoordZ - 1) / (r1_sq**(3/2))
         
         r0_sq = d_norm**2 * xdif**2 + w_norm**2 * ydif**2 + (CoordZ - 0)**2
-        term2 = (CoordZ - 0) / (r0_sq**(3/2) + 1e-12)
+        term2 = (CoordZ - 0) / (r0_sq**(3/2))
         
         return (1 - xdif) * (1 - ydif) * (term1 - term2)
     
