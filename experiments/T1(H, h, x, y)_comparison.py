@@ -353,13 +353,8 @@ def add_demagnetization_corrections(H_BdG, N_max, d_bar, w_bar, l_bar, use_cache
     
     for p1 in range(N_max):
         for p2 in range(N_max):
-            # Try using n, m maybe I'm missing some demagnetization becuase of python indexing
-            n = p1 + 1
-            m = p2 + 1
-            # H_demag[p1, p2] = Demag_matrix[p1, p2]
-            # H_demag[p1 + N_max, p2 + N_max] = Demag_matrix[p2, p1]
-            H_demag[n, m] = Demag_matrix[n, m]
-            H_demag[n + N_max, m + N_max] = Demag_matrix[m, n]
+            H_demag[p1, p2] = Demag_matrix[p1, p2]
+            H_demag[p1 + N_max, p2 + N_max] = Demag_matrix[p2, p1]
     
     total_time = time.time() - start_time
     print(f"  Demagnetization computed in {total_time/60:.1f} minutes")
