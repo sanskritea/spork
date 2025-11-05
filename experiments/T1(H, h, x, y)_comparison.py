@@ -28,7 +28,7 @@ l_bar = 3.0    # μm - length
 h_plank = 6.626e-34  # J*s
 mu_0 = 4 * np.pi * 1e-7  # H/m
 k_B = 1.381e-23  # J/K
-temperature = 300  # K
+temperature = 300  # K (room temp)
 
 # Unit conversion factor - matches Mathematica exactly
 # ωdwl = (ℏ * μ₀ * γ²) / (d * w * l) in Hz
