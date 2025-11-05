@@ -238,17 +238,17 @@ def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=T
             n, m = p1, p2
 
             # Dipolar contribution - convert to GHz by multiplying by omega_M
-            result_11 = (H_XX + H_YY) / (2 * omega_M)
-            result_12 = (H_XX - H_YY) / (2 * omega_M) 
+            result_11 = omega_M * (H_XX + H_YY) / 2
+            result_12 = omega_M * (H_XX - H_YY) / 2
 
             if p1 == 0 and p2 == 0:
                 print(f"H_XX = {H_XX}, H_YY = {H_YY}")
                 print(f"After omega_M scaling: result_11 = {result_11}")
 
             if p1 == p2:
-                # Exchange term already scaled by omega_M
-                exchange_term = gamma * DD * (p1 * np.pi / l_bar)**2 * omega_M
-                result_11 += omega_H + exchange_term  # All in GHz now!
+                # Make everything dimensionless
+                exchange_term = gamma * DD * (p1 * np.pi / l_bar)**2 
+                result_11 += (omega_H + exchange_term)
 
             H_BdG[n, m] = result_11
             H_BdG[n, m + N_max] = result_12
@@ -460,11 +460,8 @@ def verify_against_mathematica(H0, h_NV, N_max):
     
     # Diagonalize
     eigenfreqs, Tpp, Tnp, Tpn, Tnn, T = paraunitary_diag((H_BdG + H_BdG.conj().T) / 2)
-    
-    # ✅ CRITICAL FIX: Eigenfrequencies are ALREADY in GHz!
-    # The Hamiltonian is built with terms in GHz (omega_H and exchange_term * omega_M)
-    # So eigenfreqs are dimensionless ratios that need NO omega_M multiplication
-    eigenfreqs_GHz = eigenfreqs * omega_M
+    eigenfreqs_GHz = eigenfreqs 
+
     
     # Calculate coupling at Mathematica position
     coord_x = (d_bar + h_NV) / d_bar  # = 2.0
@@ -615,7 +612,7 @@ def calculate_all_mode_coupling(h_NV, H0, N_max, d_bar, w_bar, l_bar, position='
         H_BdG = add_demagnetization_corrections(H_BdG, N_max, d_bar, w_bar, l_bar)
         
         eigenfreqs, Tpp, Tnp, Tpn, Tnn, T = paraunitary_diag((H_BdG + H_BdG.conj().T) / 2)
-        eigenfreqs_GHz = eigenfreqs * omega_M # Already in GHz after fix!
+        eigenfreqs_GHz = eigenfreqs 
 
     
     # Determine NV position
