@@ -164,8 +164,8 @@ def FF(p1, p2, zdif, zave):
             return ((0.5 * zave * np.cos(p1 * np.pi * zdif)) + 
                     (np.sin(2 * p1 * np.pi * zave) / (4 * p1 * np.pi)))
     else:
-        num1 = (np.sin((p1 + p2) * np.pi * zave) + (0.5 * (p1 - p2) * np.pi * zdif))
-        num2 = (np.sin((p2 - p1) * np.pi * zave) - (0.5 * (p1 + p2) * np.pi * zdif))
+        num1 = np.sin(((p1 + p2) * np.pi * zave) + (0.5 * (p1 - p2) * np.pi * zdif)) # fixed sin argument
+        num2 = np.sin(((p2 - p1) * np.pi * zave) - (0.5 * (p1 + p2) * np.pi * zdif)) # fixed sin argument
         return ((num1 / (p1 + p2)) - (num2 / (p1 - p2))) / (2 * np.pi) # changed p1 - p2 sign
 
 
@@ -174,7 +174,7 @@ def Integrand1(ydif, zdif, p1, p2, w_norm, d_norm):
     term1 = 1.0 / np.sqrt((w_norm**2 * ydif**2) + zdif**2) # fixed the misinterpreted root
     term2 = 1.0 / np.sqrt(d_norm**2 + (w_norm**2 * ydif**2) + zdif**2) # fixed the misinterpreted root
     FF_term = FF(p1, p2, zdif, 1 - abs(zdif)/2) - FF(p1, p2, zdif, abs(zdif)/2)
-    return (term1 - term2) * FF_term # * (1 - ydif) is this needed? not present in mma
+    return (term1 - term2) * FF_term  * (1 - ydif) 
 
 
 def Integrand2(xdif, zdif, p1, p2, w_norm, d_norm):
@@ -182,7 +182,7 @@ def Integrand2(xdif, zdif, p1, p2, w_norm, d_norm):
     term1 = 1.0 / np.sqrt((d_norm**2 * xdif**2) + zdif**2) # fixed the misinterpreted root
     term2 = 1.0 / np.sqrt((d_norm**2 * xdif**2) + w_norm**2 + zdif**2) # fixed the misinterpreted root
     FF_term = FF(p1, p2, zdif, 1 - abs(zdif)/2) - FF(p1, p2, zdif, abs(zdif)/2)
-    return (term1 - term2) * FF_term # * (1 - xdif) is this needed? not present in mma
+    return (term1 - term2) * FF_term  * (1 - xdif) 
 
 
 def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=True):
@@ -218,7 +218,7 @@ def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=T
                         0, 1, -1, 1,
                         epsabs=1e-6, epsrel=1e-6
                     )
-                    prefactor_XX = (2 * w_bar / (np.pi * d_bar)) * (1 + (p1==0)) * (1 + (p2==0))
+                    prefactor_XX = 2 * w_bar / ((np.pi * d_bar) * np.sqrt((1 + (p1==0)) * (1 + (p2==0))))
                     H_XX = prefactor_XX * result_XX
                 except:
                     H_XX = 0.0
@@ -230,7 +230,7 @@ def generate_H_BdG_discrete_bar(omega_H, N_max, d_bar, w_bar, l_bar, use_cache=T
                         0, 1, -1, 1,
                         epsabs=1e-6, epsrel=1e-6
                     )
-                    prefactor_YY = (2 * d_bar / (np.pi * w_bar)) * (1 + (p1==0)) * (1 + (p2==0))
+                    prefactor_YY = 2 * d_bar / ((np.pi * w_bar) * np.sqrt((1 + (p1==0)) * (1 + (p2==0)))) 
                     H_YY = prefactor_YY * result_YY
                 except:
                     H_YY = 0.0
@@ -296,7 +296,7 @@ def add_demagnetization_corrections(H_BdG, N_max, d_bar, w_bar, l_bar, use_cache
         r1_sq = (d_norm**2 * xdif**2) + (w_norm**2 * ydif**2) + (CoordZ - 1)**2
         term1 = (CoordZ - 1) / (r1_sq**(3/2))
         
-        r0_sq = d_norm**2 * xdif**2 + w_norm**2 * ydif**2 + (CoordZ - 0)**2
+        r0_sq = (d_norm**2 * xdif**2) + (w_norm**2 * ydif**2) + (CoordZ - 0)**2
         term2 = (CoordZ - 0) / (r0_sq**(3/2))
         
         return (1 - xdif) * (1 - ydif) * (term1 - term2)
@@ -322,15 +322,24 @@ def add_demagnetization_corrections(H_BdG, N_max, d_bar, w_bar, l_bar, use_cache
     
     for p1 in range(N_max):
         for p2 in range(p1, N_max):
+            n1 = p1 + 1
+            n2 = p2 + 1
             if (p1 + p2) % 2 == 1:
                 Demag_matrix[p1, p2] = 0.0
             else:
                 def demag_integrand(z):
-                    norm1 = np.sqrt(2 / (1 + (p1 == 0)))
-                    norm2 = np.sqrt(2 / (1 + (p2 == 0)))
+                    # norm1 = np.sqrt(2 / (1 + (p1 == 0)))
+                    # norm2 = np.sqrt(2 / (1 + (p2 == 0)))
+                    # return (IntHdZMean(z) * 
+                    #         np.cos(p1 * np.pi * z) * 
+                    #         np.cos(p2 * np.pi * z) * 
+                    #         norm1 * norm2)
+                    # Try using n1, n2, maybe I'm missing some demagnetization becuase of python indexing
+                    norm1 = np.sqrt(2 / (1 + (n1 == 1)))
+                    norm2 = np.sqrt(2 / (1 + (n2 == 1)))
                     return (IntHdZMean(z) * 
-                            np.cos(p1 * np.pi * z) * 
-                            np.cos(p2 * np.pi * z) * 
+                            np.cos((n1 - 1) * np.pi * z) * 
+                            np.cos((n2 - 1) * np.pi * z) * 
                             norm1 * norm2)
                 
                 result, _ = quad(demag_integrand, 0, 0.5, 
@@ -344,8 +353,13 @@ def add_demagnetization_corrections(H_BdG, N_max, d_bar, w_bar, l_bar, use_cache
     
     for p1 in range(N_max):
         for p2 in range(N_max):
-            H_demag[p1, p2] = Demag_matrix[p1, p2]
-            H_demag[p1 + N_max, p2 + N_max] = Demag_matrix[p2, p1]
+            # Try using n, m maybe I'm missing some demagnetization becuase of python indexing
+            n = p1 + 1
+            m = p2 + 1
+            # H_demag[p1, p2] = Demag_matrix[p1, p2]
+            # H_demag[p1 + N_max, p2 + N_max] = Demag_matrix[p2, p1]
+            H_demag[n, m] = Demag_matrix[n, m]
+            H_demag[n + N_max, m + N_max] = Demag_matrix[m, n]
     
     total_time = time.time() - start_time
     print(f"  Demagnetization computed in {total_time/60:.1f} minutes")
@@ -378,10 +392,10 @@ def calculate_coupling_at_position(coord_x, coord_y, coord_z, N_max, d_bar, w_ba
         
         # Gamma_XX: ∫∫ f(y,z) dz dy where z outer, y inner
         def integrand_XX(y, z):
-            r_top = np.sqrt((d_norm * (coord_x - 1))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2)
-            r_bot = np.sqrt((d_norm * (coord_x - 0))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2)
+            r_top = (d_norm * (coord_x - 1))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2
+            r_bot = (d_norm * (coord_x - 0))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2
             
-            field = (coord_x - 1) / (r_top**(3/2)) - (coord_x - 0) / (r_bot**(3/2))
+            field = ((coord_x - 1) / (r_top**(3/2))) - ((coord_x - 0) / (r_bot**(3/2)))
             mode = np.cos(p * np.pi * z) * norm_factor
             
             return field * mode
@@ -391,8 +405,8 @@ def calculate_coupling_at_position(coord_x, coord_y, coord_z, N_max, d_bar, w_ba
         
         # Gamma_XY
         def integrand_XY(x, z):
-            r_right = np.sqrt((d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 1))**2 + (coord_z - z)**2)
-            r_left = np.sqrt((d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 0))**2 + (coord_z - z)**2)
+            r_right = (d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 1))**2 + (coord_z - z)**2
+            r_left = (d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 0))**2 + (coord_z - z)**2
             
             field = (coord_x - x) / (r_right**(3/2)) - (coord_x - x) / (r_left**(3/2))
             mode = np.cos(p * np.pi * z) * norm_factor
@@ -404,8 +418,8 @@ def calculate_coupling_at_position(coord_x, coord_y, coord_z, N_max, d_bar, w_ba
         
         # Gamma_YX
         def integrand_YX(y, z):
-            r_top = np.sqrt((d_norm * (coord_x - 1))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2)
-            r_bot = np.sqrt((d_norm * (coord_x - 0))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2)
+            r_top = (d_norm * (coord_x - 1))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2
+            r_bot = (d_norm * (coord_x - 0))**2 + (w_norm * (coord_y - y))**2 + (coord_z - z)**2
             
             field = (coord_y - y) / (r_top**(3/2)) - (coord_y - y) / (r_bot**(3/2))
             mode = np.cos(p * np.pi * z) * norm_factor
@@ -417,8 +431,8 @@ def calculate_coupling_at_position(coord_x, coord_y, coord_z, N_max, d_bar, w_ba
         
         # Gamma_YY
         def integrand_YY(x, z):
-            r_right = np.sqrt((d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 1))**2 + (coord_z - z)**2)
-            r_left = np.sqrt((d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 0))**2 + (coord_z - z)**2)
+            r_right = (d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 1))**2 + (coord_z - z)**2
+            r_left = (d_norm * (coord_x - x))**2 + (w_norm * (coord_y - 0))**2 + (coord_z - z)**2
             
             field = (coord_y - 1) / (r_right**(3/2)) - (coord_y - 0) / (r_left**(3/2))
             mode = np.cos(p * np.pi * z) * norm_factor
