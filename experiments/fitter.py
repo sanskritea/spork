@@ -483,7 +483,8 @@ def rabi(mw_times_data, MW_ON_data, MW_OFF_data):
     	MW_ON.append(np.mean(MW_ON_data[t]))
     	MW_OFF.append(np.mean(MW_OFF_data[t]))
 
-    counts = (np.array(MW_ON) - np.array(MW_OFF))
+    # counts = (np.array(MW_ON) - np.array(MW_OFF))
+    counts = MW_ON
     counts = (counts - ((np.max(counts) + np.min(counts)) / 2)) / ((np.max(counts) - np.min(counts)) / 2)
     # print('counts ', counts)
     # counts = MW_ON

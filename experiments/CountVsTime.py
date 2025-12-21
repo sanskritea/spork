@@ -49,6 +49,13 @@ class CountVsTimeMeasurement:
             self.times = np.zeros(0)
             self.counts = np.zeros(0)
 
+
+            # MW cleaning test
+            # gw.sg.set_rf_amplitude(-12)  # set ouput power
+            # gw.sg.set_mod_state(False)
+            # gw.sg.set_frequency(2.87e9)
+            # gw.sg.set_rf_state("0")
+
             with NIDAQ() as mynidaq:
 
                 # set laser power
@@ -80,6 +87,10 @@ class CountVsTimeMeasurement:
                                     # 'datasets': {'times': self.times, 'counts': self.counts}
                                     'datasets': dict([('CountVsTime', self.counts[j]) if j<1 else ('times', self.times) for j in range(2)])
                     })
+
+                    # if self.times[-1] > 60:
+                    #     print('Turning MW off now')
+                    #     gw.sg.set_rf_state("0")
 
                     # SPATIAL FEEDBACK (almost) EVERY 10-15mins (IDEALLY)
                     # FORGET THE THRESHOLD, JUST SCAN EVERY FEW MINUTES/SECONDS/HOURS AND COME TO MAX LOCATION 

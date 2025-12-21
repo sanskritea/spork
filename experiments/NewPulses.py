@@ -212,6 +212,9 @@ class Pulses():
         # I_seq = [(probe_time, 0.5), (probe_time, -0.007)]
         # Q_seq = [(probe_time, 0), (probe_time, -0.007)]
 
+        # 2nd microwave switch 
+        switch2_ttl_seq = [(cw_odmr_probe_time, 1), (cw_odmr_probe_time, 0)]
+
         # turn on laser throughout the measurement
         laser_seq = [(-1, 1)]
 
@@ -219,6 +222,7 @@ class Pulses():
         seq.setDigital(0, daq_clock_seq) # DAQ clock -- record data
         seq.setDigital(1, laser_seq)
         seq.setDigital(4, switch_ttl_seq)
+        seq.setDigital(5, switch2_ttl_seq)
         # seq.setAnalog(0, I_seq)
         # seq.setAnalog(1, Q_seq)
 
@@ -267,6 +271,123 @@ class Pulses():
         seq.setDigital(0, daq_clock_seq) # DAQ clock -- record data
         seq.setDigital(1, laser_seq)
         seq.setDigital(4, switch_ttl_seq)
+        # seq.setAnalog(0, I_seq)
+        # seq.setAnalog(1, Q_seq)
+
+        return seq
+
+
+    def P1_RABI(self, NV_pi_time, P1_mw_time, P1_max_MW_time):
+
+        # create sequence object
+        seq = self.Pulser.createSequence()
+
+        # define laser sequence
+        laser_on_1 = init_time
+        laser_off_1 = singlet_deacy + NV_pi_time + P1_max_MW_time
+        laser_on_2 = init_time
+        laser_off_2 = singlet_decay + P1_max_MW_time
+        laser_seq = [(laser_on_1, 1), (laser_off_1, 0), (laser_on_2, 1)] 
+
+
+        # define DAQ counting sequence triggers
+        daq_off_0 = laser_lag 
+        daq_on_1 = clock_time 
+        daq_off_1 = readout_time
+        daq_on_2 = clock_time
+        daq_off_2 = init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + NV_pi_time + P1_max_MW_time + laser_lag
+        daq_on_3 = clock_time
+        daq_off_3 = readout_time
+        daq_on_4 = clock_time
+        daq_off_4 = init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + P1_max_MW_time
+
+        daq_clock_seq = [(daq_off_0, 0), (daq_on_1, 1), (daq_off_1, 0), (daq_on_2, 1), (daq_off_2, 0), (daq_on_3, 1), (daq_off_3, 0), (daq_on_4, 1), (daq_off_4, 0)]
+
+
+        # define sequence for NV MW (switch)
+        switch_off_0 = init_time + singlet_decay 
+        switch_on_1 = NV_pi_time 
+        switch_off_1 = P1_max_MW_time + init_time + singlet_decay + P1_max_MW_time 
+        switch_ttl_seq = [(switch_off_0, 0), (switch_on_1, 1), (switch_off_1, 0)]
+        I_seq = [(switch_off_0, 0), (switch_on_1, 0.5), (switch_off_1, 0)]
+        Q_seq = [(switch_off_0, 0), (switch_on_1, 0), (switch_off_1, 0)]
+
+        # define sequence for P1 MW (switch2)
+        switch2_off_0 = init_time + singlet_decay + NV_pi_time
+        switch2_on_1 = P1_mw_time
+        switch2_off_1 =  (P1_max_MW_time - P1_mw_time) + init_time + singlet_decay
+        switch2_on_2 = P1_mw_time
+        switch2_off_2 = (P1_max_MW_time - P1_mw_time)
+        switch2_ttl_seq = [(switch2_off_0, 0), (switch2_on_1, 1), (switch2_off_1, 0), (switch2_on_2, 1), (switch2_off_2, 0)]
+
+        # assign sequences to respective channels
+        seq.setDigital(0, daq_clock_seq) # DAQ clock -- record data
+        seq.setDigital(1, laser_seq)
+        seq.setDigital(4, switch_ttl_seq)
+        seq.setDigital(5, switch2_ttl_seq)
+        # seq.setAnalog(0, I_seq)
+        # seq.setAnalog(1, Q_seq)
+
+        return seq
+
+
+    def DEER(self, NV_pi_time, P1_pi_time, tau_time, tau_max_time):
+        '''
+        Rabi sequence
+        '''
+        ## Run a MW pulse of varying duration, then measure the signal
+        ## and reference counts from NV.
+
+        # create sequence object
+        seq = self.Pulser.createSequence()
+
+        # presets
+        NV_pi_half_time = int(NV_pi_time / 2)
+        P1_pi_half_time = int(P1_pi_time / 2)
+        padding = tau_max_time - tau_time + 2000
+
+        # define laser sequence
+        laser_off_0 = padding
+        laser_on_1 = init_time
+        laser_off_1 = singlet_deacy + 2 * (NV_pi_time + tau_time)
+        laser_on_2 = init_time
+        laser_off_2 = singlet_decay 
+        laser_seq = [(laser_on_1, 1), (laser_off_1, 0), (laser_on_2, 1), (laser_off_2, 0)] 
+
+        # define DAQ counting sequence triggers
+        daq_off_0 = padding + laser_lag 
+        daq_on_1 = clock_time 
+        daq_off_1 = readout_time
+        daq_on_2 = clock_time
+        daq_off_2 = init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + 2 * (NV_pi_time + tau_time) + laser_lag 
+        daq_on_3 = clock_time
+        daq_off_3 = readout_time
+        daq_on_4 = clock_time
+        daq_off_4 = init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay 
+        daq_clock_seq = [(daq_off_0, 0), (daq_on_1, 1), (daq_off_1, 0), (daq_on_2, 1), (daq_off_2, 0), (daq_on_3, 1), (daq_off_3, 0), (daq_on_4, 1), (daq_off_4, 0)]
+
+
+        # define sequence for NV MW (switch)
+        switch_off_0 = padding + init_time + singlet_decay 
+        switch_on_1 = NV_pi_half_time 
+        switch_off_1 = tau_time 
+        switch_on_2 = NV_pi_time 
+        switch_off_2 = tau_time
+        switch_on_3 = NV_pi_half_time
+        switch_off_3 = init_time + singlet_decay
+        switch_ttl_seq = [(switch_off_0, 0), (switch_on_1, 1), (switch_off_1, 0), (switch_on_2, 1), (switch_off_2, 0), (switch_on_3, 1), (switch_off_3, 0)]
+     
+        # define sequence for P1 MW (switch2)
+        switch2_off_0 = padding + init_time + singlet_decay + tau_time + NV_pi_time - P1_pi_half_time
+        switch2_on_1 = P1_pi_time
+        switch2_off_1 =  tau_time + NV_pi_time - P1_pi_half_time + init_time + singlet_decay
+        switch2_ttl_seq = [(switch2_off_0, 0), (switch2_on_1, 1), (switch2_off_1, 0)]
+
+        # assign sequences to respective channels
+        seq.setDigital(0, daq_clock_seq) # DAQ clock -- record data
+        seq.setDigital(1, laser_seq)
+        seq.setDigital(4, switch_ttl_seq)
+        seq.setDigital(5, switch2_ttl_seq)
         # seq.setAnalog(0, I_seq)
         # seq.setAnalog(1, Q_seq)
 

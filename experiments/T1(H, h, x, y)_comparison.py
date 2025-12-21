@@ -28,7 +28,7 @@ l_bar = 3.0    # μm - length
 h_plank = 6.626e-34  # J*s
 mu_0 = 4 * np.pi * 1e-7  # H/m
 k_B = 1.381e-23  # J/K
-temperature = 300  # K (room temp)
+temperature = 300  # K (room)
 
 # Unit conversion factor - matches Mathematica exactly
 # ωdwl = (ℏ * μ₀ * γ²) / (d * w * l) in Hz
@@ -1140,6 +1140,9 @@ def run_full_analysis():
                                              H0_test, h_NV_test)
             plt.savefig(f'T1_spatial_map_H{H0_test:.1f}Oe.png', dpi=300, bbox_inches='tight')
             print(f"✓ Spatial map saved to T1_spatial_map_H{H0_test:.1f}Oe.png\n")
+
+
+            
     
     # =================================================================
     # DONE

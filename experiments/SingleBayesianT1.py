@@ -30,7 +30,7 @@ from experiments.NewportSpatialFeedback import SpatialFeedback
 from drivers.ni.nidaq_final import NIDAQ
 # from experiments.BayesianFunctions import BF
 
-gamma_bounds = [0.01,9]
+gamma_bounds = [0.01,100]
 
 
 
@@ -182,8 +182,8 @@ class Single_Bayesian_T1_Meas:
             self.S_level_0_tau_list = []
 
             # SETUP BAYESIAN VARIABLES
-            tau_lower = 0.01 # in ms (10us)
-            tau_upper = 10 # in ms
+            tau_lower = 0.001 # in ms (10us)
+            tau_upper = 0.1 # in ms
             n_tau = 1000
             repetitions = num_samples 
             control_tau_list = np.geomspace(tau_lower, tau_upper, bayesian_iterations)
@@ -216,7 +216,7 @@ class Single_Bayesian_T1_Meas:
             gamma_samples_list = []
 
             # # CREATE GAMMA CLOUD DIRECTORY
-            dir_title = 'C://Users/awschlab/Desktop/data/gamma_clouds/B_H=130nm_Freqs=' + str(freq) + '_PiTime=' + str(pi_time_list[0]) + '_R=' + str(num_samples) + 'NoFeedback'
+            dir_title = 'C://Users/awschlab/Desktop/data/gamma_clouds/60mW_Bayesian_B=0_H=Inf_Freqs=' + str(freq) + '_PiTime=' + str(pi_time_list[0]) + '_R=' + str(num_samples) + 'NoFeedback'
             mkdir(dir_title)
 
 
@@ -257,7 +257,7 @@ class Single_Bayesian_T1_Meas:
                 tau_opt = []
                 if num == 0:
                     # tau_opt = tau_lower, tau_lower
-                    tau_opt = 0.005
+                    tau_opt = 0.001
                 else:
                     tau_opt = self.nob_calculate_tau_opt(tau_arr, repetitions, self.gamma_list[num - 1], T_overhead)
                 tau = tau_opt
