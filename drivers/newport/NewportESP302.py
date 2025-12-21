@@ -84,7 +84,7 @@ class ESP(object):
     #                          timeout=1,
     #                          parity='N',
     #                          rtscts=1)
-    self.ser = serial.serial_for_url('socket://192.168.1.90:5001')
+    self.ser = serial.serial_for_url('socket://192.168.1.9:5001')
     #print("Found controller: " + self.version)
     self.Abort = self.abort
 
