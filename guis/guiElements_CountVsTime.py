@@ -124,8 +124,8 @@ class CustomCountVsTimeWidget(QtWidgets.QWidget):
             self.params_widget.datasetName,
             self.params_widget.laser_power,
             self.params_widget.time_per_point,
-            self.params_widget.x_init_position,
-            self.params_widget.y_init_position,
+            self.params_widget.objective_x_init_position,
+            self.params_widget.objective_y_init_position,
         )
 
 
