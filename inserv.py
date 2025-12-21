@@ -25,6 +25,8 @@ with InstrumentServer() as inserv:
 
    inserv.add('sg', 'drivers.stanford.sg396', 'SG396', ['TCPIP0::192.168.1.79::inst0::INSTR'], import_or_file='import')
 
+   inserv.add('sg2', 'drivers.stanford.sg396', 'SG396', ['TCPIP0::192.168.1.52::inst0::INSTR'], import_or_file='import')
+
    inserv.add('mfli', HERE / 'drivers' / 'zurich' / 'mfli.py', 'MFLI')
 
    # inserv.add('kdc', HERE / 'drivers' / 'thorlabs' / 'KDC101.py', 'KDC')
