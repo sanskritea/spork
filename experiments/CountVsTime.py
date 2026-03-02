@@ -51,10 +51,10 @@ class CountVsTimeMeasurement:
 
 
             # MW cleaning test
-            # gw.sg.set_rf_amplitude(-12)  # set ouput power
-            # gw.sg.set_mod_state(False)
-            # gw.sg.set_frequency(2.87e9)
-            # gw.sg.set_rf_state("0")
+            gw.sg.set_rf_amplitude(-6)  # set ouput power
+            gw.sg.set_mod_state(False)
+            gw.sg.set_frequency(2.82e9)
+            gw.sg.set_rf_state("0")
 
             with NIDAQ() as mynidaq:
 

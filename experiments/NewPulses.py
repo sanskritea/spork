@@ -140,7 +140,6 @@ class Pulses():
         seq = self.Pulser.createSequence()
 
         laser_seq = [(-1, 1)]
-
         daq_seq = [(10, 1), (int(1e9 / buffer_rate), 0)]
 
         seq.setDigital(0, daq_seq)
@@ -213,7 +212,7 @@ class Pulses():
         # Q_seq = [(probe_time, 0), (probe_time, -0.007)]
 
         # 2nd microwave switch 
-        switch2_ttl_seq = [(cw_odmr_probe_time, 1), (cw_odmr_probe_time, 0)]
+        # switch2_ttl_seq = [(cw_odmr_probe_time, 1), (cw_odmr_probe_time, 0)]
 
         # turn on laser throughout the measurement
         laser_seq = [(-1, 1)]
@@ -222,7 +221,7 @@ class Pulses():
         seq.setDigital(0, daq_clock_seq) # DAQ clock -- record data
         seq.setDigital(1, laser_seq)
         seq.setDigital(4, switch_ttl_seq)
-        seq.setDigital(5, switch2_ttl_seq)
+        # seq.setDigital(5, switch2_ttl_seq)
         # seq.setAnalog(0, I_seq)
         # seq.setAnalog(1, Q_seq)
 
@@ -632,39 +631,45 @@ class Pulses():
         return seq
 
 
-    def T2_STAR(self, tau_time, clock_time, init_time, readout_time, laser_lag, singlet_decay, pi_half_time, tau_max_time):
+    def T2_STAR(self, pi_time, tau_time, tau_max_time):
         '''
         MW (differential) T1 sequence for the two longitudinal relaxation rates measured with different wait times
         '''
         # create sequence objects for MW on and off blocks
         seq = self.Pulser.createSequence()
-        pi_time = int(2 * pi_half_time)
+        pi_half_time = int(pi_time * 0.5)
+        three_pi_half_time = int(3 * pi_half_time)
         padding_time = int(tau_max_time - tau_time) + 2000
 
         # laser sequence
-        laser_seq = [
-            (padding_time, 0), (init_time, 1), (singlet_decay + pi_half_time + tau_time + pi_half_time, 0), (init_time, 1),
-            (padding_time, 0), (init_time, 1), (singlet_decay + pi_half_time + tau_time + int(3 * pi_half_time), 0), (init_time, 1)
-            ]
+        laser_off_0 = padding_time
+        laser_on_1 = init_time
+        laser_off_1 = singlet_decay + int(pi_time) + tau_time
+        laser_on_2 = init_time
+
+        laser_seq = [(laser_off_0, 0), (laser_on_1, 1), (laser_off_1, 0), (laser_on_2, 1)]
 
         # define sequence structure for DAQ counting triggers
-        daq_clock_seq = [
-            (padding_time + laser_lag, 0), 
-            (clock_time, 1), (readout_time, 0), (clock_time, 1),
-            (init_time - (2 * clock_time) - readout_time - laser_lag 
-                + singlet_decay + pi_half_time + tau_time + pi_half_time + laser_lag, 0), 
-            (clock_time, 1), (readout_time, 0), (clock_time, 1), 
-            (init_time - (2 * clock_time) - readout_time - laser_lag 
-                + padding_time + laser_lag, 0), 
-            (clock_time, 1), (readout_time, 0), (clock_time, 1),
-            (init_time - (2 * clock_time) - readout_time - laser_lag 
-                + singlet_decay + pi_half_time + tau_time + int(3 * pi_half_time) + laser_lag, 0), 
-            (clock_time, 1), (readout_time, 0), (clock_time, 1), 
-            (init_time - (2 * clock_time) - readout_time - laser_lag, 0)
-            ]
+        daq_off_0 = padding_time + laser_lag
+        daq_on_1 = clock_time
+        daq_off_1 = readout_time
+        daq_on_2 = clock_time
+        daq_off_2 = init_time - (2 * clock_time) - readout_time - laser_lag + singlet_decay + int(pi_time) + tau_time + laser_lag
+        daq_on_3 = clock_time
+        daq_off_3 = readout_time
+        daq_on_4 = clock_time
+        daq_off_4 = init_time - (2 * clock_time) - readout_time - laser_lag 
+
+        daq_clock_seq = [(daq_off_0, 0), (daq_on_1, 1), (daq_off_1, 0), (daq_on_2, 1), (daq_off_2, 0), (daq_on_3, 1), (daq_off_3, 0), (daq_on_4, 1), (daq_off_4, 0)]
 
         # define sequence for MW (switch)
-        switch_ttl_seq = [(padding_time + init_time + singlet_decay , 0), (pi_half_time, 1), (tau_time, 0), (pi_half_time, 1), (init_time + padding_time + init_time + singlet_decay, 0), (pi_half_time, 1), (tau_time, 0), (int(3 * pi_half_time), 1), (init_time, 0)]
+        switch_off_0 = padding_time + init_time + singlet_decay
+        switch_on_1 = pi_half_time
+        switch_off_1 = tau_time
+        switch_on_2 = pi_half_time
+        switch_off_2 = init_time 
+
+        switch_ttl_seq = [(switch_off_0 , 0), (switch_on_1, 1), (switch_off_1, 0), (switch_on_2, 1), (switch_off_2, 0)]
 
         # assign sequences to respective channels for seq_on
         seq.setDigital(0, daq_clock_seq) 

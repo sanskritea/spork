@@ -35,6 +35,7 @@ class AUXOutVsTime_Measurement:
 
 			self.times = np.zeros(0)
 			self.auxop = np.zeros(0)
+			print("Starting AUX Out vs Time Measurement")
 
 			for i in iterator:
 				self.auxop = np.append(self.auxop, gw.mfli.AUXOUT_read(1))

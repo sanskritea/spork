@@ -30,7 +30,7 @@ from experiments.NewportSpatialFeedback import SpatialFeedback
 from drivers.ni.nidaq_final import NIDAQ
 # from experiments.BayesianFunctions import BF
 
-gamma_bounds = [0.01,100]
+gamma_bounds = [0.01,50]
 
 
 
@@ -154,6 +154,7 @@ class Single_Bayesian_T1_Meas:
         Lower_Freq: float,
         Lower_Pi: float,
         bayesian_iterations: int,
+        notes: str
     ):
 
         # connect to the instrument server
@@ -162,8 +163,10 @@ class Single_Bayesian_T1_Meas:
         with InstrumentGateway() as gw, DataSource(datasetName) as SingleBayesianT1Data:
 
             # Constants
-            freq = [Lower_Freq]
-            pi_time_list = [Lower_Pi]
+            freq = Lower_Freq
+            pi_time = Lower_Pi
+            print('NV freq ', freq)
+            print('pi_time ', pi_time)
             start_time = time.time()
             readout_time = 500
 
@@ -182,9 +185,9 @@ class Single_Bayesian_T1_Meas:
             self.S_level_0_tau_list = []
 
             # SETUP BAYESIAN VARIABLES
-            tau_lower = 0.001 # in ms (10us)
-            tau_upper = 0.1 # in ms
-            n_tau = 1000
+            tau_lower = 0.001 # in ms (1us)
+            tau_upper = 10 # in ms
+            n_tau = 2000
             repetitions = num_samples 
             control_tau_list = np.geomspace(tau_lower, tau_upper, bayesian_iterations)
 
@@ -216,7 +219,7 @@ class Single_Bayesian_T1_Meas:
             gamma_samples_list = []
 
             # # CREATE GAMMA CLOUD DIRECTORY
-            dir_title = 'C://Users/awschlab/Desktop/data/gamma_clouds/60mW_Bayesian_B=0_H=Inf_Freqs=' + str(freq) + '_PiTime=' + str(pi_time_list[0]) + '_R=' + str(num_samples) + 'NoFeedback'
+            dir_title = 'C://Users/awschlab/Desktop/data/gamma_clouds/Bayesian_'+notes+'_B=50G_H=300nm_Freq=' + str(np.round(freq*1e-9, 4)) + 'GHz_PiTime=' + str(pi_time) + 'ns_R=' + str(num_samples) + 'NoFeedback'
             mkdir(dir_title)
 
 
@@ -250,11 +253,11 @@ class Single_Bayesian_T1_Meas:
 
 
                 ##############################################################################
-                #### STARTING WITH TAU GUESS/CALCULATION ####
+                ### STARTING WITH TAU GUESS/CALCULATION ####
                 # GET OPTIMIZED TAUS FROM NOB TO USE IN EXPERIMENT
                 print('Optimizing taus for pulse sequences')
                 T_overhead = 0
-                tau_opt = []
+                tau_opt = 0
                 if num == 0:
                     # tau_opt = tau_lower, tau_lower
                     tau_opt = 0.001
@@ -282,7 +285,7 @@ class Single_Bayesian_T1_Meas:
 
                 ##############################################################################
                 #### MW T1 PULSE SEQUENCE ####
-                seqs = Pulses(gw).BAYESIAN_T1(int(1e6 * tau), pi_time_list[0])
+                seqs = Pulses(gw).BAYESIAN_T1(int(1e6 * tau), int(pi_time))
                 # seqs.append(Pulses(gw).BAYESIAN_T1(int(1e6 * tau_minus), pi_time_list[1]))
                 ##############################################################################
 
@@ -327,7 +330,7 @@ class Single_Bayesian_T1_Meas:
 
                     # SRS ACTIONS
                     gw.sg.set_rf_amplitude(rf_power)    # set ouput power
-                    gw.sg.set_frequency(freq[0])
+                    gw.sg.set_frequency(freq)
                     gw.sg.set_mod_state(False) # make QAM/external after IQ is ready
                     gw.sg.set_rf_state("1")
 
@@ -491,7 +494,6 @@ class Single_Bayesian_T1_Meas:
                         }
                     )
 
-                    notes = ''
                     flexSave(datasetName, notes, 'Single Bayesian T1')
 
             print('Final gamma ', self.gamma_list[-1])

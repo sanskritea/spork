@@ -11,12 +11,33 @@ from rpyc.utils.classic import obtain
 from guis.guiElements_general import flexSave
 
 from experiments.NewPulses import Pulses
-from experiments.fitter import rabi
+from experiments.fitter import rabi_fit
 from experiments.NewportSpatialFeedback import SpatialFeedback
 from drivers.ni.nidaq_final import NIDAQ
 
 
 class Rabi_Measurement:
+
+    def safe_set_rf_state(self, gw, state, max_retries=3):
+        '''Set RF state with retry on I/O error.'''
+        for attempt in range(max_retries):
+            try:
+                gw.sg.set_rf_state(state)
+                return  # Success!
+            except Exception as e:
+                if "VI_ERROR_IO" in str(e) and attempt < max_retries - 1:
+                    print(f"Warning: RF state set failed (attempt {attempt+1}/{max_retries}), retrying...")
+                    time.sleep(0.5)  # Wait before retry
+                    # Try to reset the connection
+                    try:
+                        gw.sg.close()
+                        time.sleep(0.2)
+                        gw.sg.initialize()
+                    except:
+                        pass
+                else:
+                    raise  # Re-raise if final attempt or different error
+
 
     def Rabi(
         self,
@@ -39,6 +60,9 @@ class Rabi_Measurement:
         # existing one with the same name if it was created earlier.
 
         with InstrumentGateway() as gw, DataSource(datasetName) as RabiData:
+
+            # NV freq
+            print('NV freq : ', freq)
 
             # set up MW duration list to sweep over
             self.mw_times = np.linspace(min_MW_time, max_MW_time, num_MW_times, endpoint=True)
@@ -64,7 +88,8 @@ class Rabi_Measurement:
             gw.sg.set_rf_amplitude(rf_power)  # set ouput power
             gw.sg.set_frequency(freq)
             gw.sg.set_mod_state(False)
-            gw.sg.set_rf_state("1")
+            gw.sg.set_rf_state('1')  # turn on RF, will be turned off at end of each iteration in case of error to prevent overheating
+            # self.safe_set_rf_state(gw, "1")
 
             # FEEDBACK PARAMETERS
             self.start_time = time.time()
@@ -76,6 +101,9 @@ class Rabi_Measurement:
                 mynidaq.laser_power_atten(laser_power)
 
                 for i in iters:
+                    
+                    gw.sg.set_rf_state('1')  # turn on RF, will be turned off at end of each iteration in case of error to prevent overheating
+
 
                     for j in np.arange(num_MW_times):
 
@@ -126,14 +154,18 @@ class Rabi_Measurement:
                                 },
                             }
                         )
+                    
+                    # TURN OFF SRS
+                    gw.sg.set_rf_state('0')  # turn off RF
+                    time.sleep(0.1)  # wait for RF to turn off before next iteration to prevent overheating
 
                 notes = ''
                 flexSave(datasetName, notes, 'Rabi')
 
                 # Run fitter to find peaks
-                pi_time = rabi(self.mw_times, self.mwCountsDict, self.noMwCountsDict)
-                # print('Fitted pi-time ', pi_time)
-                return pi_time
+                pi_time, fit, tau = rabi_fit(self.mw_times, self.mwCountsDict, self.noMwCountsDict)
+                print('Fitted pi-time ', np.abs(pi_time))
+                return np.abs(pi_time)
 
             print("Experiment finished!")
 

@@ -41,7 +41,7 @@ class XYScan:
 			# VOLTAGE LISTS
 			x_voltage_list = np.linspace(x_init_voltage, x_final_voltage, x_voltage_steps)
 			y_voltage_list = np.linspace(y_init_voltage, y_final_voltage, y_voltage_steps)
-			counts = np.zeros((x_voltage_steps, y_voltage_steps))
+			counts = np.zeros((y_voltage_steps, x_voltage_steps))
 			diff = x_voltage_list[1] - x_voltage_list[0]
 
 			print('x_voltage_list ', x_voltage_list)
@@ -67,30 +67,22 @@ class XYScan:
 				# ANALOG DAQ TASKS
 				# print('Creating DAQ tasks')
 				self.ao_x_task = mynidaq.create_task()
-				self.ao_x_task.ao_channels.add_ao_voltage_chan('DEV4/AO2')
+				self.ao_x_task.ao_channels.add_ao_voltage_chan('DEV4/AO2') # INNER LOOP
 				self.ao_y_task = mynidaq.create_task()
-				self.ao_y_task.ao_channels.add_ao_voltage_chan('DEV4/AO3')
+				self.ao_y_task.ao_channels.add_ao_voltage_chan('DEV4/AO3') # OUTER LOOP
 
-				# move slowly to initial position (assume scanner is at (-0.1, -0.1)
-				# print('x_init_voltage ', x_init_voltage)
-				# print('current_AO2 ', current_AO2)
 				print('Moving to initial voltage')
-				if x_init_voltage != current_AO2:
-					# print('Move x to initial voltage')
-					steps = np.abs(int((current_AO2 - x_init_voltage) / 0.002))
-					x_list = np.linspace(current_AO2, x_init_voltage, steps)
-					# print('x_list ', x_list)
-					for x in x_list:
-						# print('Applying x voltage ', x)
-						self.ao_x_task.write(x)
-						time.sleep(sleep_time)
+				# move both x and y together from current position to starting position for scan, note that the number of steps for x and y might be different
+				x_steps = np.abs(int((current_AO2 - x_init_voltage) / 0.002))
+				y_steps = np.abs(int((current_AO3 - y_init_voltage) / 0.002))
+				max_steps = max(x_steps, y_steps)		
+				x_list = np.linspace(current_AO2, x_init_voltage, max_steps)
+				y_list = np.linspace(current_AO3, y_init_voltage, max_steps)	
+				for x, y in zip(x_list, y_list):
+					self.ao_x_task.write(x)
+					self.ao_y_task.write(y)
+					time.sleep(sleep_time)
 
-				if y_init_voltage != current_AO3:
-					steps = np.abs(int((current_AO3 - y_init_voltage) / 0.002))
-					y_list = np.linspace(current_AO3, y_init_voltage, steps)
-					for y in y_list:
-						self.ao_y_task.write(y)
-						time.sleep(sleep_time)
 
 				# setup
 				# print('Setting up Swabian')
@@ -98,18 +90,17 @@ class XYScan:
 				num_samples = int(time_per_pixel * trigger_rate)
 				gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
 
-				for i in range(x_voltage_steps):
+				for i in range(y_voltage_steps):
 
-					vx = x_voltage_list[i]
-					print('Applying x voltage ', vx)
-					self.ao_x_task.write(vx)
+					vy = y_voltage_list[i]
+					print('Applying y voltage ', vy)
+					self.ao_y_task.write(vy)
 					time.sleep(sleep_time)
 
-					for j in range(y_voltage_steps):
-
-						vy = y_voltage_list[j]
-						print('Applying y voltage ', vy)
-						self.ao_y_task.write(vy)
+					for j in range(x_voltage_steps):
+						vx = x_voltage_list[j]
+						print('Applying x voltage ', vx)
+						self.ao_x_task.write(vx)
 						time.sleep(sleep_time)
 
 						# print('start counting')
@@ -137,19 +128,31 @@ class XYScan:
 							}
 						})
 
-					# Bring inner dimension to starting voltage
+					# Reset inner dimension to starting voltage
 					print('Reset inner dimension')
-					y_list = np.flip(np.arange(y_init_voltage, y_final_voltage + diff, diff))
-					for y in y_list:
-						self.ao_y_task.write(y)
+					x_list = np.flip(np.arange(x_init_voltage, x_final_voltage + diff, diff))
+					for x in x_list:
+						self.ao_x_task.write(x)
 						time.sleep(sleep_time)
 
-				# Bring outer dimension to starting voltage
+				# Re-centre outer dimension 
 				print('Reset outer dimension')
-				x_list = np.flip(np.arange(x_init_voltage, x_final_voltage + diff, diff))
-				for x in x_list:
-					self.ao_x_task.write(x)
+				y_list = np.flip(np.arange(3.9, y_final_voltage + diff, diff))
+				for y in y_list:
+					self.ao_y_task.write(y)	# AO3
 					time.sleep(sleep_time)
+
+				# Re-centre inner dimension 
+				print('Reset inner dimension')
+				x_list = np.flip(np.arange(3.9, x_final_voltage + diff, diff))
+				for x in x_list:
+					self.ao_x_task.write(x) # AO2
+					time.sleep(sleep_time)
+
+				# final AO2/AO3 voltages
+				final_AO2, final_AO3 = mynidaq.analog_read_task()
+				print('final_AO2 ', final_AO2)
+				print('final_AO3 ', final_AO3)
 
 				# Save XY Scan data
 				notes = ''

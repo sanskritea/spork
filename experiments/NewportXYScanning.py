@@ -80,7 +80,7 @@ class XYScan:
                 start_time = time.time()
 
                 # start Swabian external trigger for counting
-                trigger_rate = 20e3                
+                trigger_rate = 100e3                
                 gw.swabian.runSequenceInfinitely(Pulses(gw).counting_trigger(int(trigger_rate)))
 
                 for n in range(pos_len):
@@ -91,17 +91,25 @@ class XYScan:
                     start_linescan_time = time.time()
 
                     # compensate for X backlash
-                    gw.esp.espX.move_to(x_position_list[0] - 0.025)
+                    # print("Moving to ", x_position_list[0] - 0.010)
+                    gw.esp.espX.move_to(x_position_list[0] - 0.01)
                     time.sleep(step_wait)
-                    x_backlash = np.arange(x_position_list[0] - 0.025, x_position_list[0] + 0.001, 0.001)
+                    # print("Moving to ", x_position_list[0] - 0.005)
+                    gw.esp.espX.move_to(x_position_list[0] - 0.005)
+                    time.sleep(step_wait)
+                    # print("Moving to ", x_position_list[0] - 0.002)
+                    gw.esp.espX.move_to(x_position_list[0] - 0.002)
+                    time.sleep(step_wait)
+                    x_backlash = np.arange(x_position_list[0] - 0.002, x_position_list[0], 0.0002)
                     for xx in x_backlash:
+                        # print('moving to ', xx)
                         gw.esp.espX.move_to(xx)
                         time.sleep(step_wait)
 
                     for nn in range(pos_len):
 
                         ## MOVE X
-                        # print('moving to ', y_position_list[nn])
+                        # print('Moving to ', x_position_list[nn])
                         gw.esp.espX.move_to(x_position_list[nn])
                         # gw.esp.espY.wait()
                         time.sleep(step_wait)
@@ -109,10 +117,12 @@ class XYScan:
                         ## COUNTING
                         num_samples = int(time_per_pixel * trigger_rate)
                         reading_period = 1 / trigger_rate
-                        counts[n][nn] = np.mean(obtain(mynidaq.internal_read_task(trigger_rate, num_samples))) / (reading_period) #
+                        # print('num_samples ', num_samples)
+                        count = np.mean(obtain(mynidaq.internal_read_task(trigger_rate, num_samples))) / (reading_period)
+                        # print('Counts at (', x_position_list[nn], ', ', y_position_list[n], ') is ', count)
+                        counts[n][nn] = count
 
                         ## PUSH DATA
-                        # print("start push")
                         NewportXYScanningData.push(
                             {
                                 "params": {
@@ -134,6 +144,8 @@ class XYScan:
                                 },
                             }
                         )
+
+
 
             # Save XY Scan data
             notes = ''

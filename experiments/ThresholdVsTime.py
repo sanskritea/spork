@@ -19,6 +19,7 @@ from rpyc.utils.classic import obtain
 from guis.guiElements_general import flexSave
 from drivers.zurich.mfli import MFLI
 from drivers.ni.nidaq_final import NIDAQ
+from datetime import datetime
 
 
 class ThresholdVsTime_Measurement:
@@ -49,6 +50,7 @@ class ThresholdVsTime_Measurement:
 
 				self.times = np.zeros(0)
 				self.auxop = np.zeros(0)
+				self.retraction_times = np.zeros(0, dtype=object)
 
 				for i in iterator:
 					value = gw.mfli.AUXOUT_read(3)
@@ -57,6 +59,9 @@ class ThresholdVsTime_Measurement:
 						# self.ao_x_task.write(-0.1)
 						# self.ao_y_task.write(-0.1)
 						print('RETRACTED!')
+						time_now = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+						self.retraction_times = np.append(self.retraction_times, time_now)
+						print('Time of retraction: ', time_now)
 						time.sleep(2)
 
 					self.auxop = np.append(self.auxop, value)
@@ -71,11 +76,13 @@ class ThresholdVsTime_Measurement:
 				    	'ylabel': 'Threshold (V)',
 				    	'datasets': {'time': self.times,
 				    				'AUX': self.auxop,
+									'Retraction_time': self.retraction_times
+
 				    	}
 				    })
 
 					time.sleep(0.1)
 
-			flexSave(datasetName, 'ThresholdVsTime', 'final') # after measurement finishes
+				flexSave(datasetname, 'ThresholdVsTime', 'final') # after measurement finishes
 
 

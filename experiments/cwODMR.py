@@ -17,7 +17,7 @@ import numpy as np
 
 from nspyre import DataSource
 from nspyre import InstrumentGateway
-
+from guis.guiElements_general import flexSave
 from rpyc.utils.classic import obtain
 
 from experiments.NewPulses import Pulses
@@ -57,12 +57,6 @@ class CW_ODMR_Measurement:
             gw.sg.set_mod_func("5")
             gw.sg.set_rf_state("1")
 
-            gw.sg2.set_rf_amplitude(rfPower)  # set ouput power
-            gw.sg2.set_mod_state(False)
-            gw.sg2.set_mod_type("7")
-            gw.sg2.set_mod_func("5")
-            gw.sg2.set_rf_state("1")
-
             print('probe_time ', probe_time)
 
             # set up frequencies to sweep over
@@ -94,9 +88,6 @@ class CW_ODMR_Measurement:
                         # SET SRS OUTPUT FREQUENCY
                         gw.sg.set_frequency(freq)
                         print("freq : ", freq)
-                        freq2 = freq-0.3e9
-                        gw.sg2.set_frequency(freq2)
-                        print(freq2)
 
                         # START TASK
                         # num_samples = int(readout_time  * 1e-9 * 20e6)
@@ -147,6 +138,10 @@ class CW_ODMR_Measurement:
                 gw.swabian.reset()
                 gw.sg.set_rf_state("0")
                 gw.sg2.set_rf_state("0")
+            
+            # Save XY Scan data
+            notes = ''
+            flexSave(datasetname, notes, 'XYScan')
 
             print("Experiment finished!")
 

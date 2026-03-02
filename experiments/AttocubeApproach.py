@@ -52,6 +52,9 @@ class Attocube_Approach_Measurement:
 				self.voltages = np.zeros(0)
 				self.amplitudes = np.zeros(0)
 
+				# starting un-engaged
+				self.engaged = False
+
 				# COARSE APPROACH: MOVE TO LOWEST VOLTAGE FROM 0 
 				# step up to lowest position from zero before scanning to help hysteresis
 				if stage_min_voltage != -0.1:

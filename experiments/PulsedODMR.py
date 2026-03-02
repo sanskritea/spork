@@ -22,13 +22,55 @@ from guis.guiElements_general import flexSave
 from rpyc.utils.classic import obtain
 
 from experiments.NewPulses import Pulses
-from experiments.fitter import pulsed_odmr
+from experiments.fitter import single_lorentzian_fit
 from drivers.ni.nidaq_final import NIDAQ
 
 # from PulsePatterns import Pulses
 
 
 class Pulsed_ODMR_Measurement:
+
+    def safe_set_rf_state(self, gw, state, max_retries=int(3)):
+        '''Set RF state with retry on I/O error.'''
+        for attempt in range(max_retries):
+            try:
+                gw.sg.set_rf_state(state)
+                return  # Success!
+            except Exception as e:
+                if "VI_ERROR_IO" in str(e) and attempt < max_retries - 1:
+                    print(f"Warning: RF state set failed (attempt {attempt+1}/{max_retries}), retrying...")
+                    time.sleep(0.5)  # Wait before retry
+                    # Try to reset the connection
+                    try:
+                        gw.sg.close()
+                        time.sleep(0.2)
+                        gw.sg.initialize()
+                    except:
+                        pass
+                else:
+                    raise  # Re-raise if final attempt or different error
+
+    
+    def safe_set_rf_frequency(self, gw, freq, max_retries=int(3)):
+        '''Set RF frequency with retry on I/O error.'''
+        for attempt in range(max_retries):
+            try:
+                gw.sg.set_frequency(freq)
+                return  # Success!
+            except Exception as e:
+                if "VI_ERROR_IO" in str(e) and attempt < max_retries - 1:
+                    print(f"Warning: RF frequency set failed (attempt {attempt+1}/{max_retries}), retrying...")
+                    time.sleep(0.5)  # Wait before retry
+                    # Try to reset the connection
+                    try:
+                        gw.sg.close()
+                        time.sleep(0.2)
+                        gw.sg.initialize()
+                    except:
+                        pass
+                else:
+                    raise  # Re-raise if final attempt or different error
+
 
     def PulsedODMR(
         self,
@@ -52,6 +94,9 @@ class Pulsed_ODMR_Measurement:
         # existing one with the same name if it was created earlier.
 
         with InstrumentGateway() as gw, DataSource(datasetName) as PulsedODMRdata:
+
+            print('NV freq : ', startFreq, ' to ', endFreq)
+            print('pi_time : ', pi_time)
 
             # SRS actions
             gw.sg.set_rf_amplitude(rfPower)  # set ouput power
@@ -85,9 +130,10 @@ class Pulsed_ODMR_Measurement:
                     for freq in self.freqs:
 
                         # SET SRS OUTPUT FREQUENCY
-                        gw.sg.set_frequency(freq)
+                        # gw.sg.set_frequency(freq)
+                        self.safe_set_rf_frequency(gw, freq)
                         # print("freq : ", freq)
-                        gw.sg.set_rf_state("1")
+                        self.safe_set_rf_state(gw, "1")
 
                         # START TASK
                         # num_samples = int(readout_time  * 1e-9 * 20e6)
@@ -137,13 +183,19 @@ class Pulsed_ODMR_Measurement:
                         # RESET SWABIAN OUTPUTS
                         gw.swabian.reset()
 
+                        # TURN OFF SRS
+                        self.safe_set_rf_state(gw, "0")
+                        # time.sleep(0.1)
+
                 notes = ''
                 flexSave(datasetName, notes, 'Pulsed ODMR')
 
-                # # Run fitter to find peaks
-                # f_center = pulsed_odmr(self.freqs, self.mwCountsDict, self.noMwCountsDict)
-                # # print('Fitted P-ODMR peak ', f_center)
-                # return f_center
+                # Run fitter to find peaks
+                # only store the fitted center frequency for now, can add more later if desired
+                f_center, fitted_line, freq_list = single_lorentzian_fit(self.freqs, self.mwCountsDict, self.noMwCountsDict)
+                f_center = np.round(f_center, 4)  # convert to GHz
+                print('Fitted P-ODMR peak (GHz)', f_center)
+                return f_center
 
             print("Experiment finished!")
 
